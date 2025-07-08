@@ -105,50 +105,164 @@ freq    = 100;              % frequency of fundamental tone
 filtord = 4;                % filter order
 filt    = rand(filtord, 1); % filter coefficients
 nVar    = 1;                % white noise variance
-SNR     = -20;              % signal to noise ratio of tone
+SNR     = 10;              % signal to noise ratio of tone
     
+N = 4;
+
 % Generate the data!
 [n,x,s,fs] = genData(numPts, freq, filt, nVar, SNR);
 
-rr = (1:50);
-yy1 = (rr*10).';
-x3 = zeros(10,10);
+y_out1 = [];
+x3 = zeros(N,N);
+x3(1,:) = x(1:N);
+x3(:,1) = x(1:N).';
+
+w1 = inv(x3'*x3) * x3' * s(1:N);
+st = lsqr(x3, s(1:N));
+
+y_out = w1(1)*x(1) + w1(2)*x(2) + w1(3)*x(3) + w1(4)*x(4); % + st(5)*x(5) + st(6)*x(6) + st(7)*x(7) + st(8)*x(8) + st(9)*x(9) + st(10)*x(10);
+y_out1(1) = y_out;
+
+% work
+% for i = 1:2
+%   if i == 1  
+%     x3 = [x(i), x(i+1); x(i+1), 0];
+%   else
+%     x3 = [x(i), x(i+1); x(i+1), x(i+2)];
+%   end
+%   y3 = [s(i); s(i+1)];
+%   w1 = inv(x3'*x3) * x3' * y3;
+%   st = lsqr(x3, y3);
+%   y = st(1)*x(i)+st(2)*x(i+1);
+% end
+%%
+for j = 1:length(s)-N-10
+
+    x3(1,:) = [x3(1,(2:N)), x(j+N)];
+    x3(2:N,1) = x3(1,2:N); 
+
+    % x3(2,2) = x3(1,3);
+
+        % if j > 1
+        %     for i = 1:N-1
+        %         if i < N-1
+        %             x3(i+1,N-i) = x3(1,N);
+        %         elseif i >= N-1
+        %             for k = 1:N-1
+        %                 x3(k+1,N-k+1) = x(j+N+1);
+        %             end
+        %         end
+        %     end
+        % 
+        % end
+        
+        x4 = fliplr(x3);
+        
+        for k = 1:j
+            q = diag(x4,k)
+            ar = find(q == 0);
+            az = q(1);
+            q = zeros(N-1,1);
+            for i = 1:length(ar)
+                q(ar) = az;
+            end
+            x4 = diag(q,1);
+            x4 = fliplr(x4);
+            x3 = x4+x3;
+        end
 
 
-x3(1,:) = x(1:10);
-x3(:,1) = x(1:10).';
+        % x3(2,2) = x3(1,3);
+        % if j == 2
+        %     x3(2,3) = x3(1,4);
+        %     x3(3,2) = x3(1,4);
+        % elseif j == 3
+        %     x3(2,3) = x3(1,4);
+        %     x3(3,2) = x3(1,4);
+        % 
+        %     x3(2,4) = x(j+N+1);
+        %     x3(3,3) = x3(2,4);
+        %     x3(4,2) = x3(3,3);
+        % elseif j ==4
+        %     x3(2,3) = x3(1,4);
+        %     x3(3,2) = x3(1,4);
+        % 
+        %     x3(2,4) = x(j+N+1);
+        %     x3(3,3) = x3(2,4);
+        %     x3(4,2) = x3(3,3);
+        % 
+        %     x3(3,4) = x(j+N+2);
+        %     x3(4,3) = x3(3,4);
+        % elseif j > 5
+        %     x3(2,3) = x3(1,4);
+        %     x3(3,2) = x3(1,4);
+        % 
+        %     x3(2,4) = x(j+N+1);
+        %     x3(3,3) = x3(2,4);
+        %     x3(4,2) = x3(3,3);
+        % 
+        %     x3(3,4) = x(j+N+2);
+        %     x3(4,3) = x3(3,4);
+        % 
+        %     x3(4,4) = x(j+N+3);
+        % end
 
-w1 = inv(x3'*x3) * x3' * s(1:10);
-st = lsqr(x3, s(1:10));
 
+    w1 = inv(x3'*x3) * x3' * s(j+1:N+j);
+    st = lsqr(x3, s(j+1:N+j));
 
-y_out = filter(w1.', 1, x(1:10));
+    % y_out = st(1)*x(j+1) + st(2)*x(j+2) + st(3)*x(j+3) + st(4)*x(j+4); % + st(5)*x(5) + st(6)*x(6) + st(7)*x(7) + st(8)*x(8) + st(9)*x(9) + st(10)*x(10);
+    y_out = w1(1)*x(j+1) + w1(2)*x(j+2) + w1(3)*x(j+3) + w1(4)*x(j+4);
+    y_out1(j+1) = y_out;
 
-
-for j = 11:length(s)
-    x3(1,:) = circshift(x3(1,:),1);
-    
-    for i = 2:10
-        x3(i,:) = circshift(x3(i-1,:),-1);
-    end
-    x3(1,1) = x(j);
-
-    w1 = inv(x3'*x3) * x3' * s(j-10:j-1);
-    % st = lsqr(x3, s(j-10:j-1));
-
-    y_out = filter(w1.', 1, x(j-10:j-1));
-    y_out1((j-10:j-1)) = y_out;
-   
 end
 
- y_out1 =  y_out1.'
+nn = 987;
 
-plot([s(1:999),x(1:999), y_out1])
+y_out1 =  y_out1.';
+error_out = y_out1 ./ s(1:nn);
+
+subplot(2,1,1)
+plot([s(1:nn),x(1:nn), y_out1])
 % title('Отношение между отсчетами I-составляющей')
 xlabel('Номер отсчета') 
 ylabel('Амплитуда') 
 legend({'Исходный сигнал','Сигнал + Шум','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+subplot(2,1,2)
+plot(error_out)
+title('Относительная ошибка между исходным сигналом и выходом адаптивного фильтра')
+xlabel('Номер отсчета') 
+ylabel('Отношение') 
+%% N = 3
+% for j = 1:length(s)-N
+% 
+%     x3(1,:) = [x3(1,(2:N)), x(j+N)];
+%     x3(2:N,1) = x3(1,2:N); 
+% 
+%     for i = 1:1
+% 
+%         x3(2,2) = x3(1,3);
+%     end
+% 
+%     w1 = inv(x3'*x3) * x3' * s(j+1:N+j);
+%     st = lsqr(x3, s(j+1:N+j));
+% 
+%     y_out = st(1)*x(j+1) + st(2)*x(j+2) + st(3)*x(j+3);% + st(4)*x(j);% + st(5)*x(5) + st(6)*x(6) + st(7)*x(7) + st(8)*x(8) + st(9)*x(9) + st(10)*x(10);
+% 
+%     y_out1(j+1) = y_out;
+% 
+% end
+% 
+%  y_out1 =  y_out1.';
+% 
+% plot([s(1:998),x(1:998), y_out1])
+% % title('Отношение между отсчетами I-составляющей')
+% xlabel('Номер отсчета') 
+% ylabel('Амплитуда') 
+% legend({'Исходный сигнал','Сигнал + Шум','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+
 %%
+
 % subplot(2,1,1)
 % plot([xx, dd, yy]);
 % subplot(2,1,2)
