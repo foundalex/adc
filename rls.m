@@ -57,56 +57,46 @@ clc;
 % title('Galat');
 % cnsmd_time = toc(st_time)
 
-
 freq = 1000;             % frequency of fundamental tone
 N = 73;
 %% Time specifications:
 Fs = 20000;                 % samples per second
 dt = 1/Fs;                   % seconds per sample
-StopTime = 0.2;             % seconds
+StopTime = 0.5;             % seconds
 t = (0:dt:StopTime-dt)';     % seconds
 %% Sine wave:
-s = cos(2*pi*freq*t);
-s = s/15;
-
+s = 0.07*cos(2*pi*freq*t);
 noise = awgn(s, 60);
-
 s = s + noise;
-% create signal adc0_out Fs/2
-s0 = s(1:2:end); 
-% create signal adc1_out Fs/2
-s1 = s(2:2:end); 
+M = 2;
 
-% add time skew
-delay = 1;
-s0 = [s0(delay:end); zeros(delay-1,1)];
-plot([s0(1:100), s1(1:100)]);
+% ADC
+for k = 1:2000
+    s0(k,:) = s(k*M+1); % ADC0
+    s1(k,:) = s(k*M+2); % ADC1
+end
 
+%offset
+s1 = s1 + 0.002;
 
-% emulate adc on odd and even
+%gain
+s1 = s1 * 1.4;
+
+plot([s0,s1]);
+
 x_adc0 = s0;% + noise;
 x_adc1 = s1;% + noise;
 
-
-% add offset
-x_adc1 = x_adc1 + 0.002;
-% plot([x_adc0,x_adc1]);
-
-% add gain
-x_adc1 = x_adc1 * 1.4;
-
 % create main signal from adc
-x_after_subadc = zeros(length(s),1);
+x_after_subadc = zeros(2*length(s0),1);
 x_after_subadc(1:2:end) = x_adc0; 
 x_after_subadc(2:2:end) = x_adc1; 
+plot(x_after_subadc(1:250))
 
-% x_after_subadc1 = zeros(length(s),1);
-% x_after_subadc1(1:2:end) = x_adc1; 
-% x_after_subadc1(2:2:end) = x_adc1; 
-
-spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
+spectrumScope = spectrumAnalyzer(SampleRate = Fs, ...            
             AveragingMethod='exponential',ForgettingFactor=0.99, ...
             YLimits=[-30 10],ShowLegend=true);
+% spectrumScope([x_adc0, x_adc1]);
 spectrumScope([x_after_subadc]);
 
 
@@ -175,57 +165,37 @@ for z = 1:1
 
 end
 
-    subplot(2,1,1)
-    plot([x_adc0(1:nn), x_adc1(1:nn), y_out11(1:nn)])
-    % title('Отношение между отсчетами I-составляющей')
-    xlabel('Номер отсчета') 
-    ylabel('Амплитуда') 
-    legend({'Исходный сигнал','Сигнал + Шум','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
-    subplot(2,1,2)
-    plot([error_out(:,1)]);% error_out(:,2), error_out(:,3)])
-    title('Относительная ошибка между исходным сигналом и выходом адаптивного фильтра')
-    xlabel('Номер отсчета') 
-    ylabel('Отношение') 
+    % subplot(2,1,1)
+    % plot([x_adc0(1:nn), x_adc1(1:nn), y_out11(1:nn)])
+    % % title('Отношение между отсчетами I-составляющей')
+    % xlabel('Номер отсчета') 
+    % ylabel('Амплитуда') 
+    % legend({'Исходный сигнал','Сигнал + Шум','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+    % subplot(2,1,2)
+    % plot([error_out(:,1)]);% error_out(:,2), error_out(:,3)])
+    % title('Относительная ошибка между исходным сигналом и выходом адаптивного фильтра')
+    % xlabel('Номер отсчета') 
+    % ylabel('Отношение') 
 
-    % create main signal from adc
+    % create main signal from sub-adc
     x_after_adc = zeros(nn*2,1);
+
+    x_after_adc1 = zeros(nn,1);
+    x_after_adc2 = zeros(nn,1);
+
+    for ty = 1:nn
+        a = 1+((ty - mod(ty,2))/2);
+        x_after_adc1(ty) = x_adc0(1+(ty - mod(ty,2))/2);
+        x_after_adc2(ty) = y_out11(1+(ty - mod(ty,2))/2);
+    end
+
     x_after_adc(1:2:end) = x_adc0(1:nn); 
     x_after_adc(2:2:end) = y_out11; 
+    plot(x_after_adc)
 
     spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
                 AveragingMethod='exponential',ForgettingFactor=0.99, ...
                 YLimits=[-30 10],ShowLegend=true);
-    spectrumScope([x_after_subadc(1:nn*2), x_after_adc]);
+    spectrumScope([x_after_adc]);
 
-
-
-
-%% N = 3
-% for j = 1:length(s)-N
-% 
-%     x3(1,:) = [x3(1,(2:N)), x(j+N)];
-%     x3(2:N,1) = x3(1,2:N); 
-% 
-%     for i = 1:1
-% 
-%         x3(2,2) = x3(1,3);
-%     end
-% 
-%     w1 = inv(x3'*x3) * x3' * s(j+1:N+j);
-%     st = lsqr(x3, s(j+1:N+j));
-% 
-%     y_out = st(1)*x(j+1) + st(2)*x(j+2) + st(3)*x(j+3);% + st(4)*x(j);% + st(5)*x(5) + st(6)*x(6) + st(7)*x(7) + st(8)*x(8) + st(9)*x(9) + st(10)*x(10);
-% 
-%     y_out1(j+1) = y_out;
-% 
-% end
-% 
-%  y_out1 =  y_out1.';
-% 
-% plot([s(1:998),x(1:998), y_out1])
-% % title('Отношение между отсчетами I-составляющей')
-% xlabel('Номер отсчета') 
-% ylabel('Амплитуда') 
-% legend({'Исходный сигнал','Сигнал + Шум','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
-
-%%
+    % spectrumScope([x_after_subadc(1:nn*2), x_after_adc]);
