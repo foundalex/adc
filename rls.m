@@ -9,15 +9,15 @@ clc;
 
 %% Parameters;
 N = 73;
-Fs = 20000000000;           % samples per second
+Fs = 2000000000;           % samples per second
 dt = 1/Fs;                  % seconds per sample
-StopTime = 0.00001;         % seconds
+StopTime = 0.0001;         % seconds
 t = (0:dt:StopTime-dt)';    % seconds
 M = 2;                      % Num of sub ADC
 %% Sine wave:
 freq0 = 0;
 for num = 5:5
-    count = 10000000;
+    count = 5000000;
     freq0 = freq0 + count;  % frequency of fundamental tone
     freq1 = 2000000;
 
@@ -27,6 +27,7 @@ for num = 5:5
 
     s = s0;% + s1;
     noise = awgn(s, 62);
+
     s = s + noise;
 
 % ADC
@@ -165,93 +166,129 @@ x_after_subadc(2:M:end) = adc_input(:,2);
 
 n = (1:73);
 ww = blackman(N);
-adc_input_id(:,1) = adc_input(:,1);
+% wvtool(blackman(N));
+
+
+% adc_input_id(:,1) = adc_input(:,1);
 % создаем массив [1:3] из задержанного сигнала ADC0 на различные значения [0.75 0.5 0.25]
-for i = 1:M-1
 
+delay_adc = [0.5; 0.5]; 
+
+for i = 1:M
+    % Method 1
+    % % % delay_adc(i) = i/M; % (стр.6,(16))
     % h = sinc(n - (N - 1) / 2 - delay_adc(i));
-    % te = h.'.*ww;
-    % % te = te./sum(te); 
+    % te = h.' .* ww;
+    % te = te ./ sum(te); 
+    % freqz(te,1);
     % yri(:,i) = filter(te, 1, adc_input(:,1)); % (стр.6 (15))
-    
-    delay_adc(i) = i/M; % (стр.6,(16))
+
+    % Method 2
     [hri(:,i), i0(i), bw(i)] = designFracDelayFIR(delay_adc(i), N); 
+    % plot([h.', hri(:,i)])
+    [H1,w] = freqz(hri(:,i),1);
+    plot(w/pi,mag2db(abs([H1])))
     % total_delay_fir(i) = i0(i) + delay_adc(i);
+    fdfir = dsp.FIRFilter(hri(:,i).'); 
 
-    yri(:,i) = filter(hri(:,i), 1, adc_input(:,1)); % (стр.6 (15))
+    yri(:,i) = fdfir(adc_input(:,i)); % (стр.6 (15))
+    % plot(yri(:,i))
 
-    plot([adc_input(1:150,1), yri(1:150,1)]);
+    plot([adc_input(1:150,2), yri(1:150,i)]);
     zz = yri((N-1)/2:end,i);
-    adc_input_id(1:end-(N-1)/2+1,i+1) = zz; % (удаляем отсчеты до N-1/2 из-за переходных процессов фильтра дробной задержки, стр. 6, (21))
-    plot([adc_input_id(1:250,1), adc_input_id(1:250,2)]);
+    adc_input_id(:,i) = zz;
+    plot([adc_input(1:100,2), zz(1:100)]);
+ 
 end
+plot([adc_input(1:250,2), adc_input_id(1:250,2)]);
 
 adc_input_id(9053:end,:) = [];
+% % % aa = adc_input(1:end-((N-1)/2)+2,1);
 
+% aa = [adc_input_id((N-1)/2:end-1,1)];
 aa = adc_input_id(1:end,1);
-bb = adc_input_id(2:end,2);
+bb = [adc_input_id(2:end,2); 0];
 % cc = adc_input_id(1:end,3);
 % dd = adc_input_id(1:end,4);
 % dd = adc_input_id(1:end,4);
-figure(2);
+% figure(2);
 % plot([adc_input(1:100,1), aa(1:100)]);
-plot([aa(1:100), bb(1:100)]); %, cc(1:100), dd(1:100)]);
+plot([adc_input(1:100,1), bb(1:100)]); %, cc(1:100), dd(1:100)]);
 
-
-% ee = adc_input_id(1:end,5);
-% ff = adc_input_id(1:end,6);
-% gg = adc_input_id(1:end,7);
-% hh = adc_input_id(1:end,8);
-% plot([aa(1:30), bb(1:30), cc(1:30), dd(1:30)]);
 
 tt = 2;
-x_after_subadc1 = zeros(tt*length(adc_input_id(:,1))-2,1);
-% x_after_subadc1(4:tt:end) = [0; adc_input(1:length(adc_input_id(1:end-1,1)),1)]; 
-x_after_subadc1(2:tt:end) = adc_input_id(2:end,2); 
-x_after_subadc1(1:tt:end) = adc_input_id(1:end-1,1);
-% x_after_subadc1(3:tt:end) = adc_input_id(:,2);
-% x_after_subadc1(4:tt:end) = [0; adc_input_id(1:end-1,1)];
+x_after_subadc1 = zeros(tt*length(adc_input_id(:,1)),1);
+% % x_after_subadc1(4:tt:end) = [0; adc_input(1:length(adc_input_id(1:end-1,1)),1)]; 
+% 
+ab = adc_input_id(:,2);
+x_after_subadc1(2:tt:end) = ab; 
+%
+ab1 = [0; adc_input(1:end-((N-1)/2)-2,2)];
+% x_after_subadc1(2:tt:end) = ab1; 
+% 
+x_after_subadc1(1:tt:end) = [adc_input_id(:,1)];
+% % x_after_subadc1(3:tt:end) = adc_input_id(:,2);
+% % x_after_subadc1(4:tt:end) = [0; adc_input_id(1:end-1,1)];
+
+plot([ab1(1:100), ab(1:100)]);
+
+    % spectrumScope = spectrumAnalyzer(SampleRate=Fs/11/M, ...            
+    %             AveragingMethod='exponential',ForgettingFactor=0.99, ...
+    %             YLimits=[-30 10],ShowLegend=true, FrequencySpan="start-and-stop-frequencies", StartFrequency=0, StopFrequency=Fs/11/4);
+    % spectrumScope(ab1,ab);
+
+% plot([adc_input_id(1:100,2), ab(1:100)])
+
+% figure(3);
 
 
-% x_after_subadc1(1:tt:end) = adc_input_id(:,4);
-% x_after_subadc1(5:tt:end) = adc_input_id(:,5);
-% x_after_subadc1(6:tt:end) = adc_input_id(:,6);
-% x_after_subadc1(7:tt:end) = adc_input_id(:,7);
-% x_after_subadc1(8:tt:end) = adc_input_id(:,8);
+a1 = adc_input(1:9052,1);
+a2 = adc_input(1:9052,2);
+a3 = adc_input_id(:,1);
+a4 = adc_input_id(:,2);
+a5 = x_after_subadc(1:18104);
+a6 = x_after_subadc1(1:end);
+% plot([a1, a2]);
 
-figure(3);
-plot([x_after_subadc(1:300), x_after_subadc1(1:300)]);
-
-a1 = x_after_subadc(1:18104);
-a2 = x_after_subadc1(1:end);
 
     figure(2);
     subplot(4,1,1);
-    sfdr(adc_input(:,1));
+    sfdr(a1, Fs/11/2);
     subplot(4,1,2);
-    sfdr(adc_input_id(:,1));
+    sfdr(a2, Fs/11/2);
     subplot(4,1,3);
-    sfdr(a1);
+    sfdr(a3, Fs/11/2);
     subplot(4,1,4);
-    sfdr(a2);
+    sfdr(a4, Fs/11/2);
 
-    figure(1);
-    subplot(4,1,1);
-    sfdr(adc_input(:,1));
-    subplot(4,1,2);
-    sfdr(adc_input(:,2));
-    % subplot(8,1,3);
-    % sfdr(adc_input(:,3));
-    % subplot(8,1,4);
-    % sfdr(adc_input(:,4));
-    subplot(4,1,3);
-    sfdr(adc_input_id(:,1));
-    subplot(4,1,4);
-    sfdr(adc_input_id(:,2));
-    % subplot(8,1,7);
-    % sfdr(adc_input_id(:,3));
-    % subplot(8,1,8);
-    % sfdr(adc_input_id(:,4));
+    figure(3);
+    subplot(2,1,1);
+    sfdr(a5, Fs/11);
+    subplot(2,1,2);
+    sfdr(a6, Fs/11);
+
+
+    % sfdr(a1, Fs/11);
+    % subplot(4,1,4);
+    % sfdr(a2, Fs/11);
+    % 
+    % figure(1);
+    % subplot(4,1,1);
+    % sfdr(adc_input(:,1));
+    % subplot(4,1,2);
+    % sfdr(adc_input(:,2));
+    % % subplot(8,1,3);
+    % % sfdr(adc_input(:,3));
+    % % subplot(8,1,4);
+    % % sfdr(adc_input(:,4));
+    % subplot(4,1,3);
+    % sfdr(adc_input_id(:,1));
+    % subplot(4,1,4);
+    % sfdr(adc_input_id(:,2));
+    % % subplot(8,1,7);
+    % % sfdr(adc_input_id(:,3));
+    % % subplot(8,1,8);
+    % % sfdr(adc_input_id(:,4));
 
     % spectrumScope = spectrumAnalyzer(SampleRate=Fs/11, ...            
     %             AveragingMethod='exponential',ForgettingFactor=0.99, ...
@@ -339,14 +376,15 @@ a2 = x_after_subadc1(1:end);
 
     % create main signal from sub-adc
     x_after_adc = zeros(j*M+M,1);
-    x_after_adc(1:M:end) = adc_input_id(1:j+1,1); 
-    x_after_adc(2:M:end) = y_out11(1:j+1,1); 
-    x_after_adc(3:M:end) = y_out11(1:j+1,2); 
-    x_after_adc(4:M:end) = y_out11(1:j+1,3); 
-    x_after_adc(5:M:end) = y_out11(1:j+1,4); 
-    x_after_adc(6:M:end) = y_out11(1:j+1,5); 
-    x_after_adc(7:M:end) = y_out11(1:j+1,6); 
-    x_after_adc(8:M:end) = y_out11(1:j+1,7); 
+    x_after_adc(4:M:end) = adc_input_id(1:j+1,1); 
+    x_after_adc(3:M:end) = y_out11(1:j+1,1); 
+    x_after_adc(2:M:end) = y_out11(1:j+1,2); 
+    x_after_adc(1:M:end) = y_out11(1:j+1,3); 
+
+    % x_after_adc(5:M:end) = y_out11(1:j+1,4); 
+    % x_after_adc(6:M:end) = y_out11(1:j+1,5); 
+    % x_after_adc(7:M:end) = y_out11(1:j+1,6); 
+    % x_after_adc(8:M:end) = y_out11(1:j+1,7); 
 
     % plot(x_after_adc(1:50));
 
@@ -358,7 +396,7 @@ a2 = x_after_subadc1(1:end);
     ylabel('Амплитуда') 
     legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
     subplot(2,1,2)
-    plot([error_out(:,1), error_out(:,2), error_out(:,3)]);
+    plot([error_out(:,1)]); %, error_out(:,2), error_out(:,3)]);
     title('Относительная ошибка между исходным сигналом и выходом адаптивного фильтра')
     xlabel('Номер отсчета') 
     ylabel('Отношение') 
@@ -368,9 +406,9 @@ a2 = x_after_subadc1(1:end);
     %             YLimits=[-30 10],ShowLegend=true, FrequencySpan="start-and-stop-frequencies", StartFrequency=0, StopFrequency=Fs/11/2);
     % spectrumScope([x_after_subadc(1:M*nn),x_after_adc]);
 %% Measurements
-    snr_input(num+1) = snr(x_after_subadc);
+    snr_input(num+1) = snr(x_after_subadc(1:17596));
     snr_output(num+1) = snr(x_after_adc(1:end));
-    sfdr_input(num+1) = sfdr(x_after_subadc, Fs/11/M);
+    sfdr_input(num+1) = sfdr(x_after_subadc(1:17596), Fs/11/M);
     sfdr_output(num+1) = sfdr(x_after_adc(1:end), Fs/11/M);
     norm_freq(num+1) = freq0/(Fs/11/M);
 
@@ -388,13 +426,13 @@ a2 = x_after_subadc1(1:end);
     ylabel('SFDR (db)') 
     legend('до калибровки','после калибровки')
 
-    figure(1);
-    subplot(3,1,3);
-    sfdr(x_after_adc);
-
-    figure(2);
-    subplot(3,1,3);
-    snr(x_after_adc);
+    % figure(1);
+    % subplot(3,1,3);
+    % sfdr(x_after_adc);
+    % 
+    % figure(2);
+    % subplot(3,1,3);
+    % snr(x_after_adc);
 
 end
 
