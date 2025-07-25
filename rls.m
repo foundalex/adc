@@ -5,8 +5,8 @@
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
 close all;
-clear all;
-clc;
+% clear all;
+% clc;
 
 %% Parameters;
 N = 73;
@@ -14,11 +14,11 @@ Fs = 2000000000;            % Fs = 2 GHz
 dt = 1/Fs;                  % seconds per sample
 StopTime = 0.00001;         % seconds
 t = (0:dt:StopTime-dt)';    % seconds
-M = 4;                      % Num of sub ADC
+M = 2;                      % Num of sub ADC
 %% Sine wave:
 freq0 = 0;
 for num = 5:5
-    count = 20000000;
+    count = 200000000;
     freq0 = freq0 + count;  % frequency of fundamental tone
     freq1 = 2000000;
 
@@ -73,9 +73,9 @@ end
 % adc_input(:,4) = adc_input(:,4) + 0.010;
 % 
 % model gain error
-adc_input(:,2) = adc_input(:,2) * 1.4;
-adc_input(:,3) = adc_input(:,3) * 1.3;
-adc_input(:,4) = adc_input(:,4) * 1.2;
+% adc_input(:,2) = adc_input(:,2) * 1.4;
+% adc_input(:,3) = adc_input(:,3) * 1.3;
+% adc_input(:,4) = adc_input(:,4) * 1.2;
 % adc_input(:,5) = adc_input(:,5) * 1.1;
 % adc_input(:,6) = adc_input(:,6) * 1.2;
 % adc_input(:,7) = adc_input(:,7) * 1.3;
@@ -88,29 +88,6 @@ for i = 1:M
     x_after_subadc(i:M:end) = adc_input(:,i); 
 end
 
-figure(1);
-subplot(3,1,1);
-sfdr(x_to_subadc, Fs);
-% title('SNR')
-% xlabel('Нормированная частота') 
-% ylabel('SNR (db)') 
-% legend('до калибровки','после калибровки')
-subplot(3,1,2);
-sfdr(x_after_subadc, Fs);
-
-figure(2);
-subplot(3,1,1);
-snr(x_to_subadc, Fs);
-% title('SNR')
-% xlabel('Нормированная частота') 
-% ylabel('SNR (db)') 
-% legend('до калибровки','после калибровки')
-subplot(3,1,2);
-snr(x_after_subadc, Fs);
-% title('SFDR (db)')
-% xlabel('Нормированная частота') 
-% ylabel('SFDR (db)') 
-% legend('до калибровки','после калибровки')
 
 %% 
 % Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
@@ -119,31 +96,90 @@ snr(x_after_subadc, Fs);
 % Дробная задержка сигнала ADC0
 yri_cut = fractional_delays(adc_input(:,1), M, N);
 
+% figure(8);
+% subplot(2,1,1);
+% sfdr(yri_cut);
+% subplot(2,1,2);
+% sfdr(simout3);
+
+% figure(9);
+% plot([yri_cut(1:100), adc_input(1:100,2)]);
+
+% spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
+%             AveragingMethod='exponential',ForgettingFactor=0, ...
+%             YLimits=[-30 10],ShowLegend=true, Method='Welch', FrequencySpan="start-and-stop-frequencies", StartFrequency=0, StopFrequency=Fs/2);
+% spectrumScope([yri_cut(1:8192), adc_input(1:8192,2)]);
+
+
 % обрезаем исходный сигнал
-adc_input(length(yri_cut(:,1))+1:end,:) = [];
+aa = adc_input((N-1)/2:end,1);
+% aa = [simout2((N-1)/2:end)];
 
 % сигнал после фильтров с задержками
-sig_adc = zeros(M*length(yri_cut(:,1)),1);
+sig_adc = zeros(M*length(aa),1);
+
 for i = 1:M
-    if i == 1
-        sig_adc(i:M:end) = [0; adc_input(1:end-1,1)];
+    if i == M
+        sig_adc(i:M:end) = aa(:,1);
     else
-        sig_adc(i:M:end) = yri_cut(:,i-1);
+        sig_adc(i:M:end) = yri_cut(:,M-i);
     end
 end
 
+figure(10);
+plot([aa(1:200,1), yri_cut(1:200,1)]); %, yri_cut(1:100,2), yri_cut(1:100,3)]);
+figure(11);
+plot([simout4(1:9932), sig_adc(1:9932)]);
+% 
+% figure(12);
+% plot([simout4(1:10000) ./ sig_adc(1:10000)]);
+
+% figure(12);
+% subplot(2,1,1);
+% sfdr(simout4, 2000000000);
+% subplot(2,1,2);
+% sfdr(sig_adc, 2000000000);
+
 figure(1);
+subplot(3,1,1);
+sfdr(x_to_subadc(1:length(sig_adc)), Fs);
+% title('SNR')
+% xlabel('Нормированная частота') 
+% ylabel('SNR (db)') 
+% legend('до калибровки','после калибровки')
+subplot(3,1,2);
+sfdr(x_after_subadc(1:length(sig_adc)), Fs);
 subplot(3,1,3);
 sfdr(sig_adc, Fs);
 
 figure(2);
+subplot(3,1,1);
+snr(x_to_subadc(1:length(sig_adc)), Fs);
+% title('SNR')
+% xlabel('Нормированная частота') 
+% ylabel('SNR (db)') 
+% legend('до калибровки','после калибровки')
+subplot(3,1,2);
+snr(x_after_subadc(1:length(sig_adc)), Fs);
+% title('SFDR (db)')
+% xlabel('Нормированная частота') 
+% ylabel('SFDR (db)') 
+% legend('до калибровки','после калибровки')
 subplot(3,1,3);
 snr(sig_adc, Fs);
 
-% spectrumScope = spectrumAnalyzer(SampleRate=Fs/11, ...            
-%             AveragingMethod='exponential',ForgettingFactor=0.99, ...
-%             YLimits=[-30 10],ShowLegend=true, FrequencySpan="start-and-stop-frequencies", StartFrequency=0, StopFrequency=Fs/11/4);
-% spectrumScope([x_after_subadc(1:8192),x_after_subadc1(1:8192)]);
+
+
+% spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
+%             AveragingMethod='exponential',ForgettingFactor=0, ...
+%             YLimits=[-30 10],ShowLegend=true, Method='Welch');
+% 
+% spectrumScope.WindowLength = 2048;
+% spectrumScope.FrequencyResolutionMethod = "window-length";
+% spectrumScope.PlotAsTwoSidedSpectrum=false;
+% spectrumScope.DistortionMeasurements.Enabled = true;
+% 
+% spectrumScope([x_after_subadc(1:4096), sig_adc(1:4096)]);
 
 
     %% Least Mean algorithm
@@ -183,15 +219,15 @@ snr(sig_adc, Fs);
             % w1 = lsqr(x3, adc_input_id(j+1:N+j,z));
 
             % filter input signal. Mult input words on coeff
-            y_out(j+1) = 0;
+            y_out = 0;
             for k = 1:N
-                y_out(j+1) = y_out(j+1) + w1(k)*adc_input(j+k,z); % (стр 5, (13))
+                y_out = y_out + w1(k)*adc_input(j+k,z); % (стр 5, (13))
             end
-            % y_out1(j+1) = y_out;
+            y_out1(j+1) = y_out;
         end
 
-        y_out_array(1:j+1,z-1) =  y_out(1:j+1).';
-        error_out(1:j+1,z-1) = y_out(1:j+1).' ./ yri_cut(1:j+1,z-1);
+        y_out_array(1:j+1,z-1) =  y_out1(1:j+1).';
+        error_out(1:j+1,z-1) = y_out1(1:j+1).' ./ yri_cut(1:j+1,z-1);
 
     end
 
@@ -199,9 +235,9 @@ snr(sig_adc, Fs);
     x_after_adc = zeros(length(y_out_array)*M,1);
     for i = 1:M
         if i == M
-            x_after_adc(M:M:end) = adc_input(1:length(y_out_array(:,1)),1);
+            x_after_adc(i:M:end) = adc_input(1:length(y_out_array(:,1)),1);
         else
-            x_after_adc(i:M:end) = y_out_array(:,i);
+            x_after_adc(i:M:end) = y_out_array(:,M-i);
         end
     end
 
