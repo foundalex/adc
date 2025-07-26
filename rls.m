@@ -5,8 +5,8 @@
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
 close all;
-% clear all;
-% clc;
+clear all;
+clc;
 
 %% Parameters;
 N = 73;
@@ -16,17 +16,20 @@ StopTime = 0.00001;         % seconds
 t = (0:dt:StopTime-dt)';    % seconds
 M = 2;                      % Num of sub ADC
 %% Sine wave:
-freq0 = 0;
-for num = 5:5
-    count = 200000000;
-    freq0 = freq0 + count;  % frequency of fundamental tone
-    freq1 = 2000000;
+freq0 = 75000000;
 
+for num = 0:5
+    count = 25000000;
+    freq0 = freq0 + count;  % frequency of fundamental tone
+    freq1 = 100000000;
+    Z = ceil(freq0/(Fs/2/M));    % Nyquist zone
     % Main signal
-    s = cos(2*pi*freq0*t);
-    s1 = cos(2*pi*freq1*t);
-    noise = awgn(s, 62);
+    s0 = cos(2*pi*freq0*t);
+    % s1 = cos(2*pi*freq1*t);
+    s = s0;% + s1;
+    noise = awgn(s,63);
     s = s + noise;
+
 
 % ADC0
 % s(1) - 1 Fs, s(2) - 0.1 Fs, s(3) - 0.2 Fs, s(4) - 0.3 Fs
@@ -35,7 +38,7 @@ for num = 5:5
 % ADC1
 % s(12) - 1 Fs
 
-
+adc_input = [];
 for i = 1:M
     adc_input(:,i) = s(i:M:end);
 end 
@@ -94,27 +97,12 @@ end
 % in Under-Sampling Time-Interleaved System
 
 % Дробная задержка сигнала ADC0
-yri_cut = fractional_delays(adc_input(:,1), M, N);
+yri_cut = fractional_delays(adc_input(:,1), M, N, Z);
+% yri_cut = real(yri_cut);
 
-% figure(8);
-% subplot(2,1,1);
-% sfdr(yri_cut);
-% subplot(2,1,2);
-% sfdr(simout3);
-
-% figure(9);
-% plot([yri_cut(1:100), adc_input(1:100,2)]);
-
-% spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
-%             AveragingMethod='exponential',ForgettingFactor=0, ...
-%             YLimits=[-30 10],ShowLegend=true, Method='Welch', FrequencySpan="start-and-stop-frequencies", StartFrequency=0, StopFrequency=Fs/2);
-% spectrumScope([yri_cut(1:8192), adc_input(1:8192,2)]);
-
-
-% обрезаем исходный сигнал
+% обрезаем исходный сигнал на такую же задержку (N-1)/2
 aa = adc_input((N-1)/2:end,1);
-% aa = [simout2((N-1)/2:end)];
-
+% aa = [adc_input((N)/2:end,1); 0];
 % сигнал после фильтров с задержками
 sig_adc = zeros(M*length(aa),1);
 
@@ -127,47 +115,18 @@ for i = 1:M
 end
 
 figure(10);
-plot([aa(1:200,1), yri_cut(1:200,1)]); %, yri_cut(1:100,2), yri_cut(1:100,3)]);
-figure(11);
-plot([simout4(1:9932), sig_adc(1:9932)]);
+plot([aa(1:100,1), yri_cut(1:100,1)]); %, yri_cut(1:100,2), yri_cut(1:100,3)]);
+% figure(11);
+% plot([simout4(1:9932), sig_adc(1:9932)]);
 % 
 % figure(12);
 % plot([simout4(1:10000) ./ sig_adc(1:10000)]);
 
 % figure(12);
 % subplot(2,1,1);
-% sfdr(simout4, 2000000000);
+% sfdr(x_to_subadc, Fs);
 % subplot(2,1,2);
-% sfdr(sig_adc, 2000000000);
-
-figure(1);
-subplot(3,1,1);
-sfdr(x_to_subadc(1:length(sig_adc)), Fs);
-% title('SNR')
-% xlabel('Нормированная частота') 
-% ylabel('SNR (db)') 
-% legend('до калибровки','после калибровки')
-subplot(3,1,2);
-sfdr(x_after_subadc(1:length(sig_adc)), Fs);
-subplot(3,1,3);
-sfdr(sig_adc, Fs);
-
-figure(2);
-subplot(3,1,1);
-snr(x_to_subadc(1:length(sig_adc)), Fs);
-% title('SNR')
-% xlabel('Нормированная частота') 
-% ylabel('SNR (db)') 
-% legend('до калибровки','после калибровки')
-subplot(3,1,2);
-snr(x_after_subadc(1:length(sig_adc)), Fs);
-% title('SFDR (db)')
-% xlabel('Нормированная частота') 
-% ylabel('SFDR (db)') 
-% legend('до калибровки','после калибровки')
-subplot(3,1,3);
-snr(sig_adc, Fs);
-
+% sfdr(sig_adc, Fs);
 
 
 % spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
@@ -176,7 +135,7 @@ snr(sig_adc, Fs);
 % 
 % spectrumScope.WindowLength = 2048;
 % spectrumScope.FrequencyResolutionMethod = "window-length";
-% spectrumScope.PlotAsTwoSidedSpectrum=false;
+% spectrumScope.PlotAsTwoSidedSpectrum=true;
 % spectrumScope.DistortionMeasurements.Enabled = true;
 % 
 % spectrumScope([x_after_subadc(1:4096), sig_adc(1:4096)]);
@@ -235,7 +194,7 @@ snr(sig_adc, Fs);
     x_after_adc = zeros(length(y_out_array)*M,1);
     for i = 1:M
         if i == M
-            x_after_adc(i:M:end) = adc_input(1:length(y_out_array(:,1)),1);
+            x_after_adc(i:M:end) = aa(1:length(y_out1));
         else
             x_after_adc(i:M:end) = y_out_array(:,M-i);
         end
@@ -255,26 +214,45 @@ snr(sig_adc, Fs);
     xlabel('Номер отсчета') 
     ylabel('Отношение') 
 
+    figure(1);
+    subplot(4,1,1);
+    sfdr(x_to_subadc(1:length(x_after_adc)), Fs);
+    subplot(4,1,2);
+    sfdr(x_after_subadc(1:length(x_after_adc)), Fs);
+    subplot(4,1,3);
+    sfdr(sig_adc(1:length(x_after_adc)), Fs);
+    subplot(4,1,4);
+    sfdr(x_after_adc(1:length(x_after_adc)), Fs);
+
+    figure(2);
+    subplot(4,1,1);
+    snr(x_to_subadc(1:length(sig_adc)), Fs);
+    subplot(4,1,2);
+    snr(x_after_subadc(1:length(sig_adc)), Fs);
+    subplot(4,1,3);
+    snr(sig_adc(1:length(x_after_adc)), Fs);
+    subplot(4,1,4);
+    snr(x_after_adc(1:length(x_after_adc)), Fs);
+
     snr_input(num+1) = snr(x_after_subadc);
     snr_output(num+1) = snr(x_after_adc);
     sfdr_input(num+1) = sfdr(x_after_subadc, Fs);
     sfdr_output(num+1) = sfdr(x_after_adc, Fs);
     norm_freq(num+1) = freq0/(Fs/M);
 
-    figure(5);
-    subplot(2,1,1)
-    plot(norm_freq, snr_input, '-o', norm_freq, snr_output, '-o');
-    title('SNR')
-    xlabel('Нормированная частота') 
-    ylabel('SNR (db)') 
-    legend('до калибровки','после калибровки')
-    subplot(2,1,2)
-    plot(norm_freq, sfdr_input, '-o', norm_freq, sfdr_output, '-o');
-    title('SFDR (db)')
-    xlabel('Нормированная частота') 
-    ylabel('SFDR (db)') 
-    legend('до калибровки','после калибровки')
-
 end
 
 
+figure(5);
+subplot(2,1,1)
+plot(norm_freq, snr_input, '-o', norm_freq, snr_output, '-o');
+title('SNR')
+xlabel('Нормированная частота') 
+ylabel('SNR (db)') 
+legend('до калибровки','после калибровки')
+subplot(2,1,2)
+plot(norm_freq, sfdr_input, '-o', norm_freq, sfdr_output, '-o');
+title('SFDR (db)')
+xlabel('Нормированная частота') 
+ylabel('SFDR (db)') 
+legend('до калибровки','после калибровки')
