@@ -16,7 +16,7 @@ StopTime = 0.00001;         % seconds
 t = (0:dt:StopTime-dt)';    % seconds
 M = 2;                      % Num of sub ADC
 %% Sine wave:
-freq0 = 75000000;
+freq0 = 255000000;
 
 for num = 0:5
     count = 25000000;
@@ -25,7 +25,7 @@ for num = 0:5
     Z = ceil(freq0/(Fs/2/M));    % Nyquist zone
     % Main signal
     s0 = cos(2*pi*freq0*t);
-    % s1 = cos(2*pi*freq1*t);
+    s1 = sin(2*pi*freq0*t);
     s = s0;% + s1;
     noise = awgn(s,63);
     s = s + noise;
@@ -90,34 +90,32 @@ x_after_subadc = zeros(M*length(adc_input(:,1)),1);
 for i = 1:M
     x_after_subadc(i:M:end) = adc_input(:,i); 
 end
-
-
 %% 
 % Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
 % in Under-Sampling Time-Interleaved System
 
 % Дробная задержка сигнала ADC0
-yri_cut = fractional_delays(adc_input(:,1), M, N, Z);
-% yri_cut = real(yri_cut);
+[yri_cut, te] = fractional_delays(adc_input(:,1), M, N, Z);
 
 % обрезаем исходный сигнал на такую же задержку (N-1)/2
-aa = adc_input((N-1)/2:end,1);
-% aa = [adc_input((N)/2:end,1); 0];
+% aa = adc_input((N-1)/2:end,1);
+
+aa = adc_input(1:end-((N-1)/2)+1,1);
 % сигнал после фильтров с задержками
 sig_adc = zeros(M*length(aa),1);
 
 for i = 1:M
     if i == M
-        sig_adc(i:M:end) = aa(:,1);
+        sig_adc(i:M:end) = aa;
     else
         sig_adc(i:M:end) = yri_cut(:,M-i);
     end
 end
 
 figure(10);
-plot([aa(1:100,1), yri_cut(1:100,1)]); %, yri_cut(1:100,2), yri_cut(1:100,3)]);
-% figure(11);
-% plot([simout4(1:9932), sig_adc(1:9932)]);
+plot([aa(1:100), yri_cut(1:100,1)]); %, yri_cut(1:100,2), yri_cut(1:100,1)]);
+figure(11);
+plot([x_to_subadc(1:200), sig_adc(1:200)]);
 % 
 % figure(12);
 % plot([simout4(1:10000) ./ sig_adc(1:10000)]);
@@ -129,16 +127,16 @@ plot([aa(1:100,1), yri_cut(1:100,1)]); %, yri_cut(1:100,2), yri_cut(1:100,3)]);
 % sfdr(sig_adc, Fs);
 
 
-% spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
-%             AveragingMethod='exponential',ForgettingFactor=0, ...
-%             YLimits=[-30 10],ShowLegend=true, Method='Welch');
-% 
-% spectrumScope.WindowLength = 2048;
-% spectrumScope.FrequencyResolutionMethod = "window-length";
-% spectrumScope.PlotAsTwoSidedSpectrum=true;
-% spectrumScope.DistortionMeasurements.Enabled = true;
-% 
-% spectrumScope([x_after_subadc(1:4096), sig_adc(1:4096)]);
+spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
+            AveragingMethod='exponential',ForgettingFactor=0, ...
+            YLimits=[-30 10],ShowLegend=true, Method='Welch');
+
+spectrumScope.WindowLength = 2048;
+spectrumScope.FrequencyResolutionMethod = "window-length";
+spectrumScope.PlotAsTwoSidedSpectrum=true;
+spectrumScope.DistortionMeasurements.Enabled = true;
+
+spectrumScope([x_after_subadc(1:4096), sig_adc(1:4096)]);
 
 
     %% Least Mean algorithm

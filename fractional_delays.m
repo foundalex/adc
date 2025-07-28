@@ -3,39 +3,42 @@ function [yri_cut, te] = fractional_delays(input_signal, M, N_taps, Z)
     n = (1:N_taps);
     ww = blackman(N_taps);
     % % wvtool(blackman(N_taps));
-    Nbp = round(Z/2);
-    nn = 1:length(input_signal)+M;
-
+    Nbp = floor(Z/2);
+    nn = 1:length(input_signal);
 
     for i = 1:M-1
         % Method 1
-        delay_adc(i) = i/M; % (стр.6,(16)), создаем массив [1:3] из задержанного сигнала ADC0 на различные значения [0.75 0.5 0.25]
-        hri = sinc(n - (N_taps - 1) / 2 - delay_adc(i));
-        te = hri.' .* ww;
-        te = te ./ sum(te); 
+        delay_adc = i/M; % (стр.6,(16)), создаем массив [1:3] из задержанного сигнала ADC0 на различные значения [0.75 0.5 0.25]
+        hri = sinc(n - (N_taps - 1) / 2 - delay_adc);
+        te(:,i) = hri.' .* ww;
+        te(:,i) = te(:,i) ./ sum(te(:,i)); 
         % freqz(te,1);
-        yri = filter(te, 1, input_signal); % (стр.6 (15))
+        yri(:,i) = filter(te(:,i), 1, input_signal); % (стр.6 (15))
+        % grpdelay(te(:,i));
+        % 
 
-        % Method 2
-        % [hri, i0, bw] = designFracDelayFIR(delay_adc(i), N_taps); 
-        % [H1,w] = freqz(hri,1);
-        % plot(w/pi,mag2db(abs([H1])))
-        % total_delay_fir(i) = i0(i) + delay_adc(i);
+        %Method 2
+        hri = designFracDelayFIR(delay_adc, N_taps);
+        % Create an FIR filter object
+        fdfir = dsp.FIRFilter(hri);
+        y = fdfir(input_signal);
+
+        % [gd,f]= grpdelay(hri,1,256,1000000000);  
+
+        % plot_sequences(nn,input_signal, nn,y);
+        % plot_sequences(n+delay_adc,input_signal, nn,y);
+
+        % plot([yri(1:100,1), input_signal(1:100)]);
 
         %% Algorithm for working in different zones of Nyquist
-        nn1 = nn(i:end-(M-i+1)) + delay_adc(i);
-        yhil = hilbert(yri);
+        yhil = hilbert(yri(:,i));
 
-        cc = cos(2*pi*Nbp*nn1);
-        ss = sin(2*pi*Nbp*nn1);
+        nn1 = nn + delay_adc;
+        cc = cos(2*pi*nn1*Nbp);
+        ss = sin(2*pi*nn1*Nbp);
 
-        % plot([real(y_hil(1:100)), imag(y_hil(1:100))]);
-        yri_cos = cc.' .* yri; 
-        % % plot(yri_cos(1:100))
-        yri_sin = ss.' .* yhil; 
-
-        % yri_cos_imag = zeros(length(yri_cos),1);
-        % yri_cos_complex = complex(yri_cos,yri_cos_imag);
+        yri_cos = cc.' .* yri(:,i); 
+        yri_sin = ss.' .* imag(yhil); 
 
         if (mod(Z,2) == 0)
             yric = yri_cos + yri_sin;
@@ -43,7 +46,27 @@ function [yri_cut, te] = fractional_delays(input_signal, M, N_taps, Z)
             yric = yri_cos - yri_sin;
         end
 
-        yri_cut(:,i) = yri((N_taps-1)/2:end); % удаляем переходные процессы (N-1)/2
+        yri_cut(:,i) = yric((N_taps-1)/2:end); % удаляем переходные процессы (N-1)/2
 
     end
+    % figure(4);
+    % % subplot(2,1,1)
+    % % plot([input_signal((N_taps-1)/2:100+35), yri_cut(1:100,1), yri_cut(1:100,2), yri_cut(1:100,3)]);
+    % % subplot(2,1,2)
+    % plot([input_signal(1:100), yri(1:100,1)]); %, yri(1:100,2), yri(1:100,3)]);
+    %     % title('')
+    % xlabel('Отсчеты') 
+    % ylabel('Амплитуда') 
+    % legend('до фильтра дробной задержки','после фильтра дробной задержки')
+    % 
+    % spectrumScope = spectrumAnalyzer(SampleRate=500000000, ...            
+    %             AveragingMethod='exponential',ForgettingFactor=0, ...
+    %             YLimits=[-30 10],ShowLegend=true, Method='Welch');
+    % 
+    % spectrumScope.WindowLength = 2048;
+    % spectrumScope.FrequencyResolutionMethod = "window-length";
+    % spectrumScope.PlotAsTwoSidedSpectrum=true;
+    % spectrumScope.DistortionMeasurements.Enabled = true;
+    % 
+    % spectrumScope([input_signal(1:4096), yri_cut(1:4096,1)]); %, yri_cut(1:4096,2), yri_cut(1:4096,3)]);
 end
