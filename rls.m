@@ -14,12 +14,12 @@ Fs = 2000000000;            % Fs = 2 GHz
 dt = 1/Fs;                  % seconds per sample
 StopTime = 0.00001;         % seconds
 t = (0:dt:StopTime-dt)';    % seconds
-M = 2;                      % Num of sub ADC
+M = 3;                      % Num of sub ADC
 %% Sine wave:
-freq0 = 255000000;
+freq0 = 29000000;
 
 for num = 0:5
-    count = 25000000;
+    count = 23000000;
     freq0 = freq0 + count;  % frequency of fundamental tone
     freq1 = 100000000;
     Z = ceil(freq0/(Fs/2/M));    % Nyquist zone
@@ -30,6 +30,10 @@ for num = 0:5
     noise = awgn(s,63);
     s = s + noise;
 
+    % n1 = (1:length(s0));
+    % n1 = n1.';
+    % ss = s0.*cos(2*pi*floor(Z/2)*n1);
+    % plot(ss(1:200));
 
 % ADC0
 % s(1) - 1 Fs, s(2) - 0.1 Fs, s(3) - 0.2 Fs, s(4) - 0.3 Fs
@@ -40,7 +44,7 @@ for num = 0:5
 
 adc_input = [];
 for i = 1:M
-    adc_input(:,i) = s(i:M:end);
+    adc_input(:,i) = s(i:M:end-2);
 end 
 
 % adc_input(:,1) = s(1:M*11:end-2*M*11);        % ADC0
@@ -90,6 +94,20 @@ x_after_subadc = zeros(M*length(adc_input(:,1)),1);
 for i = 1:M
     x_after_subadc(i:M:end) = adc_input(:,i); 
 end
+
+% spectrumScope = spectrumAnalyzer(SampleRate=Fs/4, ...            
+%             AveragingMethod='exponential',ForgettingFactor=0, ...
+%             YLimits=[-30 10],ShowLegend=true, Method='Welch');
+% 
+% spectrumScope.WindowLength = 2048;
+% spectrumScope.FrequencyResolutionMethod = "window-length";
+% spectrumScope.PlotAsTwoSidedSpectrum=true;
+% spectrumScope.DistortionMeasurements.Enabled = true;
+% 
+% 
+% spectrumScope([adc_input(1:4096,1), adc_input(1:4096,2), adc_input(1:4096,3), adc_input(1:4096,4)]);
+
+
 %% 
 % Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
 % in Under-Sampling Time-Interleaved System
@@ -97,25 +115,40 @@ end
 % Дробная задержка сигнала ADC0
 [yri_cut, te] = fractional_delays(adc_input(:,1), M, N, Z);
 
+yri_cut(:,1) = [zeros(37,1); yri_cut(1:end-37,1)];
+yri_cut(:,2) = [0; yri_cut(1:end-1,2)];
+
 % обрезаем исходный сигнал на такую же задержку (N-1)/2
 % aa = adc_input((N-1)/2:end,1);
 
-aa = adc_input(1:end-((N-1)/2)+1,1);
-% сигнал после фильтров с задержками
-sig_adc = zeros(M*length(aa),1);
-
-for i = 1:M
-    if i == M
-        sig_adc(i:M:end) = aa;
-    else
-        sig_adc(i:M:end) = yri_cut(:,M-i);
-    end
-end
+% aa = [adc_input(1:end-((N-1)/2),1)];
+% bb = zeros(length(aa),1);
+% aa= complex(aa,bb);
 
 figure(10);
-plot([aa(1:100), yri_cut(1:100,1)]); %, yri_cut(1:100,2), yri_cut(1:100,1)]);
+plot([yri_cut(1:50,1), yri_cut(1:50,2)]); %, yri_cut(1:50,3), yri_cut(1:50,4)]);
+
+% сигнал после фильтров с задержками
+sig_adc = zeros(M*length(yri_cut(:,1)),1);
+
+for i = 1:M
+    % if i == 1
+    %     sig_adc(i:M:end) = aa;
+    % else
+        sig_adc(i:M:end) = yri_cut(:,i);
+    % end
+end
+% 
+
+cut_sample_index = ((N-1)/2)*M;
+sig_adc_cut = sig_adc(cut_sample_index:end);
 figure(11);
-plot([x_to_subadc(1:200), sig_adc(1:200)]);
+plot([x_to_subadc(1:500), sig_adc_cut(2:501)]); %((N-1)/2)*M
+
+
+
+
+
 % 
 % figure(12);
 % plot([simout4(1:10000) ./ sig_adc(1:10000)]);
@@ -125,6 +158,15 @@ plot([x_to_subadc(1:200), sig_adc(1:200)]);
 % sfdr(x_to_subadc, Fs);
 % subplot(2,1,2);
 % sfdr(sig_adc, Fs);
+
+    % figure(1);
+    % subplot(3,1,1);
+    % sfdr(x_to_subadc(1:length(sig_adc)), Fs);
+    % subplot(3,1,2);
+    % sfdr(x_after_subadc(1:length(sig_adc)), Fs);
+    % subplot(3,1,3);
+    % sfdr(sig_adc(1:length(sig_adc)), Fs);
+
 
 
 spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
@@ -136,11 +178,13 @@ spectrumScope.FrequencyResolutionMethod = "window-length";
 spectrumScope.PlotAsTwoSidedSpectrum=true;
 spectrumScope.DistortionMeasurements.Enabled = true;
 
-spectrumScope([x_after_subadc(1:4096), sig_adc(1:4096)]);
+
+spectrumScope([x_after_subadc(4096:19000), sig_adc_cut(4096:19000)]);
 
 
     %% Least Mean algorithm
     % считаем сигналы для ADC1-ADC3, т.к для ADC0 сигнал известен
+    
     for z = 2:M
         %% блок для расчета первых N коэффициентов фильтра
         y_out(1) = 0;
