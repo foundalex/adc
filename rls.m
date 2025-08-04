@@ -10,16 +10,17 @@ clc;
 
 %% Parameters;
 N = 73;
-Fs = 2000000000;            % Fs = 2 GHz
-dt = 1/Fs;                  % seconds per sample
-StopTime = 0.00001;         % seconds
-t = (0:dt:StopTime-dt)';    % seconds
-M = 8;                      % Num of sub ADC
+Fs = 2000000000;           % Fs = 2 GHz
+dt = 1/Fs;                 % seconds per sample
+StopTime = 0.0001;         % seconds
+t = (0:dt:StopTime-dt)';   % seconds
+M = 2;                     % Num of sub ADC
+Fc = Fs/M;
 %% Sine wave:
-freq0 = 44000000;
-for num = 0:20
-    count = 8200000;
-    freq0 = freq0 + count;  % frequency of fundamental tone
+freq0 = 470000000; % 44 MHz
+for num = 0:24
+    count = 10000000;
+    freq0 = freq0 + count;       % frequency of fundamental tone
     Z = ceil(freq0/(Fs/2/M));    % Nyquist zone
     % Main signal
     s0 = cos(2*pi*freq0*t);
@@ -90,28 +91,32 @@ for num = 0:20
 		x_after_subadc(i:M:end) = adc_input(:,i); 
 	end
 
+    % figure(5)
+    % plot([adc_input(1:100,1), adc_input(1:100,3)]);
+
+
+
+
 	%% 
 	% Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
 	% in Under-Sampling Time-Interleaved System
 
 	% Дробная задержка сигнала ADC0
-	[yri_cut] = fractional_delays(adc_input(:,1), M, N, Z);
+	[yri_cut] = fractional_delays(adc_input, M, N, Z);
 
 	% yri_cut(:,1) = [zeros(36,1); yri_cut(1:end-36,1)];
-	% figure(10);
-	% plot([yri_cut(1:50,1), yri_cut(1:50,2), yri_cut(1:50,3), yri_cut(1:50,4)]);
+	figure(10);
+	plot([yri_cut(1:50,1), yri_cut(1:50,2)]); %, yri_cut(1:50,3), yri_cut(1:50,4)]);
 
 	% сигнал после фильтров с задержками
 	sig_adc = zeros(M*length(yri_cut(:,1)),1);
 	for i = 1:M
-		sig_adc(i:M:end) = yri_cut(:,i);
+		sig_adc(i:M:end) = yri_cut(:,M-i+1);
 	end
 
-	% cut_sample_index = (((N-1)/2)+1)*M;
-	% sig_adc_cut = sig_adc(cut_sample_index:end);
-	% figure(11);
-	% plot([x_after_subadc(1:500), sig_adc(1:500)]); %((N-1)/2)*M
-
+	figure(11);
+	plot([x_after_subadc(1:100), sig_adc(1:100)]); %((N-1)/2)*M
+    % 
 	figure(1);
 	subplot(3,1,1);
 	sfdr(x_to_subadc(1:length(sig_adc)), Fs);
@@ -128,18 +133,18 @@ for num = 0:20
 	subplot(3,1,3);
 	snr(sig_adc(1:length(sig_adc)), Fs);
 
-	% spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
-	%             AveragingMethod='exponential',ForgettingFactor=0, ...
-	%             YLimits=[-30 10],ShowLegend=true, Method='Welch');
-	% 
-	% spectrumScope.WindowLength = 2048;
-	% spectrumScope.FrequencyResolutionMethod = "window-length";
-	% spectrumScope.PlotAsTwoSidedSpectrum=true;
-	% spectrumScope.DistortionMeasurements.Enabled = true;
-	% 
-	% 
-	% spectrumScope([x_after_subadc(4096:19000), sig_adc(4096:19000)]);
-end
+	spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
+	            AveragingMethod='exponential',ForgettingFactor=0, ...
+	            YLimits=[-30 10],ShowLegend=true, Method='Welch');
+
+	spectrumScope.WindowLength = 2048;
+	spectrumScope.FrequencyResolutionMethod = "window-length";
+	spectrumScope.PlotAsTwoSidedSpectrum=false;
+	spectrumScope.DistortionMeasurements.Enabled = true;
+
+
+	spectrumScope([sig_adc(4096:19000)]);
+% end
 
 
     %% Least Mean algorithm
@@ -239,11 +244,11 @@ end
     snr_output(num+1) = snr(x_after_adc);
     sfdr_input(num+1) = sfdr(x_after_subadc, Fs);
     sfdr_output(num+1) = sfdr(x_after_adc, Fs);
-    norm_freq(num+1) = freq0/(Fs/M);
+    norm_freq(num+1) = freq0/(Fs/2);
 
     ss(num+1) = sfdr(sig_adc(1:length(sig_adc)));
 
-% end
+end
 
 
 figure(5);
