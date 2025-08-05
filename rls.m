@@ -9,19 +9,19 @@ clear all;
 clc;
 
 %% Parameters;
-N = 73;
-Fs = 2000000000;           % Fs = 2 GHz
+N = 73;                    % Number taps
+Fs = 80000000000;          % Fs = 80 GHz
 dt = 1/Fs;                 % seconds per sample
-StopTime = 0.0001;         % seconds
+StopTime = 0.00001;        % seconds
 t = (0:dt:StopTime-dt)';   % seconds
-M = 2;                     % Num of sub ADC
-Fc = Fs/M;
+M = 8;                     % Num of sub ADC
+Inter = 10;
 %% Sine wave:
-freq0 = 470000000; % 44 MHz
-for num = 0:24
+freq0 = 00000000; 
+for num = 0:150
     count = 10000000;
-    freq0 = freq0 + count;       % frequency of fundamental tone
-    Z = ceil(freq0/(Fs/2/M));    % Nyquist zone
+    freq0 = freq0 + count;                  % frequency of fundamental tone
+    Z = ceil(freq0/(Fs/(Inter-1)/2/M));     % Nyquist zone
     % Main signal
     s0 = cos(2*pi*freq0*t);
     s = s0;% + s1;
@@ -31,26 +31,26 @@ for num = 0:24
     % ADC0
     % s(1) - 1 Fs, s(2) - 0.1 Fs, s(3) - 0.2 Fs, s(4) - 0.3 Fs
     % s(5) - 0.4 Fs, s(6) - 0.5 Fs, s(7) - 0.6 Fs, s(8) - 0.7 Fs
-    % s(9) - 0.8 Fs, s(10) - 0.9 Fs, s(11) - 1 Fs
+    % s(9) - 0.8 Fs, s(10) - 0.9 Fs, 
     % ADC1
-    % s(12) - 1 Fs
-
+    % s(11) - 1 Fs
     adc_input = [];
-    for i = 1:M
-        adc_input(:,i) = s(i:M:end);
-    end 
 
-	% adc_input(:,1) = s(1:M*11:end-2*M*11);        % ADC0
-	% adc_input(:,2) = s(1*11+1:M*11:end-2*M*11);   % ADC1
-	% adc_input(:,3) = s(2*11+1:M*11:end-M*11);     % ADC2
-	% adc_input(:,4) = s(3*11+1:M*11:end-M*11);     % ADC3
-	% 
-	% adc_input(:,5) = s(4*11+1:M*11:end-M*11);     % ADC4
-	% adc_input(:,6) = s(5*11+1:M*11:end-M*11);     % ADC5
-	% adc_input(:,7) = s(6*11+1:M*11:end);          % ADC6
-	% adc_input(:,8) = s(7*11+1:M*11:end);          % ADC7
+    adc_input(:,1) = s(1:M*Inter:end-2*M*Inter);       % ADC0
+	adc_input(:,2) = s(1*Inter+1:M*Inter:end-2*M*Inter);  % ADC1
+	adc_input(:,3) = s(2*Inter+1:M*Inter:end-2*M*Inter);  % ADC2
+	adc_input(:,4) = s(3*Inter+1:M*Inter:end-2*M*Inter);  % ADC3
 
-	% add noise
+	adc_input(:,5) = s(4*Inter+1:M*Inter:end-2*M*Inter);  % ADC4
+	adc_input(:,6) = s(5*Inter+1:M*Inter:end-2*M*Inter);  % ADC5
+	adc_input(:,7) = s(6*Inter+1:M*Inter:end-2*M*Inter);  % ADC6
+	adc_input(:,8) = s(7*Inter+1:M*Inter:end-2*M*Inter);  % ADC7
+
+    % for i = 1:M
+    %     adc_input(:,i) = s(i:M:end);
+    % end 
+
+	% % add noise
 	for i = 1:M
 		noise1(:,i) = awgn(adc_input(:,i),60);
 		adc_input(:,i) = adc_input(:,i) + noise1(:,i);
@@ -63,13 +63,13 @@ for num = 0:24
 	end
 
 	% model timing skew
-	% adc_input(:,2) = s(17:M*11:end-M*11); % 0.5/fs
-	% adc_input(:,3) = s(25:M*11:end-M*11); % 0.2/fs
-	% adc_input(:,4) = s(35:M*11:end-M*11); % 0.1/fs
-	% adc_input(:,5) = s(49:M*11:end-M*11); % 0.4/fs
-	% adc_input(:,6) = s(59:M*11:end-M*11); % 0.3/fs
-	% adc_input(:,7) = s(68:M*11:end); % 0.1/fs
-	% adc_input(:,8) = s(80:M*11:end); % 0.2/fs
+	adc_input(:,2) = s(16:M*Inter:end-2*M*Inter); % 0.5/fs
+	adc_input(:,3) = s(23:M*Inter:end-2*M*Inter); % 0.2/fs
+	adc_input(:,4) = s(32:M*Inter:end-2*M*Inter); % 0.1/fs
+	adc_input(:,5) = s(45:M*Inter:end-2*M*Inter); % 0.4/fs
+	adc_input(:,6) = s(54:M*Inter:end-2*M*Inter); % 0.3/fs
+	adc_input(:,7) = s(62:M*Inter:end-2*M*Inter); % 0.1/fs
+	adc_input(:,8) = s(73:M*Inter:end-2*M*Inter); % 0.2/fs
 
 	% % model offset error
 	% adc_input(:,2) = adc_input(:,2) + 0.002;
@@ -77,25 +77,19 @@ for num = 0:24
 	% adc_input(:,4) = adc_input(:,4) + 0.010;
 	% 
 	% model gain error
-	% adc_input(:,2) = adc_input(:,2) * 1.4;
-	% adc_input(:,3) = adc_input(:,3) * 1.3;
-	% adc_input(:,4) = adc_input(:,4) * 1.2;
-	% adc_input(:,5) = adc_input(:,5) * 1.1;
-	% adc_input(:,6) = adc_input(:,6) * 1.2;
-	% adc_input(:,7) = adc_input(:,7) * 1.3;
-	% adc_input(:,8) = adc_input(:,8) * 1.1;
+	adc_input(:,2) = adc_input(:,2) * 1.4;
+	adc_input(:,3) = adc_input(:,3) * 1.3;
+	adc_input(:,4) = adc_input(:,4) * 1.2;
+	adc_input(:,5) = adc_input(:,5) * 1.1;
+	adc_input(:,6) = adc_input(:,6) * 1.2;
+	adc_input(:,7) = adc_input(:,7) * 1.3;
+	adc_input(:,8) = adc_input(:,8) * 1.1;
 
 	% Мейн сигнал с искажениями
 	x_after_subadc = zeros(M*length(adc_input(:,1)),1);
 	for i = 1:M
 		x_after_subadc(i:M:end) = adc_input(:,i); 
-	end
-
-    % figure(5)
-    % plot([adc_input(1:100,1), adc_input(1:100,3)]);
-
-
-
+    end
 
 	%% 
 	% Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
@@ -104,48 +98,41 @@ for num = 0:24
 	% Дробная задержка сигнала ADC0
 	[yri_cut] = fractional_delays(adc_input, M, N, Z);
 
-	% yri_cut(:,1) = [zeros(36,1); yri_cut(1:end-36,1)];
-	figure(10);
-	plot([yri_cut(1:50,1), yri_cut(1:50,2)]); %, yri_cut(1:50,3), yri_cut(1:50,4)]);
-
 	% сигнал после фильтров с задержками
 	sig_adc = zeros(M*length(yri_cut(:,1)),1);
 	for i = 1:M
-		sig_adc(i:M:end) = yri_cut(:,M-i+1);
+		sig_adc(i:M:end) = yri_cut(:,i);
 	end
 
-	figure(11);
-	plot([x_after_subadc(1:100), sig_adc(1:100)]); %((N-1)/2)*M
+	% figure(11);
+	% plot([x_after_subadc(1:500), sig_adc(1:500)]); %((N-1)/2)*M
     % 
 	figure(1);
 	subplot(3,1,1);
-	sfdr(x_to_subadc(1:length(sig_adc)), Fs);
+	sfdr(x_to_subadc(1:length(sig_adc)), Fs/(Inter));
 	subplot(3,1,2);
-	sfdr(x_after_subadc(1:length(sig_adc)), Fs);
+	sfdr(x_after_subadc(1:length(sig_adc)), Fs/(Inter));
 	subplot(3,1,3);
-	sfdr(sig_adc(1:length(sig_adc)), Fs);
+	sfdr(sig_adc(1:length(sig_adc)), Fs/(Inter));
 	% 
 	figure(2);
 	subplot(3,1,1);
-	snr(x_to_subadc(1:length(sig_adc)), Fs);
+	snr(x_to_subadc(1:length(sig_adc)), Fs/(Inter));
 	subplot(3,1,2);
-	snr(x_after_subadc(1:length(sig_adc)), Fs);
+	snr(x_after_subadc(1:length(sig_adc)), Fs/(Inter));
 	subplot(3,1,3);
-	snr(sig_adc(1:length(sig_adc)), Fs);
+	snr(sig_adc(1:length(sig_adc)), Fs/(Inter));
 
-	spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
-	            AveragingMethod='exponential',ForgettingFactor=0, ...
-	            YLimits=[-30 10],ShowLegend=true, Method='Welch');
-
-	spectrumScope.WindowLength = 2048;
-	spectrumScope.FrequencyResolutionMethod = "window-length";
-	spectrumScope.PlotAsTwoSidedSpectrum=false;
-	spectrumScope.DistortionMeasurements.Enabled = true;
-
-
-	spectrumScope([sig_adc(4096:19000)]);
-% end
-
+	% spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
+	%             AveragingMethod='exponential',ForgettingFactor=0, ...
+	%             YLimits=[-30 10],ShowLegend=true, Method='Welch');
+    % 
+	% spectrumScope.WindowLength = 2048;
+	% spectrumScope.FrequencyResolutionMethod = "window-length";
+	% spectrumScope.PlotAsTwoSidedSpectrum=false;
+	% spectrumScope.DistortionMeasurements.Enabled = true;
+    % 
+	% spectrumScope([sig_adc(4096:19000)]);
 
     %% Least Mean algorithm
     % считаем сигналы для ADC1-ADC3, т.к для ADC0 сигнал известен
@@ -222,47 +209,59 @@ for num = 0:24
 
     figure(1);
     subplot(4,1,1);
-    sfdr(x_to_subadc(1:length(x_after_adc)), Fs);
+    sfdr(x_to_subadc(1:length(x_after_adc)), Fs/Inter);
     subplot(4,1,2);
-    sfdr(x_after_subadc(1:length(x_after_adc)), Fs);
+    sfdr(x_after_subadc(1:length(x_after_adc)), Fs/Inter);
     subplot(4,1,3);
-    sfdr(sig_adc(1:length(x_after_adc)), Fs);
+    sfdr(sig_adc(1:length(x_after_adc)), Fs/Inter);
     subplot(4,1,4);
-    sfdr(x_after_adc(1:length(x_after_adc)), Fs);
+    sfdr(x_after_adc(1:length(x_after_adc)), Fs/Inter);
 
     figure(2);
     subplot(4,1,1);
-    snr(x_to_subadc(1:length(x_after_adc)), Fs);
+    snr(x_to_subadc(1:length(x_after_adc)), Fs/Inter);
     subplot(4,1,2);
-    snr(x_after_subadc(1:length(x_after_adc)), Fs);
+    snr(x_after_subadc(1:length(x_after_adc)), Fs/Inter);
     subplot(4,1,3);
-    snr(sig_adc(1:length(x_after_adc)), Fs);
+    snr(sig_adc(1:length(x_after_adc)), Fs/Inter);
     subplot(4,1,4);
-    snr(x_after_adc(1:length(x_after_adc)), Fs);
+    snr(x_after_adc(1:length(x_after_adc)), Fs/Inter);
 
-    snr_input(num+1) = snr(x_after_subadc);
-    snr_output(num+1) = snr(x_after_adc);
-    sfdr_input(num+1) = sfdr(x_after_subadc, Fs);
-    sfdr_output(num+1) = sfdr(x_after_adc, Fs);
-    norm_freq(num+1) = freq0/(Fs/2);
+    snr_in_id(num+1) = snr(x_to_subadc, Fs/Inter);
+    snr_input(num+1) = snr(x_after_subadc, Fs/Inter);
+    snr_output(num+1) = snr(x_after_adc, Fs/Inter);
 
-    ss(num+1) = sfdr(sig_adc(1:length(sig_adc)));
+    sfdr_in_id(num+1) = sfdr(x_to_subadc, Fs/Inter);
+    sfdr_input(num+1) = sfdr(x_after_subadc, Fs/Inter);
+    sfdr_output(num+1) = sfdr(x_after_adc, Fs/Inter);
+    norm_freq(num+1) = freq0/(Fs/(Inter)/M);
+
 
 end
 
 
 figure(5);
-subplot(3,1,1)
-plot(norm_freq, snr_input, '-o', norm_freq, snr_output, '-o');
+subplot(2,1,1)
+plot(norm_freq, snr_in_id, '-o', norm_freq, snr_input, '-o', norm_freq, snr_output, '-o');
 title('SNR')
 xlabel('Нормированная частота') 
-ylabel('SNR (db)') 
-legend('до калибровки','после калибровки')
-subplot(3,1,2)
-plot(norm_freq, sfdr_input, '-o', norm_freq, sfdr_output, '-o');
-title('SFDR (db)')
-xlabel('Нормированная частота') 
-ylabel('SFDR (db)') 
-legend('до калибровки','после калибровки')
-subplot(3,1,3)
-plot(norm_freq, ss, '-o');
+ylabel('SNR (dB)') 
+legend('до калибровки без искажений', 'до калибровки с искажениями', 'после калибровки')
+subplot(2,1,2)
+plot(norm_freq, sfdr_in_id, '-o', norm_freq, sfdr_input, '-o', norm_freq, sfdr_output, '-o');
+title('SFDR (dB)')
+xlabel({'Нормированная частота f = Fs/M','Fs - частота дискретизации всего TI-ADC, М - количество каналов'}) 
+ylabel('SFDR (dB)') 
+legend('до калибровки без искажений', 'до калибровки с искажениями','после калибровки')
+
+x4 = xline(0.42, '--', 'Интервал из статьи 1-ой зоны Найквиста')
+x4.LabelHorizontalAlignment = 'center'
+x4.LabelVerticalAlignment = 'middle';
+x2 = xline(0.55, '--', 'Интервал из статьи начало 2-ой зоны Найквиста')
+x2.LabelHorizontalAlignment = 'center'
+x2.LabelVerticalAlignment = 'middle';
+x3 = xline(0.92, '--', 'Интервал из статьи конец 2-ой зоны Найквиста')
+x3.LabelHorizontalAlignment = 'center'
+x3.LabelVerticalAlignment = 'middle';
+y2 = yline(79,'--', 'Нижняя граница SFDR (dB)')
+y2.LabelHorizontalAlignment = 'left'
