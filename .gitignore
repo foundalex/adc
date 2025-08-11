@@ -1,0 +1,10 @@
+# gitignore
+
+# кроме
+#/.gitignore
+#/.gitmodules
+#/*.md
+#/.gitattributes
+*mat
+*asv
+*slprj/
