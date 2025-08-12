@@ -4,10 +4,10 @@
 #/.gitmodules
 #/*.md
 #/.gitattributes
-**/resources/
+**/resources/project/
 *mat
 *asv
 *slprj/
-*doc/.png
-*doc/.docx
-*doc/.vsdx
+doc/*.png
+doc/*.docx
+doc/*.vsdx
