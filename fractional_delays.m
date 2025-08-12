@@ -5,15 +5,15 @@ function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
     nn = 1:length(input_signal(:,1));
     del_proc = ((N_taps-1)/2);
     delay_adc = (1/M:1/M:1); % (стр.6,(16)), создаем массив из задержанного сигнала ADC0 на различные значения
+    w_blackman = 0.42 - 0.5 * cos(2*pi*n/(N_taps-1)) + 0.08 * cos(4*pi*n/(N_taps-1)); % Blackman window
 
     for i = 1:M-1
         D = del_proc - delay_adc(i); % delay (N-1)/2 - d = causal filter
 
-        w_blackman_fractional = 0.42 - 0.5 * cos(2*pi*(n+delay_adc(i))/(N_taps-1)) + 0.08 * cos(4*pi*(n+delay_adc(i))/(N_taps-1)); % shift Blackman window
-        w_blackman = 0.42 - 0.5 * cos(2*pi*n/(N_taps-1)) + 0.08 * cos(4*pi*n/(N_taps-1)); % Blackman window
-
+        w_blackman_fractional(:,i) = 0.42 - 0.5 * cos(2*pi*(n+delay_adc(i))/(N_taps-1)) + 0.08 * cos(4*pi*(n+delay_adc(i))/(N_taps-1)); % shift Blackman window
+        
         hri_m(:,i) = sinc(n-D); % shift impulse response on D = Dint - d for fractional delay filter
-        hri_m(:,i) = hri_m(:,i) .* w_blackman_fractional.'; 
+        hri_m(:,i) = hri_m(:,i) .* w_blackman_fractional(:,i); 
         [yy(:,i), ff] = freqz(hri_m(:,i),1,1024, 'whole', 1000000000);
 
         % hri_m(:,i) = hri_m(:,i) ./ sum(hri_m(:,i)); 
@@ -45,8 +45,8 @@ function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
         % yhil_imag(:,i) = imag(yhil);
 
         hh = (2./((n-del_proc)*pi)).*(sin(((n-del_proc)*pi)./2)).^2;
-        hh(1)= 0;
-        hh(37)= 0;
+        hh(1) = 0;
+        hh(37) = 0;
         hh_m = hh .* w_blackman;
         ymi = filter(hh_m.', 1, yri(:,i));
 
@@ -70,17 +70,28 @@ function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
     
     end
     yri_cut(:,1) = input_signal(1:end-del_proc,1);
+    %% example
+    hri_m1 = w_blackman .* sinc(n-del_proc); % shift impulse response on Dint
+    plot(n.',w_blackman.', n.',w_blackman_fractional(:,4).', n.',hri_m(:,4), n.',hri_m1)
+    legend({'Окно Блэкмена', 'Окно Блэкмена, сдвинутое на -0.5', 'Импульсная х-ка фильтра -0.5', 'Импульсная х-ка фильтра'},'Location','northeast')
+    % title('')
+    xlabel('Номер отсчета') 
+    ylabel('Амплитуда') 
 
+
+
+    
+    %%
     figure(8)
     plot(ff, abs(yy(:,1)), ff, abs(yy(:,2)), ff, abs(yy(:,3)), ff, abs(yy(:,4)), ff, abs(yy(:,5)), ff, abs(yy(:,6)), ff, abs(yy(:,7)));
     legend({'0.125','0.25', '0.375', '0.5', '0.625', '0.75', '0.875'},'Location','northeast')
     title('АЧХ фильтров дробной задержки')
     xlabel('Частота, Гц') 
     ylabel('Коэффициент передачи') 
-    x81 = xline(5*10^8, '--', 'Fs/2')
+    x81 = xline(5*10^8, '--', 'Fs/2');
     x81.LabelHorizontalAlignment = 'center'
     x81.LabelVerticalAlignment = 'middle';
-    x82 = xline(0.99*10^9, '--', 'Fs')
+    x82 = xline(0.99*10^9, '--', 'Fs');
     x82.LabelHorizontalAlignment = 'center'
     x82.LabelVerticalAlignment = 'middle';
 

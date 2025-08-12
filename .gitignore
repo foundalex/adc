@@ -1,10 +1,13 @@
 # gitignore
-
 # кроме
 #/.gitignore
 #/.gitmodules
 #/*.md
 #/.gitattributes
+**/resources/
 *mat
 *asv
 *slprj/
+*doc/.png
+*doc/.docx
+*doc/.vsdx

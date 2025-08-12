@@ -11,17 +11,17 @@ clc;
 %% Parameters;
 M = 8;                          % Num of sub ADC
 N = 73;                         % Number taps filters 
-StopTime = 0.000001;            % seconds
+StopTime = 0.00001;             % seconds
 Inter = 10;                     % oversampling factor
 Fs = 1000000000 * Inter * M;    % Fs all ADC system
 dt = 1/Fs;                      % seconds per sample
 t = (0:dt:StopTime-dt)';        % seconds
-freq = 725000000;               % initial tone frequency
+freq = 485000000;               % initial tone frequency
 num_cycles = 0;                 % number of cycles testing algorithm
 %% Error parameters
 offset_error_array = [];        % empty offset
-time_skew_array = [0.5 0.2 0.1 0.4 0.3 0.1 0.2]; % time skew error array of sub-adc (fc/time_skew_array(i))
-gain_error_array = [1.4 1.3 1.2 1.1 1.2 1.3 1.1]; % gain error array of sub-adc
+time_skew_array = [0.5 0.2 0.1 0.4 0.3 0.1 0.2]; % time skew error array of sub-adc (ADC2-ADC8) (fc/time_skew_array(i))
+gain_error_array = [1.4 1.3 1.2 1.1 1.2 1.3 1.1]; % gain error array of sub-adc (ADC2-ADC8)
 MODEL_ERROR = true;
 %% tb
 for num = 0:num_cycles
@@ -42,11 +42,6 @@ for num = 0:num_cycles
         indexx(i) = (i*Inter+1);
     end
 
-	% add noise
-	% for i = 1:M
-	% 	noise1(:,i) = awgn(adc_input(:,i),60);
-	% 	adc_input(:,i) = adc_input(:,i) + noise1(:,i);
-	% end
 
 	% исходный сигнал до искажений
 	x_to_subadc = zeros(M*length(adc_input(:,1)),1);
