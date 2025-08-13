@@ -4,7 +4,7 @@ function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
     Nbp = floor(Z/2); % стр 7. (24)
     nn = 1:length(input_signal(:,1));
     del_proc = ((N_taps-1)/2);
-    delay_adc = (1/M:1/M:1); % (стр.6,(16)), создаем массив из задержанного сигнала ADC0 на различные значения
+    delay_adc = (1/M:1/M:1); % (стр.6,(16)), создаем массив на различные значения задержек
     w_blackman = 0.42 - 0.5 * cos(2*pi*n/(N_taps-1)) + 0.08 * cos(4*pi*n/(N_taps-1)); % Blackman window
 
     for i = 1:M-1
@@ -71,29 +71,28 @@ function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
     end
     yri_cut(:,1) = input_signal(1:end-del_proc,1);
     %% example
-    hri_m1 = w_blackman .* sinc(n-del_proc); % shift impulse response on Dint
-    plot(n.',w_blackman.', n.',w_blackman_fractional(:,4).', n.',hri_m(:,4), n.',hri_m1)
-    legend({'Окно Блэкмена', 'Окно Блэкмена, сдвинутое на -0.5', 'Импульсная х-ка фильтра -0.5', 'Импульсная х-ка фильтра'},'Location','northeast')
-    % title('')
-    xlabel('Номер отсчета') 
-    ylabel('Амплитуда') 
+    % hri_m1 = w_blackman .* sinc(n-del_proc); % shift impulse response on Dint
+    % plot(n.',w_blackman.', n.',w_blackman_fractional(:,4).', n.',hri_m(:,4), n.',hri_m1)
+    % legend({'Окно Блэкмена', 'Окно Блэкмена, сдвинутое на -0.5', 'Импульсная х-ка фильтра -0.5', 'Импульсная х-ка фильтра'},'Location','northeast')
+    % xlabel('Номер отсчета') 
+    % ylabel('Амплитуда') 
 
 
 
     
     %%
-    figure(8)
-    plot(ff, abs(yy(:,1)), ff, abs(yy(:,2)), ff, abs(yy(:,3)), ff, abs(yy(:,4)), ff, abs(yy(:,5)), ff, abs(yy(:,6)), ff, abs(yy(:,7)));
-    legend({'0.125','0.25', '0.375', '0.5', '0.625', '0.75', '0.875'},'Location','northeast')
-    title('АЧХ фильтров дробной задержки')
-    xlabel('Частота, Гц') 
-    ylabel('Коэффициент передачи') 
-    x81 = xline(5*10^8, '--', 'Fs/2');
-    x81.LabelHorizontalAlignment = 'center'
-    x81.LabelVerticalAlignment = 'middle';
-    x82 = xline(0.99*10^9, '--', 'Fs');
-    x82.LabelHorizontalAlignment = 'center'
-    x82.LabelVerticalAlignment = 'middle';
+    % figure(8)
+    % plot(ff, abs(yy(:,1)), ff, abs(yy(:,2)), ff, abs(yy(:,3)), ff, abs(yy(:,4)), ff, abs(yy(:,5)), ff, abs(yy(:,6)), ff, abs(yy(:,7)));
+    % legend({'0.125','0.25', '0.375', '0.5', '0.625', '0.75', '0.875'},'Location','northeast')
+    % title('АЧХ фильтров дробной задержки')
+    % xlabel('Частота, Гц') 
+    % ylabel('Коэффициент передачи') 
+    % x81 = xline(5*10^8, '--', 'Fs/2');
+    % x81.LabelHorizontalAlignment = 'center'
+    % x81.LabelVerticalAlignment = 'middle';
+    % x82 = xline(0.99*10^9, '--', 'Fs');
+    % x82.LabelHorizontalAlignment = 'center'
+    % x82.LabelVerticalAlignment = 'middle';
 
     % figure(9);
     % subplot(2,1,1)
