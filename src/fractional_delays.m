@@ -77,9 +77,6 @@ function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
     % xlabel('Номер отсчета') 
     % ylabel('Амплитуда') 
 
-
-
-    
     %%
     % figure(8)
     % plot(ff, abs(yy(:,1)), ff, abs(yy(:,2)), ff, abs(yy(:,3)), ff, abs(yy(:,4)), ff, abs(yy(:,5)), ff, abs(yy(:,6)), ff, abs(yy(:,7)));
