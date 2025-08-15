@@ -1,9 +1,9 @@
 function [x_to_subadc, adc_input, x_after_subadc, sim_options] = gen_oversampled_signal(sim_options)
 
-    dt = 1/sim_options.Fs;                                                  % seconds per sample
-    t = 0:dt:sim_options.StopTime;                                          % seconds
-                                                                            % step frequency input signal
-    sim_options.freq = sim_options.freq + sim_options.step;                             % frequency of fundamental tone
+    dt = 1/sim_options.Fs;                                                                          % seconds per sample
+    t = 0:dt:sim_options.StopTime;                                                                  % seconds
+                                                                                                    % step frequency input signal
+    sim_options.freq = sim_options.freq + sim_options.step;                                         % frequency of fundamental tone
     sim_options.Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     % Create main signal with noise

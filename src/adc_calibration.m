@@ -1,13 +1,12 @@
-% 1) Джиган В.И, Адаптивные фильтры
-% 2) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
-% 3) Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
+
+% 1) Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
 %    in Under-Sampling Time-Interleaved System
+% 2) Джиган В.И, Адаптивные фильтры
+% 3) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
 function [sig_adc, x_after_adc, error_out] = adc_calibration(sim_options, adc_input)
     %% Calibration algorithm 1.1 (Fractional delays)
-	% Hu.M, Yi.P, (2022), Digital Calibration for Gain, Time Skew, and Bandwidth Mismatch 
-    % in Under-Sampling Time-Interleaved System
 
 	% Fractional delays of ADC0 signal
 	[yri_cut] = fractional_delays(adc_input, sim_options.M, sim_options.N, sim_options.Z);
