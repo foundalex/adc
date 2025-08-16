@@ -5,11 +5,11 @@
 % 3) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
-function [sig_adc, x_after_adc, error_out] = adc_calibration(sim_options, adc_input)
+function [sig_adc, x_after_adc, error_out] = adc_calibration(sim_options, adc_input, adc_input_int)
     %% Calibration algorithm 1.1 (Fractional delays)
 
 	% Fractional delays of ADC0 signal
-	[yri_cut] = fractional_delays(adc_input, sim_options.M, sim_options.N, sim_options.Z);
+	[yri_cut] = fractional_delays(adc_input, adc_input_int, sim_options.M, sim_options.N, sim_options.Z);
 
     %% test signal after fractional delay filters
 	sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);

@@ -1,23 +1,77 @@
-function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
+function yri_cut = fractional_delays(input_signal, input_signal_int, M, N_taps, Z)
 
     n = (0:1:N_taps-1);
     Nbp = floor(Z/2); % стр 7. (24)
     nn = 1:length(input_signal(:,1));
     del_proc = ((N_taps-1)/2);
     delay_adc = (1/M:1/M:1); % (стр.6,(16)), создаем массив на различные значения задержек
+
     w_blackman = 0.42 - 0.5 * cos(2*pi*n/(N_taps-1)) + 0.08 * cos(4*pi*n/(N_taps-1)); % Blackman window
+
 
     for i = 1:M-1
         D = del_proc - delay_adc(i); % delay (N-1)/2 - d = causal filter
 
         w_blackman_fractional(:,i) = 0.42 - 0.5 * cos(2*pi*(n+delay_adc(i))/(N_taps-1)) + 0.08 * cos(4*pi*(n+delay_adc(i))/(N_taps-1)); % shift Blackman window
+
+        %% int
+        % unsigned 9 bit
+        w_blackman_fractional_int(:,i) = int16(round(w_blackman_fractional(:,i) * 2^8)); % fix(0,8,8)
+        aa = double(w_blackman_fractional_int(:,i))*2^-8;
         
+        % blackman_sub(:,i) = w_blackman_fractional(:,i) - aa; 
+        figure(2);
+        plot([w_blackman_fractional(:,i), aa]);
+        %%
         hri_m(:,i) = sinc(n-D); % shift impulse response on D = Dint - d for fractional delay filter
+
+        %%
+        % signed 9 bit
+        hri_int(:,i) = int16(round(hri_m(:,i) * 2^8));
+        aa1 = double(hri_int(:,i))*2^-8;
+
+        % figure(3);
+        % plot([hri_m(:,i), aa1(:,i)]);
+        %%
+         
         hri_m(:,i) = hri_m(:,i) .* w_blackman_fractional(:,i); 
+        % hri_m(:,i) = hri_m(:,i) ./ sum(hri_m(:,i));
+
+        %%
+        % signed 17 bit
+        hri_mult_int(:,i) = int32(hri_int(:,i)) .* int32(w_blackman_fractional_int(:,i));
+        % aa1 = double(hri_mult_int(:,i))*2^-16;
+        % figure(3);
+        % plot([hri_m(:,i), aa1]);
+        %%
         [yy(:,i), ff] = freqz(hri_m(:,i),1,1024, 'whole', 1000000000);
 
-        % hri_m(:,i) = hri_m(:,i) ./ sum(hri_m(:,i)); 
+
         yri(:,i) = filter(hri_m(:,i), 1, input_signal(:,1)); % (стр.6 (15))
+
+        y_out_array(:,i) = int32(filter(hri_mult_int(:,i), 1, input_signal_int(:,1))); % (стр.6 (15))
+        % 17+9
+        y_out_array1 = (double(y_out_array) * 2^-27).';
+
+
+        %%
+            for i = 1:73
+                aaa = hri_mult_int(k) * input_signal_int(k);
+            end
+
+
+
+
+        %%
+        figure(3);
+        plot([yri(1:200,i), (y_out_array1(1:200)).']);
+
+        figure(3);
+        subplot(2,1,1);
+        sfdr(yri, 1000000000);
+        subplot(2,1,2);
+        sfdr(y_out_array1, 1000000000);
+
 
         %% Thiran IIR All-pass
         % sys = thiran(D,1);
@@ -47,8 +101,38 @@ function yri_cut = fractional_delays(input_signal, M, N_taps, Z)
         hh = (2./((n-del_proc)*pi)).*(sin(((n-del_proc)*pi)./2)).^2;
         hh(1) = 0;
         hh(37) = 0;
+
+        % hh_int = int16(round(hh*2^15));
+        % hh_int1 = double(hh_int)*2^-15;
+        % hh_sub = hh - hh_int1;
+        % 
+        % plot([hh(1:73), hh_int1(1:73)]);
+
+
         hh_m = hh .* w_blackman;
+
+        % signed 8 bit
+        hh_m_int = int16(round(hh_m * 2^8)); 
+        % hh_m_int = double(hh_m_int) * 2^-8;
+        % sub_hh = (hh_m - hh_m_int).';
+        % figure(3);
+        % plot([hh_m(1:73), hh_m_int(1:73)]);
+
+
+
         ymi = filter(hh_m.', 1, yri(:,i));
+        ymi_int(:,i) = (filter(hh_m_int, 1, y_out_array(:,1))); % (стр.6 (15))
+
+        % 27+8
+        ymi_d = ymi_int * 2^-35;
+
+        figure(3);
+        plot([ymi(1:200), ymi_d(1:200)]);
+
+
+
+
+
 
         yhil_imag(:,i) = [ymi(del_proc+1:end); zeros(del_proc,1)];
 
