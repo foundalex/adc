@@ -11,12 +11,6 @@ function [sig_adc, x_after_adc, error_out] = adc_calibration(sim_options, adc_in
 	% Fractional delays of ADC0 signal
 	[yri_cut] = fractional_delays(adc_input, adc_input_int, sim_options.M, sim_options.N, sim_options.Z);
 
-    %% test signal after fractional delay filters
-	sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);
-	for i = 1:sim_options.M
-		sig_adc(i:sim_options.M:end) = yri_cut(:,i);
-    end
-
 	% figure(11);
 	% plot([x_after_subadc(1:500), sig_adc(1:500)]);
 

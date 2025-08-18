@@ -9,7 +9,7 @@ function [s_to_subadc_int, adc_input, adc_input_int, s_after_subadc_int, sim_opt
     % Create main signal with noise in double
     s = 0.75*cos(2*pi*sim_options.freq*t);
     noise = awgn(s,sim_options.SNR);
-    % s = s + noise;
+    s = s + noise;
 
     % s + noise integer
     s_int = int16(round(s * 2^11));
