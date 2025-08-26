@@ -3,6 +3,9 @@ function sim_options = ui_read_options
 % packet lengths vector, in bits
 initial_freq = eval(get(findobj('Tag', 'Initial_Frequency'),'String'))*1000000;
 
+magnitude = db2mag(eval(get(findobj('Tag', 'magnitude'),'String')));
+
+
 % Number of ADC
 num_ADC = eval(get(findobj('Tag', 'Num_ADC'),'String'));  % Num of sub ADC
 
@@ -38,6 +41,7 @@ sim_options = struct('freq', initial_freq, ...
    'time_skew_array', time_skew_array, ...
    'gain_error_array', gain_error_array, ...
    'Fs',  Fs,           ...    % Fs all ADC system
+   'Magnitude', magnitude,      ...
    'N',  73,            ...    % Number taps filters 
    'StopTime', 0.00001, ...    % seconds
    'Inter', Inter       ...    % oversampling factor

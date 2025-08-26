@@ -1,14 +1,65 @@
-function [y_array, error_out] = least_mean_square(adc_input, yri_cut, M, N)
+function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N)
+
  for z = 2:M
         %% блок для расчета первых N коэффициентов фильтра
         y_out(1) = 0;
         % создаем матрицу входного сигнала
         for i = 1:N
             x3(i,:) = adc_input(i:N+i-1,z).'; % (стр.6, (20))
+
+        
+            x3_int(i,:) = adc_input_int(i:N+i-1,z).'; % fi(1,12,10)
         end
         % рассчитываем первые N коэффициентов адаптивного фильтра
         % сравнивая с задержанным сигналом ADC0 (yri_cut)
-        w1 = (x3'*x3) \ x3' * yri_cut(1:N,z); % (стр.6, (19))
+        w1 = (x3' * x3) \ x3' * yri_cut(1:N,z); % (стр.6, (19))
+        % w1 = linsolve(x3, yri_cut(1:N,z));
+        % w1 = lsqminnorm(x3, yri_cut(1:N,z));
+        %%
+        % w12 = inv(x3'*x3) * x3';
+        % 
+        % ww1 = (x3' * x3)^-1;
+        % ww2 = inv(x3'*x3);
+
+        % x1 = [1 4; 2 5; 3 6];
+        % x2 = [7 8 9; 10 11 12];
+        %%
+
+        
+
+
+
+
+
+
+
+        %%
+        w1_int_part1 = (matrix_mult(x3_int',x3_int)); % fi(1,12,10) * fi(1,12,10) = fi(1,24,20)
+
+        w1_int_part1_int = int16(round(w1_int_part1./8192)).'; % fi(1,11,7)
+
+%%
+        ar = det(double(w1_int_part1_int)*2^-7);
+
+        ar1 = (1/ar) * w1_int_part1_int.';
+
+
+        % figure(4);
+        % plot([w1(:,1), double(w1_int_part1(:,1)) * 2^-20, double(w1_int_part1_int(:,1)) * 2^-7]);
+%%
+
+        % w1_int_part2_int = int16(2^16 / w1_int_part1_int) ; % fi(1,16,9)
+        % 
+        % figure(4);
+        % plot([ww1(:,10), double(w1_int_part2_int(:,10)) *2^-9 ]);
+        % 
+        % 
+        % w1_int_part3_int = (matrix_mult(w1_int_part2_int,x3_int')); % fi(1,12,10) * fi(1,12,10) = fi(1,24,20)
+        % 
+        % figure(4);
+        % plot([w1(:,1), ww2(:,1), double(w1_int_part3_int(:,1)) *2^-12 ]);
+
+
         % w1 = lsqr(x3, adc_input_id(1:N,z));
 
         % умножаем входные слова на рассчитанные коэффициенты
@@ -45,4 +96,23 @@ function [y_array, error_out] = least_mean_square(adc_input, yri_cut, M, N)
         error_out(1:j+1,z-1) = y_out1(1:j+1).' ./ yri_cut(1:j+1,z);
 
  end
+end
+
+
+function c = matrix_mult(a,b)
+
+ab = length(a(:,1));
+
+        for row = 1:ab
+            for col = 1:ab
+                sum1 = 0;
+                for i = 1:length(b(:,1))
+                    a1 = a(row,i);
+                    b1 = b(i,col); 
+                    sum1 = sum1 + int32(a1) * int32(b1); 
+                end
+                c(row,col) = sum1; 
+            end
+        end
+
 end

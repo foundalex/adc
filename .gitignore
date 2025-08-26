@@ -5,6 +5,7 @@
 #/*.md
 #/.gitattributes
 **/resources/project/
+*prj
 *mat
 *asv
 *slprj/

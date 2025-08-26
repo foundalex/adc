@@ -5,53 +5,31 @@
 % 3) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
-function [sig_adc, x_after_adc, error_out] = adc_calibration(sim_options, adc_input, adc_input_int)
+function [sig_adc, x_after_adc] = adc_calibration(sim_options, adc_input, adc_input_int)
     %% Calibration algorithm 1.1 (Fractional delays)
 
 	% Fractional delays of ADC0 signal
-	[yri_cut] = fractional_delays(adc_input, adc_input_int, sim_options.M, sim_options.N, sim_options.Z);
-
-	% figure(11);
-	% plot([x_after_subadc(1:500), sig_adc(1:500)]);
-
-	% figure(1);
-	% subplot(3,1,1);
-	% sfdr(x_to_subadc(1:length(sig_adc)), Fs/(Inter));
-	% subplot(3,1,2);
-	% sfdr(x_after_subadc(1:length(sig_adc)), Fs/(Inter));
-	% subplot(3,1,3);
-	% sfdr(sig_adc(1000:length(sig_adc)), Fs/(Inter));
-
-	% figure(2);
-	% subplot(3,1,1);
-	% snr(x_to_subadc(1:length(sig_adc)), Fs/(sim_options.Inter));
-	% subplot(3,1,2);
-	% snr(x_after_subadc(1:length(sig_adc)), Fs/(sim_options.Inter));
-	% subplot(3,1,3);
-	% snr(sig_adc(1000:length(sig_adc)), Fs/(sim_options.Inter));
-
-	% spectrumScope = spectrumAnalyzer(SampleRate=Fs, ...            
-	%             AveragingMethod='exponential',ForgettingFactor=0, ...
-	%             YLimits=[-30 10],ShowLegend=true, Method='Welch');
-    % 
-	% spectrumScope.WindowLength = 2048;
-	% spectrumScope.FrequencyResolutionMethod = "window-length";
-	% spectrumScope.PlotAsTwoSidedSpectrum=false;
-	% spectrumScope.DistortionMeasurements.Enabled = true;
-    % 
-	% spectrumScope([sig_adc(4096:19000)]);
+	[yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(adc_input, adc_input_int, sim_options.M, sim_options.N, sim_options.Z);
 
     %% Calibration algorithm 1.2 (Least Mean Squares)
-    [y_array, error_out] = least_mean_squares(adc_input, yri_cut, sim_options.M, sim_options.N);
+    [y_array, error_out] = least_mean_squares(adc_input, adc_input_int, yri_cut, yri_cut_int, sim_options.M, sim_options.N);
 
     % create main signal after LS algorithm (switch after sub-adc)
-    x_after_adc = zeros(length(y_array)*sim_options.M,1);
-    for i = 1:sim_options.M
-        if i == 1
-            x_after_adc(i:sim_options.M:end) = yri_cut(1:length(y_array));
-        else
-            x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
+    x_after_adc = zeros(length(yri_cut1)*sim_options.M,1);
+    % for i = 1:sim_options.M
+    %     if i == 1
+    %         x_after_adc(i:sim_options.M:end) = yri_cut1(1:length(yri_cut1));
+    %     else
+    %         x_after_adc(i:sim_options.M:end) = yri_cut1(:,i-1);
+    %     end
+    % end
+
+        for i = 1:sim_options.M
+            x_after_adc(i:sim_options.M:end) = yri_cut1(:,i);
         end
-    end
+    % end
+
+    figure(3);
+    plot(x_after_adc(1:100));
 
 end

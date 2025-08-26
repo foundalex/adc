@@ -1,4 +1,4 @@
-function [s_to_subadc_int, adc_input, adc_input_int, s_after_subadc_int, sim_options] = gen_oversampled_signal(sim_options)
+function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = gen_oversampled_signal(sim_options)
 
     dt = 1/sim_options.Fs;                                                                          % seconds per sample
     t = 0:dt:sim_options.StopTime;                                                                  % seconds
@@ -7,12 +7,15 @@ function [s_to_subadc_int, adc_input, adc_input_int, s_after_subadc_int, sim_opt
     sim_options.Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     % Create main signal with noise in double
-    s = 0.75*cos(2*pi*sim_options.freq*t);
+    s = sim_options.Magnitude*cos(2*pi*sim_options.freq*t);
+    
     noise = awgn(s,sim_options.SNR);
+    % distortion = 0.01*rand(size(noise));
     s = s + noise;
 
     % s + noise integer
-    s_int = int16(round(s * 2^11));
+    s_fi = fi(s,1,12,10);
+    s_int = int16(round(s_fi*2^10));
 
 
     % oversampled signal transfer to sub-adc
@@ -31,9 +34,9 @@ function [s_to_subadc_int, adc_input, adc_input_int, s_after_subadc_int, sim_opt
     adc_input_int(length(sig_int):end,:) = [];
 
 	% исходный сигнал до искажений
-	s_to_subadc_int = int16(zeros(sim_options.M*length(adc_input_int(:,1)),1));
+	s_to_subadc = zeros(sim_options.M*length(adc_input(:,1)),1);
 	for i = 1:sim_options.M
-		s_to_subadc_int(i:sim_options.M:end) = adc_input_int(:,i); 
+		s_to_subadc(i:sim_options.M:end) = adc_input(:,i); 
 	end
 
     %% Add time skew error, gain error
@@ -60,13 +63,11 @@ function [s_to_subadc_int, adc_input, adc_input_int, s_after_subadc_int, sim_opt
     end
 
     % Main signal with gain error and time skew
-	s_after_subadc_int = int16(zeros(sim_options.M*length(adc_input_int(:,1)),1));
+	s_after_subadc = zeros(sim_options.M*length(adc_input(:,1)),1);
 	for i = 1:sim_options.M
-	    s_after_subadc_int(i:sim_options.M:end) = adc_input_int(:,i); 
+	    s_after_subadc(i:sim_options.M:end) = adc_input(:,i); 
     end
-
 end
-
 %%
 % function for model timing skew
 function adc_input_skew = time_skew_func(time_skew, s, indexx, Inter, num_adc) 
