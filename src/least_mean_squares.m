@@ -1,75 +1,56 @@
 function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N)
 
  for z = 2:M
-        %% блок для расчета первых N коэффициентов фильтра
-        y_out(1) = 0;
-        % создаем матрицу входного сигнала
-        for i = 1:N
-            x3(i,:) = adc_input(i:N+i-1,z).'; % (стр.6, (20))
-            x3_int(i,:) = adc_input_int(i:N+i-1,z).'; % fi(1,12,10)
-        end
-        % рассчитываем первые N коэффициентов адаптивного фильтра
-        % сравнивая с задержанным сигналом ADC0 (yri_cut)
-        % w1 = (x3' * x3) \ x3' * yri_cut(1:N,z); % (стр.6, (19))
-        % w1 = linsolve(x3, yri_cut(1:N,z));
-        % w1 = lsqminnorm(x3, yri_cut(1:N,z));
+    %% блок для расчета первых N коэффициентов фильтра
+    y_out(1) = 0;
+    % создаем матрицу входного сигнала
+    for i = 1:N
+        x3(i,:) = adc_input(i:N+i-1,z).'; % (стр.6, (20))
+        x3_int(i,:) = adc_input_int(i:N+i-1,z).'; % fi(1,12,10)
+    end
+    % рассчитываем первые N коэффициентов адаптивного фильтра
+    % сравнивая с задержанным сигналом ADC0 (yri_cut)
+    % w1 = (x3' * x3) \ x3' * yri_cut(1:N,z); % (стр.6, (19))
+    % w1 = linsolve(x3, yri_cut(1:N,z));
+    % w1 = lsqminnorm(x3, yri_cut(1:N,z));
+    % w1 = lsqr(x3, adc_input_id(1:N,z));
         
-        %% determinate with UDU - factorization
-        det_x3 = det(x3);
+        %% determinate with LU - factorization
 
-        [u,d] = udu_factorization(x3);
-        det_x3_udu = 1;       
-        for i = 1:73
-            det_x3_udu = det_x3_udu * d(i,i);
+        % a = [25 5 5; 5 10 4; 5 4 1];
+        % [u,d] = udu_factorization(a);
+        % [d,u] = udu_factorization(x3);
+
+        [u, l, u_int, l_int] = lu_factorization(x3,x3_int);
+
+        
+
+        det_x3_ul_init = 1;       
+        for i = 1:N
+            det_x3_ul_init = det_x3_ul_init * u(i,i);
         end
 
         %%
-        for i = 1:73
+        for i = 1:N
             x3_shift = x3;
             x3_shift(1:N,i) = yri_cut(1:N,z); 
             det_x3_shift(i,:) = det(x3_shift);
 
-            %% LU factorization
             [U,L] = lu_factorization(x3_shift);
             tt = 1;
-            for n = 1:73
-                tt = tt * U(n,n);    
+            for n = 1:N
+                tt = tt * U(n,n); % diag compute (diag(prod(U))   
             end
             det_x3_lu(i,:) = tt;
         end
 
         %%
         ww1 = det_x3_shift ./ det_x3;
-        www1 = det_x3_lu ./ det_x3_udu;
-        
-        %%
-        w1_int_part1 = (matrix_mult(x3_int',x3_int)); % fi(1,12,10) * fi(1,12,10) = fi(1,24,20)
-
-        w1_int_part1_int = int16(round(w1_int_part1./8192)).'; % fi(1,11,7)
-
-        %%
-        ar = det(double(w1_int_part1_int)*2^-7);
-
-        ar1 = (1/ar) * w1_int_part1_int.';
-
+        www1 = det_x3_lu ./ det_x3_ul_init;
 
         % figure(4);
         % plot([w1(:,1), double(w1_int_part1(:,1)) * 2^-20, double(w1_int_part1_int(:,1)) * 2^-7]);
         %%
-
-        % w1_int_part2_int = int16(2^16 / w1_int_part1_int) ; % fi(1,16,9)
-        % 
-        % figure(4);
-        % plot([ww1(:,10), double(w1_int_part2_int(:,10)) *2^-9 ]);
-        % 
-        % 
-        % w1_int_part3_int = (matrix_mult(w1_int_part2_int,x3_int')); % fi(1,12,10) * fi(1,12,10) = fi(1,24,20)
-        % 
-        % figure(4);
-        % plot([w1(:,1), ww2(:,1), double(w1_int_part3_int(:,1)) *2^-12 ]);
-
-
-        % w1 = lsqr(x3, adc_input_id(1:N,z));
 
         % умножаем входные слова на рассчитанные коэффициенты
         for k = 1:N
@@ -77,8 +58,6 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
             % y_out = w1(1)*x(j+1) + w1(2)*x(j+2) + w1(3)*x(j+3) +
             % w1(4)*x(j+4); % Behrouz Farhang-Boroujeny, Adaptive Filters
             % Theory and Applications  (стр. 414)
-            
-
         end
 
         %% пересчет коэффициентов с приходом каждого слова
@@ -92,14 +71,17 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
             end
 
             det_x3 = det(x3);
-            %% determinate with UDU - factorization
-            [u,d] = udu_factorization(x3);
-            det_x3_udu = 1;       
-            for i = 1:73
-                det_x3_udu = det_x3_udu * d(i,i);
+            %% determinate with UL - factorization
+            % [d,u] = udu_factorization(x3);
+
+            [u,l] = lu_factorization(x3);
+
+            det_x3_ul_init = 1;       
+            for i = 1:N
+                det_x3_ul_init = det_x3_ul_init * u(i,i);
             end
 
-            for i = 1:73
+            for i = 1:N
                 x3_shift = x3;
                 x3_shift(1:N,i) = yri_cut(j+1:N+j,z); 
                 det_x3_shift(i,:) = det(x3_shift);
@@ -107,7 +89,7 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
                 %% LU factorization
                 [U,L] = lu_factorization(x3_shift);
                 tt = 1;
-                for n = 1:73
+                for n = 1:N
                     tt = tt * U(n,n);    
                 end
                 det_x3_lu(i,:) = tt;
@@ -120,7 +102,7 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
 
             ww1 = det_x3_shift ./ det_x3;
   
-            www1 = det_x3_lu ./ det_x3_udu;
+            www1 = det_x3_lu ./ det_x3_ul_init;
 
             % filter input signal. Mult input words on coeff
             y_out = 0;
