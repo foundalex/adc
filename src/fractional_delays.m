@@ -8,8 +8,8 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
 
     w_blackman = 0.42 - 0.5 * cos(2*pi*n/(N_taps-1)) + 0.08 * cos(4*pi*n/(N_taps-1)); % Blackman window
 
-    figure(4);
-    plot(input_signal_int(1:500));
+    % figure(4);
+    % plot(input_signal_int(1:500));
 
     for i = 1:M-1
         D = del_proc - delay_adc(i); % delay (N-1)/2 - d = causal filter
