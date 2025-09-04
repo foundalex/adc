@@ -12,41 +12,26 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
     % сравнивая с задержанным сигналом ADC0 (yri_cut)
     % w1 = (x3' * x3) \ x3' * yri_cut(1:N,z); % (стр.6, (19))
     % w1 = linsolve(x3, yri_cut(1:N,z));
-    % w1 = lsqminnorm(x3, yri_cut(1:N,z));
     % w1 = lsqr(x3, adc_input_id(1:N,z));
-        
-        %% determinate with LU - factorization
 
-        % a = [25 5 5; 5 10 4; 5 4 1];
-        % [u,d] = udu_factorization(a);
-        % [d,u] = udu_factorization(x3);
+    w1 = lsqminnorm(x3, yri_cut(1:N,z));
+    
+    aa = det(x3) * det(x3);
 
-        [u, l, u_int, l_int] = lu_factorization(x3,x3_int);
+    aa1 = determinate(x3) * determinate(x3);
 
-        
-
-        det_x3_ul_init = 1;       
-        for i = 1:N
-            det_x3_ul_init = det_x3_ul_init * u(i,i);
-        end
-
+    % aa1 = det(x3_int);
         %%
         for i = 1:N
             x3_shift = x3;
             x3_shift(1:N,i) = yri_cut(1:N,z); 
-            det_x3_shift(i,:) = det(x3_shift);
 
-            [U,L] = lu_factorization(x3_shift);
-            tt = 1;
-            for n = 1:N
-                tt = tt * U(n,n); % diag compute (diag(prod(U))   
-            end
-            det_x3_lu(i,:) = tt;
+            bb(:,i) = det(x3_shift) * det(x3);
+
         end
 
         %%
-        ww1 = det_x3_shift ./ det_x3;
-        www1 = det_x3_lu ./ det_x3_ul_init;
+        www1 = round(bb ./ aa,8);
 
         % figure(4);
         % plot([w1(:,1), double(w1_int_part1(:,1)) * 2^-20, double(w1_int_part1_int(:,1)) * 2^-7]);
@@ -69,40 +54,28 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
                 x3(i,:) = [x3(i,2:N), 0];
                 x3(i,N) = adc_input(j+N-1+i,z); % (стр.6, (20))
             end
+        %% 
 
-            det_x3 = det(x3);
-            %% determinate with UL - factorization
-            % [d,u] = udu_factorization(x3);
-
-            [u,l] = lu_factorization(x3);
-
-            det_x3_ul_init = 1;       
-            for i = 1:N
-                det_x3_ul_init = det_x3_ul_init * u(i,i);
-            end
+            aa = det(x3)*det(x3);
 
             for i = 1:N
                 x3_shift = x3;
                 x3_shift(1:N,i) = yri_cut(j+1:N+j,z); 
-                det_x3_shift(i,:) = det(x3_shift);
-
-                %% LU factorization
-                [U,L] = lu_factorization(x3_shift);
-                tt = 1;
-                for n = 1:N
-                    tt = tt * U(n,n);    
-                end
-                det_x3_lu(i,:) = tt;
+                %% factorization
+                bb(:,i) = det(x3_shift) * det(x3);
 
             end
 
             % estimate coeff
             % w1 = ((x3'*x3) \ x3') * yri_cut(j+1:N+j,z); % (стр.6, (19))
             % w1 = lsqr(x3, adc_input_id(j+1:N+j,z));
+            w1 = lsqminnorm(x3, yri_cut(j+1:N+j,z));
+            
+            www1 = round(bb ./ aa,8);
 
-            ww1 = det_x3_shift ./ det_x3;
-  
-            www1 = det_x3_lu ./ det_x3_ul_init;
+            if (w1 ~= www1)
+                q = w1 - www1;
+            end
 
             % filter input signal. Mult input words on coeff
             y_out = 0;

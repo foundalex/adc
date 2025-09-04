@@ -43,7 +43,7 @@ sim_options = struct('freq', initial_freq, ...
    'Fs',  Fs,           ...    % Fs all ADC system
    'Magnitude', magnitude,      ...
    'N',  73,            ...    % Number taps filters 
-   'StopTime', 0.000001, ...    % seconds
+   'StopTime', 0.00001, ...    % seconds
    'Inter', Inter       ...    % oversampling factor
    );
 
