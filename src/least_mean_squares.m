@@ -15,23 +15,38 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
     % w1 = lsqr(x3, adc_input_id(1:N,z));
 
     w1 = lsqminnorm(x3, yri_cut(1:N,z));
-    
+
+    [aa1, aa_int1] = determinate(x3, double(x3_int));
+    [aa2, aa_int2] = determinate(x3, double(x3_int));
+
+    [ee, ee1] = determinate(x3*x3);
+
+    bb = aa1*aa2;
+
     aa = det(x3) * det(x3);
-
-    aa1 = determinate(x3) * determinate(x3);
-
-    % aa1 = det(x3_int);
+    aa_int = aa_int1 * aa_int2; % fi (1,X,100)
+    det_a_int_in_double = aa_int*2^-100;
+  
         %%
         for i = 1:N
             x3_shift = x3;
-            x3_shift(1:N,i) = yri_cut(1:N,z); 
+            x3_shift(1:N,i) = yri_cut(1:N,z);
+            bb = det(x3_shift) * det(x3);
+            www1(:,i) = round(bb / aa,8);
+            %%
 
-            bb(:,i) = det(x3_shift) * det(x3);
+            x3_shift_int = x3_int;
+            x3_shift_int(1:N,i) = yri_cut_int(1:N,z); 
+            
+            [det_out, det_out_int] = determinate(x3, double(x3_int));
+            [det_out_shift, det_out_shift_int] = determinate(x3_shift, double(x3_shift_int));
+
+
+            det_out_mult = det_out * det_out_shift;
+            det_out_mult_int = det_out_int * det_out_shift_int;
+            www1_int(:,i) = det_out_mult_int / aa_int; % fi(1,X,1)
 
         end
-
-        %%
-        www1 = round(bb ./ aa,8);
 
         % figure(4);
         % plot([w1(:,1), double(w1_int_part1(:,1)) * 2^-20, double(w1_int_part1_int(:,1)) * 2^-7]);
@@ -56,27 +71,18 @@ function [y_array, error_out] = least_mean_square(adc_input, adc_input_int, yri_
             end
         %% 
 
-            aa = det(x3)*det(x3);
+            aa = det(x3) * det(x3');
 
             for i = 1:N
                 x3_shift = x3;
                 x3_shift(1:N,i) = yri_cut(j+1:N+j,z); 
-                %% factorization
-                bb(:,i) = det(x3_shift) * det(x3);
-
+                bb = det(x3_shift) * det(x3);
+                www1(:,i) = round(bb ./ aa,8);
             end
 
             % estimate coeff
-            % w1 = ((x3'*x3) \ x3') * yri_cut(j+1:N+j,z); % (стр.6, (19))
-            % w1 = lsqr(x3, adc_input_id(j+1:N+j,z));
             w1 = lsqminnorm(x3, yri_cut(j+1:N+j,z));
-            
-            www1 = round(bb ./ aa,8);
-
-            if (w1 ~= www1)
-                q = w1 - www1;
-            end
-
+                     
             % filter input signal. Mult input words on coeff
             y_out = 0;
             for k = 1:N
