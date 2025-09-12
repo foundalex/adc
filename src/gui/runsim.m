@@ -19,7 +19,7 @@ start_time = clock;
 for num = 1:sim_options.num_cycles
 
     [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = gen_oversampled_signal(sim_options);
-    [sig_adc, x_after_adc] = adc_calibration(sim_options, adc_input, adc_input_int);
+    [sig_adc, x_after_adc] = adc_calibration(sim_options, adc_input, adc_input_int, s_after_subadc);
 
     %% Measurements1
     figure(4);

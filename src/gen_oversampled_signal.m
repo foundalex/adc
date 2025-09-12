@@ -13,7 +13,7 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = 
     % distortion = 0.01*rand(size(noise));
     s = s + noise;
 
-    % s + noise integer
+    % % s + noise integer
     s_fi = fi(s,1,12,10);
     s_int = int16(round(s_fi*2^10));
 
@@ -35,37 +35,43 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = 
 
 	% исходный сигнал до искажений
 	s_to_subadc = zeros(sim_options.M*length(adc_input(:,1)),1);
+    s_to_subadc_int = zeros(sim_options.M*length(adc_input_int(:,1)),1);
 	for i = 1:sim_options.M
 		s_to_subadc(i:sim_options.M:end) = adc_input(:,i); 
+        s_to_subadc_int(i:sim_options.M:end) = adc_input_int(:,i);
 	end
 
     %% Add time skew error, gain error
     if sim_options.MODEL_ERROR == true
         % time skew model
         for i = 1:sim_options.M-1
-            adc_input_skew = time_skew_func(sim_options.time_skew_array(i), s_int, indexx(i), sim_options.Inter, sim_options.M); 
-            adc_input_int(1:length(adc_input_skew),i+1) = adc_input_skew;
-        end
-        adc_input_int(length(adc_input_skew):end,:) = [];
+            adc_input_skew = time_skew_func(sim_options.time_skew_array(i), s, indexx(i), sim_options.Inter, sim_options.M); 
+            adc_input(1:length(adc_input_skew),i+1) = adc_input_skew;
 
-        % figure(2);
-        % plot([adc_input(1:50,1), adc_input(1:50,2)]);
+            adc_input_skew_int = time_skew_func(sim_options.time_skew_array(i), s_int, indexx(i), sim_options.Inter, sim_options.M); 
+            adc_input_int(1:length(adc_input_skew_int),i+1) = adc_input_skew_int;
+        end
+        adc_input(length(adc_input_skew):end,:) = [];
+        adc_input_int(length(adc_input_skew_int):end,:) = [];
 
 	    % % model offset error
-        % for i = 1:M-1
+        % for i = 1:sim_options.M-1
         %     adc_input(:,i+1) = adc_input(:,i+1) + offset_error_array(i);
         % end
 
         % model gain error
         for i = 1:sim_options.M-1
             adc_input(:,i+1) = adc_input(:,i+1) * sim_options.gain_error_array(i);
+            adc_input_int(:,i+1) = int16(round(double(adc_input_int(:,i+1)) * sim_options.gain_error_array(i)));
         end
     end
 
     % Main signal with gain error and time skew
 	s_after_subadc = zeros(sim_options.M*length(adc_input(:,1)),1);
+    s_after_subadc_int = zeros(sim_options.M*length(adc_input_int(:,1)),1);
 	for i = 1:sim_options.M
 	    s_after_subadc(i:sim_options.M:end) = adc_input(:,i); 
+        s_after_subadc_int(i:sim_options.M:end) = adc_input_int(:,i); 
     end
 end
 %%
