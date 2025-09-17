@@ -18,13 +18,16 @@ start_time = clock;
 
 for num = 1:sim_options.num_cycles
 
+    % sim_options.SNR = sim_options.SNR + 5;
+    snr_array(num) = sim_options.SNR; 
+
     [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = gen_oversampled_signal(sim_options);
-    [sig_adc, x_after_adc] = adc_calibration(sim_options, adc_input, adc_input_int, s_after_subadc);
+    [sig_adc, x_after_adc, x_after_adc_int, error_det, error_det_lu] = adc_calibration(sim_options, adc_input, adc_input_int, s_to_subadc, s_after_subadc);
 
     %% Measurements1
     figure(4);
-    subplot(2,1,1)
-    plot([s_to_subadc(1:150), x_after_adc(1:150)])
+    % subplot(2,1,1)
+    plot([s_to_subadc(1:500), x_after_adc(1:500)])
     % title('Отношение между отсчетами I-составляющей')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
@@ -41,9 +44,9 @@ for num = 1:sim_options.num_cycles
     subplot(4,1,2);
     sfdr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(4,1,3);
-    sfdr(sig_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,4);
     sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4);
+    sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
 
     figure(6);
     subplot(4,1,1);
@@ -51,33 +54,77 @@ for num = 1:sim_options.num_cycles
     subplot(4,1,2);
     snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(4,1,3);
-    snr(sig_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,4);
     snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4);
+    snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
 
-    snr_in_id(num) = snr(sig_adc, sim_options.Fs/sim_options.Inter);
-    snr_input(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    snr_in_id(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    snr_input(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
     snr_output(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
 
-    sfdr_in_id(num) = sfdr(sig_adc, sim_options.Fs/sim_options.Inter);
-    sfdr_input(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    sfdr_in_id(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    sfdr_input(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
     sfdr_output(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
     norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
+
+
+    error_det_array(:,num) = error_det; 
+    error_det_array_lu(:,num) = error_det_lu;
+    num_array(:,num) = num;
+
 end
 
     figure(7);
     subplot(2,1,1)
-    plot(norm_freq, snr_in_id, '-o', norm_freq, snr_output, '-o');
+    plot(num_array, snr_input, '-o', num_array, snr_output, '-o', num_array, snr_in_id, '-o');
     title('SNR')
-    xlabel('Нормированная частота') 
+    xlabel('Номер итерации') 
     ylabel('SNR (dB)') 
-    legend('double', 'integer')
+    legend('Определитель 70 бит', 'double', 'Исходный сигнал с ошибками')
     subplot(2,1,2)
-    plot(norm_freq, sfdr_in_id, '-o', norm_freq, sfdr_output, '-o');
+    plot(num_array, sfdr_input, '-o', num_array, sfdr_output, '-o', num_array, sfdr_in_id, '-o');
     title('SFDR (dB)')
-    xlabel({'Нормированная частота fнорм = f/(Fs/M)','Fs - частота дискретизации всего TI-ADC, М - количество каналов'}) 
+    xlabel('Номер итерации') 
     ylabel('SFDR (dB)') 
-    legend('double', 'integer')
+    legend('Определитель 70 бит', 'double', 'Исходный сигнал с ошибками')
+
+
+    % figure(8);
+    % % subplot(7,1,1)
+    % plot([error_det_array(:,1), error_det_array_lu(:,1)]);
+    % title('Относительная ошибка определителей при SNR 10')
+    % xlabel('Номер отсчета') 
+    % ylabel('Величина ошибки') 
+    % subplot(7,1,2)
+    % plot([error_det_array(:,2), error_det_array_lu(:,2)]);
+    % title('Относительная ошибка определителей при SNR 20')
+    % xlabel('Номер отсчета') 
+    % ylabel('Величина ошибки')
+    % subplot(7,1,3)
+    % plot([error_det_array(:,3), error_det_array_lu(:,3)]);
+    % title('Относительная ошибка определителей при SNR 30')
+    % xlabel('Номер отсчета') 
+    % ylabel('Величина ошибки')
+    % subplot(7,1,4)
+    % plot([error_det_array(:,4), error_det_array_lu(:,4)]);
+    % title('Относительная ошибка определителей при SNR 40')
+    % xlabel('Номер отсчета') 
+    % ylabel('Величина ошибки')
+    % subplot(7,1,5)
+    % plot([error_det_array(:,5), error_det_array_lu(:,5)]);
+    % title('Относительная ошибка определителей при SNR 50')
+    % xlabel('Номер отсчета') 
+    % ylabel('Величина ошибки')
+    % subplot(7,1,6)
+    % plot([error_det_array(:,6), error_det_array_lu(:,6)]);
+    % title('Относительная ошибка определителей при SNR 60')
+    % xlabel('Номер отсчета') 
+    % ylabel('Величина ошибки')
+    % subplot(7,1,7)
+    % plot([error_det_array(:,7), error_det_array_lu(:,7)]);
+    % title('Относительная ошибка определителей при SNR 70')
+    % xlabel('Номер отсчета') 
+    % ylabel('Величина ошибки')
 
     %% Measurements2
     % figure(7);

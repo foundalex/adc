@@ -7,15 +7,14 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = 
     sim_options.Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     % Create main signal with noise in double
-    s = sim_options.Magnitude*cos(2*pi*sim_options.freq*t);
+    s = (cos(2*pi*sim_options.freq*t));
     
-    noise = awgn(s,sim_options.SNR);
-    % distortion = 0.01*rand(size(noise));
-    s = s + noise;
+    % add noise
+    s = awgn(s,sim_options.SNR, "measured");
 
     % % s + noise integer
-    s_fi = fi(s,1,12,10);
-    s_int = int16(round(s_fi*2^10));
+    s_fi = fi(s,1,12,11);
+    s_int = int16(round(s_fi*2^11));
 
 
     % oversampled signal transfer to sub-adc
@@ -31,6 +30,11 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = 
         adc_input_int(1:length(sig_int),i) = sig_int;
     end
     adc_input(length(sig):end,:) = []; 
+    
+    % adc_input(:,1) = awgn(adc_input(:,1),sim_options.SNR, "measured");
+    % adc_input(:,2) = awgn(adc_input(:,2), 0 , "measured");
+
+
     adc_input_int(length(sig_int):end,:) = [];
 
 	% исходный сигнал до искажений
@@ -62,7 +66,7 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = 
         % model gain error
         for i = 1:sim_options.M-1
             adc_input(:,i+1) = adc_input(:,i+1) * sim_options.gain_error_array(i);
-            adc_input_int(:,i+1) = int16(round(double(adc_input_int(:,i+1)) * sim_options.gain_error_array(i)));
+            adc_input_int(:,i+1) = int16(fi((adc_input_int(:,i+1)) * sim_options.gain_error_array(i),1,12,0));
         end
     end
 
@@ -73,6 +77,8 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = 
 	    s_after_subadc(i:sim_options.M:end) = adc_input(:,i); 
         s_after_subadc_int(i:sim_options.M:end) = adc_input_int(:,i); 
     end
+
+    % save (sprintf(num2str(clock)) + ".mat");
 end
 %%
 % function for model timing skew
