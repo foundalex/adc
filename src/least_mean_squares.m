@@ -13,7 +13,7 @@ tt = 0;
  for z = 2:M
     %% блок для расчета первых N коэффициентов фильтра
     y_out(1) = 0;
-    y_out_int(1) = 0;
+    % y_out_int = 0;
     % создаем матрицу входного сигнала
     for i = 1:N
         x3(i,:) = adc_input(i:N+i-1,z).'; % (стр.6, (20))
@@ -25,7 +25,7 @@ tt = 0;
     % w1 = linsolve(x3, yri_cut(1:N,z));
     % w1 = lsqr(x3, adc_input_id(1:N,z));
 
-    w1 = lsqminnorm(x3, yri_cut(1:N,z));
+    % w1 = lsqminnorm(x3, yri_cut(1:N,z));
     % w1_int = lsqminnorm(double(x3_int)*2^-11, double(yri_cut_int(1:N,z))*2^-11);
    
     [det_x3, det_x3_int] = determinate(double(x3_int)*2^-11, x3_int);
@@ -56,25 +56,37 @@ tt = 0;
             [det_out_shift, det_out_shift_int] = determinate(double(x3_shift_int)*2^-11, x3_shift_int);
             det_out_mult_int(i) = det_out_shift_int;
 
-            error_det(kk) = abs(((double(det_out_shift_int)*2^-55) / det_out_shift));
+            error_det(kk) = abs(double(det_out_shift_int)*2^-55 / det_out_shift);
             error_det_lu(kk) = abs(det_out_shift/ det(double(x3_shift_int)*2^-11));
             %% divide
-            www1_int1(:,i) = double(det_out_mult_int(i)) / double(det_func); 
-            T = numerictype('Signed', true,'WordLength', 70, 'FractionLength', 55);
-            www1_int(:,i) = divide(T, det_out_mult_int(i), det_func);
+            if (det_out_mult_int(i) == 0)
+                det_out_mult_int(i) = fi(1,1,70,0);
+            end
+            if (det_func == 0)
+                det_func = fi(1,1,70,0);
+            end
 
-        % end
+            % www1_int(:,i) = double(det_out_mult_int(i)) / double(det_func); 
+            % T = numerictype('Signed', true,'WordLength', 70, 'FractionLength', 55);
+            % www1_int(:,i) = divide(T, det_out_mult_int(i), det_func);
 
-        % умножаем входные слова на рассчитанные коэффициенты
-        % for k = 1:N
-            y_out(1) = y_out(1) + www1(i)*adc_input(i,z); % (стр 5, (13))
-            % y_out = w1(1)*x(j+1) + w1(2)*x(j+2) + w1(3)*x(j+3) +
-            % w1(4)*x(j+4); % Behrouz Farhang-Boroujeny, Adaptive Filters
-            % Theory and Applications  (стр. 414)
-
-            y_out_int(1) = y_out_int(1) + double(www1_int(i)) * double(adc_input_int(i,z))*2^-11;
+            www1_int(:,i) = int_division(det_out_mult_int(i), det_func, 55);
         end
 
+            % e(i) = fi(double(www1_int(:,i))*2^-55,1,70,55);
+            % zz(kk) = (double(e(i))) / (double(www1_int11(:,i)));
+
+        % умножаем входные слова на рассчитанные коэффициенты
+        for k = 1:N
+            y_out(1) = y_out(1) + www1(k) * adc_input(k,z); % (стр 5, (13))
+            % y_out = w1(1)*x(j+1) + w1(2)*x(j+2) + w1(3)*x(j+3) +  w1(4)*x(j+4); % Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications  (стр. 414)
+            dat_in_filt(k) = fi(adc_input_int(k,z),1,12,0);
+            % y_out_int(1) = y_out_int(1) + www1_int(k) * fi(adc_input_int(k,z),1,12,0);
+        end
+
+        y_out_int = filter_transversal(dat_in_filt, www1_int);
+
+        y_out1_int(1) = y_out_int;
         %% пересчет коэффициентов с приходом каждого слова
         for j = 1:length(yri_cut(:,1))-2*N
   
@@ -89,7 +101,7 @@ tt = 0;
             end
             %% 
             % estimate coeff
-            w1 = lsqminnorm(x3, yri_cut(j+1:N+j,z));
+            % w1 = lsqminnorm(x3, yri_cut(j+1:N+j,z));
 
             tt = tt + 1;
             det_matlab(tt) = det(x3);
@@ -114,30 +126,54 @@ tt = 0;
                 [det_out_shift, det_out_shift_int] = determinate(double(x3_shift_int)*2^-11, x3_shift_int);
                 det_out_mult_int(i) = det_out_shift_int;
 
-                %% divide
-                T = numerictype('Signed', true,'WordLength', 70, 'FractionLength', 55);
-                www1_int(:,i) = divide(T, det_out_mult_int(i), det_func(i));
-
-                www1_int1(:,i) = double(det_out_mult_int(i)) / double(det_func(i)); 
-
-
-                error_det(kk) = abs(((double(det_out_shift_int)*2^-55) / det_out_shift));
-                error_det_lu(kk) = abs(det_out_shift/ det(double(x3_shift_int)*2^-11));
-
-                if (isnan(www1_int(:,i)))
-                    w = 1;
+                if (j==17 & i ==3)
+                    eq = 1;
                 end
-            end
-                     
-            % filter input signal. Mult input words on coeff
-            y_out = 0;
-            y_out_int = 0;
-            for k = 1:N
-                y_out = y_out + www1(k) * adc_input(j+k,z); % (стр 5, (13))
-                y_out_int = y_out_int + double(www1_int(k)) * double(adc_input_int(j+k,z))*2^-11; % (стр 5, (13)) % fi(1,70,55) * fi(1,12,11) = fi(1,82,66)
-                % r = y_out_int + www1_int1(k) * double(adc_input_int(j+k,z))*2^-11; % (стр 5, (13)) % fi(1,70,55) * fi(1,12,11) = fi(1,82,66)
+
+                %% divide
+                if (det_out_mult_int(i) == 0)
+                    det_out_mult_int(i) = fi(1,1,70,0);
+                end
+
+                if (det_func(i) == 0)
+                    det_func(i) = fi(1,1,70,0);
+                end
+
+                % www1_int(:,i) = double(det_out_mult_int(i)) / double(det_func(i)); 
+                % T = numerictype('Signed', true,'WordLength', 70, 'FractionLength', 55);
+                % www1_int(:,i) = divide(T, det_out_mult_int(i), det_func(i));
+
+                www1_int(:,i) = int_division(det_out_mult_int(i), det_func(i), 55);
+
+                % error_det(kk) = abs(((double(det_out_shift_int)*2^-55) / det_out_shift));
+                % error_det_lu(kk) = abs(det_out_shift/ det(double(x3_shift_int)*2^-11));
+
+                % if (isinf(www1_int(:,i)) | isnan(www1_int(:,i)))
+                %     w = 1;
+                % end
+                % e(i) = fi(double(www1_int(:,i))*2^-55,1,70,55);
+                % zz(kk) = (double(e(i))) / (double(www1_int11(:,i)));      
+
+                y_out = 0;
+                % y_out_int = 0;
+
+                % filter input signal. Mult input words on coeff
+                for k = 1:N
+                    y_out = y_out + www1(k) * adc_input(j+k,z); % (стр 5, (13))
+
+                    % y_out_int = y_out_int + www1_int(k) * double(adc_input_int(j+k,z))*2^-11;
+                    dat_in_filt(k) = fi(adc_input_int(j+k,z),1,12,0);
+                end
+
+                y_out_int = filter_transversal(dat_in_filt, www1_int);
+
             end
             y_out1(j+1) = y_out;
+
+            if (abs(y_out_int) > 1*10^23)
+                eq = 1;
+            end
+
             y_out1_int(j+1) = y_out_int;
         end
 
@@ -157,29 +193,4 @@ tt = 0;
  minimum = min([min_det_matrix min_shift_det_matrix]);
  maximum = max([max_det_matrix max_shift_det_matrix]);
 
- % figure(7)
- % plot(error_det)
- % title('Относительная ошибка определителей')
- % xlabel('Номер отсчета') 
- % ylabel('Величина ошибки') 
-
 end
-
-
-% function c = matrix_mult(a,b)
-% 
-% ab = length(a(:,1));
-% 
-%         for row = 1:ab
-%             for col = 1:ab
-%                 sum1 = 0;
-%                 for i = 1:length(b(:,1))
-%                     a1 = a(row,i);
-%                     b1 = b(i,col); 
-%                     sum1 = sum1 + int32(a1) * int32(b1); 
-%                 end
-%                 c(row,col) = sum1; 
-%             end
-%         end
-% 
-% end

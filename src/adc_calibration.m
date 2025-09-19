@@ -21,20 +21,19 @@ function [sig_adc, x_after_adc, x_after_adc_int, error_det, error_det_lu] = adc_
     for i = 1:sim_options.M
         if i == 1
             x_after_adc(i:sim_options.M:end) = yri_cut1(1:length(y_array),1);
-            x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1))*2^-11;
+            x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
         else
             x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
-            x_after_adc_int(i:sim_options.M:end) = (y_array_int(:,i-1));
+            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1))*2^-55;
         end
     end
 
-        % for i = 1:sim_options.M
-        %     x_after_adc(i:sim_options.M:end) = yri_cut1(:,i);
-        % end
-    % end
-
     figure(3);
-    plot([x_after_adc(1:500), x_after_adc_int(1:500)]);
+    plot([x_after_adc_int]);
+    title('Выход адаптивного фильтра ')
+    xlabel('Номер отсчета') 
+    ylabel('Амплитуда') 
+    % legend('double', 'double', 'Исходный сигнал с ошибками')
 
     figure(4);
     subplot(4,1,1);

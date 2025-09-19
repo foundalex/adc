@@ -79,6 +79,8 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = 
     end
 
     % save (sprintf(num2str(clock)) + ".mat");
+    load ('2025              9             19             14              6         26.779.mat');
+
 end
 %%
 % function for model timing skew

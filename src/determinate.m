@@ -318,23 +318,6 @@ DetM_5x5 = var1 - var2 + var3 - var4 + var5;
 % mult = 90 + 20 = 110 + 5 = 115;
 % add = 50 + 15 = 66 + 4 + 70;
 % 115 + 70 = 185
-%%
-DetM_4x4_n_1_int_round = DetM_4x4_n_1_int/2; % fi(1,54,44) - 1 = fi(1,53,43)
-DetM_4x4_n_2_int_round = DetM_4x4_n_2_int/2;
-DetM_4x4_n_3_int_round = DetM_4x4_n_3_int/2;
-DetM_4x4_n_4_int_round = DetM_4x4_n_4_int/2;
-DetM_4x4_n_5_int_round = DetM_4x4_n_5_int/2;
-
-var1_int = int64(a_int(1,1))/2 * (DetM_4x4_n_1_int_round); % fi(1,11,10) * (1,53,43) = fi(1,64,53)
-er1 = (double(var1_int) * 2^-53) / var1; 
-var2_int = int64(a_int(1,2))/2 * (DetM_4x4_n_2_int_round);
-er2 = (double(var2_int) * 2^-53) / var2; 
-var3_int = int64(a_int(1,3))/2 * (DetM_4x4_n_3_int_round);
-er3 = (double(var3_int) * 2^-53) / var3; 
-var4_int = int64(a_int(1,4))/2 * (DetM_4x4_n_4_int_round);
-er4 = (double(var4_int) * 2^-53) / var4; 
-var5_int = int64(a_int(1,5))/2 * (DetM_4x4_n_5_int_round);
-er5 = (double(var5_int) * 2^-53) / var5; 
 
 %%
 var1_intf = fi(a_int(1,1),1,12,0) * fi(DetM_4x4_n_1_int,1,54,0); % fi(1,12,11) * (1,54,44) = fi(1,66,55)
@@ -348,42 +331,33 @@ er4f = (double(var4_intf) * 2^-55) / var4;
 var5_intf = fi(a_int(1,5),1,12,0) * fi(DetM_4x4_n_5_int,1,54,0);
 er5f = (double(var5_intf) * 2^-55) / var5; 
 
-var1_int_round = var1_int/16; % fi(1,64,53) - 4 = fi(1,60,49)
-var2_int_round = var2_int/16;
-var3_int_round = var3_int/16;
-var4_int_round = var4_int/16;
-var5_int_round = var5_int/16;
+var1_int_round = var1_intf; % fi(1,66,55) - 1 = fi(1,65,54)
+var2_int_round = var2_intf;
+var3_int_round = var3_intf;
+var4_int_round = var4_intf;
+var5_int_round = var5_intf;
 
-er1_var = (double(var1_int_round) * 2^-49) / var1; 
-er2_var = (double(var2_int_round) * 2^-49) / var2; 
-er3_var = (double(var3_int_round) * 2^-49) / var3; 
-er4_var = (double(var4_int_round) * 2^-49) / var4; 
-er5_var = (double(var5_int_round) * 2^-49) / var5; 
-
-ee1 = abs(er1_var) + abs(er2_var) + abs(er3_var) + abs(er4_var) + abs(er5_var);
-
-% er1 = (double(var1_int) * 2^-49) / var1; 
-% var2_int = int64(a_int(1,2))/2 * (DetM_4x4_n_2_int_round);
-% er2 = (double(var2_int) * 2^-49) / var2; 
-% var3_int = int64(a_int(1,3))/2 * (DetM_4x4_n_3_int_round);
-% er3 = (double(var3_int) * 2^-49) / var3; 
-% var4_int = int64(a_int(1,4))/2 * (DetM_4x4_n_4_int_round);
-% er4 = (double(var4_int) * 2^-49) / var4; 
-% var5_int = int64(a_int(1,5))/2 * (DetM_4x4_n_5_int_round);
-% er5 = (double(var5_int) * 2^-49) / var5; 
-
-
-DetM_5x5_int_round = var1_int_round - var2_int_round + var3_int_round - var4_int_round + var5_int_round; % fi(1,60,49) + fi(1,60,49) + fi(1,60,49) + fi(1,60,49) + fi(1,60,49) = fi(1,64,49) 
-DetM_5x5_int = var1_intf - var2_intf + var3_intf - var4_intf + var5_intf; % fi(1,60,49) + fi(1,60,49) + fi(1,60,49) + fi(1,60,49) + fi(1,60,49) = fi(1,64,49) 
+er1_var = (double(var1_int_round) * 2^-54) / var1; 
+er2_var = (double(var2_int_round) * 2^-54) / var2; 
+er3_var = (double(var3_int_round) * 2^-54) / var3; 
+er4_var = (double(var4_int_round) * 2^-54) / var4; 
+er5_var = (double(var5_int_round) * 2^-54) / var5; 
+ 
+DetM_5x5_int = var1_intf - var2_intf + var3_intf - var4_intf + var5_intf; % fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) = fi(1,70,55) 
 
 de = det(data_in); 
 de1 = (double(DetM_5x5_int)*2^-55);
-d1 = (double(DetM_5x5_int_round)*2^-49);
-error_det =  d1 / DetM_5x5;
 
-if (error_det > 2)
-    e = 1;
-end
+error_det =  de / de1;
+
+% if (error_det > 2)
+%     e = 1;
+% end
+% 
+% if (DetM_5x5_int == 0)
+%     e = 1;
+% end
+
 %%
 % a_int = data_in_int;
 % 
@@ -474,11 +448,10 @@ function [det_out, det_out_int] = det_2x2(a, a_int)
 
     % k = 9;
 
-
-    det_out = a(1,1)*a(2,2) - a(2,1)*a(1,2); 
+    det_out = a(1,1) * a(2,2) - a(2,1) * a(1,2); % fi(1,12,11) * fi(1,12,11) = fi(1,24,22)
     mult1 = int32(a_int(1,1)) * int32(a_int(2,2));
     mult2 = int32(a_int(2,1)) * int32(a_int(1,2));
-    det_out_int = mult1 - mult2; % fi(1,12,11) * fi(1,12,11) = fi(1,24,22) + fi(1,24,22) = fi(1,25,22)
+    det_out_int = mult1 - mult2; % fi(1,24,22) - fi(1,24,22) = fi(1,25,22)
 
     % det_out_int = (bitshift(det_out_int, -k,'int32')); % fi(1,25,22)
     % diff_err = det_out - double(det_out_int)*2^-(22-k);

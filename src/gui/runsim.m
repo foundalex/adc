@@ -18,7 +18,7 @@ start_time = clock;
 
 for num = 1:sim_options.num_cycles
 
-    % sim_options.SNR = sim_options.SNR + 5;
+    sim_options.SNR = sim_options.SNR + 5;
     snr_array(num) = sim_options.SNR; 
 
     [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = gen_oversampled_signal(sim_options);
@@ -27,7 +27,7 @@ for num = 1:sim_options.num_cycles
     %% Measurements1
     figure(4);
     % subplot(2,1,1)
-    plot([s_to_subadc(1:500), x_after_adc(1:500)])
+    plot([s_to_subadc(1:length(x_after_adc)), x_after_adc])
     % title('Отношение между отсчетами I-составляющей')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
