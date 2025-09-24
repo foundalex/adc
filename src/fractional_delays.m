@@ -182,14 +182,14 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
         sig_adc_int(i:M:end) = yri_cut1(:,i);
     end
 
-    figure(4);
-    plot([sig_adc, sig_adc_int]);
+    % figure(4);
+    % plot([sig_adc, sig_adc_int]);
     % 
-    figure(10);
-    subplot(2,1,1);
-    snr(sig_adc, 8000000000);
-    subplot(2,1,2);
-    snr(sig_adc_int, 8000000000);
+    % figure(10);
+    % subplot(2,1,1);
+    % snr(sig_adc, 8000000000);
+    % subplot(2,1,2);
+    % snr(sig_adc_int, 8000000000);
     
 
 

@@ -21,11 +21,16 @@ for num = 1:sim_options.num_cycles
     sim_options.SNR = sim_options.SNR + 5;
     snr_array(num) = sim_options.SNR; 
 
-    [s_to_subadc, adc_input, adc_input_int, s_after_subadc, sim_options] = gen_oversampled_signal(sim_options);
-    [sig_adc, x_after_adc, x_after_adc_int, error_det, error_det_lu] = adc_calibration(sim_options, adc_input, adc_input_int, s_to_subadc, s_after_subadc);
+    freq = sim_options.freq + sim_options.step;                                         % frequency of fundamental tone
+    Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
+
+    [s_to_subadc, adc_input, adc_input_int, s_after_subadc] = gen_oversampled_signal(sim_options.M, sim_options.Fs, freq, sim_options.SNR, ...
+        sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
+
+    [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, adc_input, adc_input_int, s_to_subadc, s_after_subadc, Z);
 
     %% Measurements1
-    figure(4);
+    figure(5);
     % subplot(2,1,1)
     plot([s_to_subadc(1:length(x_after_adc)), x_after_adc])
     % title('Отношение между отсчетами I-составляющей')
@@ -38,7 +43,7 @@ for num = 1:sim_options.num_cycles
     % xlabel('Номер отсчета') 
     % ylabel('Отношение') 
 
-    figure(5);
+    figure(6);
     subplot(4,1,1);
     sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(4,1,2);
@@ -48,7 +53,7 @@ for num = 1:sim_options.num_cycles
     subplot(4,1,4);
     sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
 
-    figure(6);
+    figure(7);
     subplot(4,1,1);
     snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(4,1,2);
@@ -68,13 +73,13 @@ for num = 1:sim_options.num_cycles
     norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
 
 
-    error_det_array(:,num) = error_det; 
-    error_det_array_lu(:,num) = error_det_lu;
+    % error_det_array(:,num) = error_det; 
+    % error_det_array_lu(:,num) = error_det_lu;
     num_array(:,num) = num;
 
 end
 
-    figure(7);
+    figure(8);
     subplot(2,1,1)
     plot(num_array, snr_input, '-o', num_array, snr_output, '-o', num_array, snr_in_id, '-o');
     title('SNR')
