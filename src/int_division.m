@@ -1,4 +1,9 @@
-function out1 = int_division(a, b, n, width)
+function efi_out = int_division(a, b, n, width)
+
+
+    a1 = double(a);
+    b1 = double(b);
+    c = a1/b1;
 
     % T = numerictype('Signed', true,'WordLength', n, 'FractionLength', 0);
     % www = divide(T, a, b);
@@ -23,14 +28,18 @@ function out1 = int_division(a, b, n, width)
 
 
     ee = double(a)/double(b);
-    e1 = round(ee,1);
+    e1 = ee;
+
+
+    efi = fi(e1,1,n,width);
+    efi_d = double(efi)*2^width;
+    efi_out = fi(efi_d,1,n,0);
+
 
     out = e1*2^width;
-
     out1 = fi(out,1,n,0);
-
     out2 = double(out1)*2^-width;
-    % out4 = double(out3)*2^-70;
+
 
    
 

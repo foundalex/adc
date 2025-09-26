@@ -343,7 +343,13 @@ er3_var = (double(var3_int_round) * 2^-55) / var3;
 er4_var = (double(var4_int_round) * 2^-55) / var4; 
 er5_var = (double(var5_int_round) * 2^-55) / var5; 
  
-DetM_5x5_int = var1_intf - var2_intf + var3_intf - var4_intf + var5_intf; % fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) = fi(1,70,55) 
+DetM_5x5_int = (var1_intf - var2_intf + var3_intf - var4_intf + var5_intf); % fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) = fi(1,70,55) 
+
+% DetM_5x5_int = bitshift(DetM_5x5_int,-15);
+% 
+% DetM_5x5_int = fi(DetM_5x5_int,1,55,0); 
+
+
 % DetM_5x5_int = fi(DetM_5x5_int,1,66,0);
 de = det(data_in); 
 de1 = (double(DetM_5x5_int)*2^-55);

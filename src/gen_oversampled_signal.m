@@ -76,9 +76,12 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc] = gen_oversampl
         s_after_subadc_int(i:M:end) = adc_input_int(:,i); 
     end
 
+
     % save (sprintf(num2str(clock)) + ".mat");
-    % load ('2025              9             19             14              6         26.779.mat');
-    % load ('2025              9             23             11             11          6.865.mat');
+    % load ('2025              9             19             14              6         26.779.mat'); % 5 SNR
+    % load ('2025              9             25             12             12         28.894.mat'); % 60 SNR
+     load ('2025              9             26             16             43         25.239.mat'); % 60 SNR + error
+
 end
 %%
 % function for model timing skew

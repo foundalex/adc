@@ -17,7 +17,7 @@ randn('state',sum(100*clock));
 start_time = clock;
 
 for num = 1:sim_options.num_cycles
-
+    % 
     sim_options.SNR = sim_options.SNR + 5;
     snr_array(num) = sim_options.SNR; 
 

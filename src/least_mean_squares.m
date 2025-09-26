@@ -1,9 +1,9 @@
-function [y_array, y_array_int] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N)
+function [y_array, y_array_int] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N, width)
 
 kk = 0;
 tt = 0;
-width = 14;
 n = 70;
+
 
  for z = 2:M
     %% блок для расчета первых N коэффициентов фильтра
@@ -52,14 +52,14 @@ n = 70;
 
             %% integer divide
             if (det_out_shift_int == 0)
-                det_out_shift_int = fi(1,1,70,0);
+                det_out_shift_int = fi(1,1,n,0);
             end
             if (det_x3_int == 0)
-                det_x3_int = fi(1,1,70,0);
+                det_x3_int = fi(1,1,n,0);
             end
 
             www1_int(:,i) = int_division(det_out_shift_int, det_x3_int, n, width);
-            www1_int_double(i,:) = double(www1_int(:,i))*2^-14;
+            www1_int_double(i,:) = double(www1_int(:,i))*2^-width;
         end
 
         % умножаем входные слова на рассчитанные коэффициенты
@@ -70,7 +70,7 @@ n = 70;
             dat_in_filt(k) = fi(adc_input_int(k,z),1,12,0);
         end
 
-        [y_out, y_out_int] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int);
+        [y_out, y_out_int] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int, width);
 
         y_array(1,z-1) = y_out;
         y_array_int(1,z-1) = y_out_int;
@@ -129,19 +129,19 @@ n = 70;
 
                 %% divide
                 if (det_out_shift_int == 0)
-                    det_out_shift_int = fi(1,1,70,0);
+                    det_out_shift_int = fi(1,1,n,0);
                 end
 
                 if (det_x3_int(tt) == 0)
-                    det_x3_int(tt) = fi(1,1,70,0);
+                    det_x3_int(tt) = fi(1,1,n,0);
                 end
 
-                if (j == 401 & i == 5 & z == 3)
-                    w = 1;
-                end  
+                % if (j == 18 & i == 5 & z == 2)
+                %     w = 1;
+                % end  
 
                 www1_int(:,i) = int_division(det_out_shift_int, det_x3_int(tt), n, width);
-                www1_int_double(i,:) = double(www1_int(:,i))*2^-14;
+                www1_int_double(i,:) = double(www1_int(:,i))*2^-width;
 
                 %% filter
 
@@ -156,22 +156,21 @@ n = 70;
                     
                 end 
 
-                [y_out, y_out_int] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int);
+                [y_out, y_out_int] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int, width);
 
             end
 
             y_array(j+1,z-1) = y_out;
             y_array_int(j+1,z-1) = y_out_int;
 
-            % if double(y_out_int)*2^-14 == -351
+            % % % if abs(y_out) > 100
+            % if abs(double(y_out_int)*2^-width) > 4000
             %     eq = 1;
             %     figure(11);
-            %     hold on
             %     subplot(2,1,1);
             %     plot(y_array(:,z-1));
-            %     hold on
             %     subplot(2,1,2);
-            %     plot(double(y_array_int(:,z-1)) *2^-14 );
+            %     plot(double(y_array_int(:,z-1)) *2^-width);
             % 
             %     [qwe, qwe1] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int);
             % end
@@ -179,14 +178,17 @@ n = 70;
         end
 
 
-        % figure(12);
-        % hold on
-        % subplot(2,1,1);
-        % plot([y_array(:,z-1)]);
-        % hold on
-        % subplot(2,1,2);
-        % plot(double(y_array_int(:,z-1)) *2^-14 );
-
+        figure(13);
+        subplot(2,1,1);
+        plot([y_array(:,z-1)]);
+        title('Выход адаптивного фильтра double для одного канала АЦП')
+        xlabel('Номер отсчета') 
+        ylabel('Амплитуда сигнала') 
+        subplot(2,1,2);
+        plot(double(y_array_int(:,z-1)) *2^0);
+        title('Выход адаптивного фильтра integer для одного канала АЦП')
+        xlabel('Номер отсчета') 
+        ylabel('Амплитуда сигнала') 
 
  end
 

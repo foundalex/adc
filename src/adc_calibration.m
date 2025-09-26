@@ -17,8 +17,9 @@ function [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, 
     % adc_input = double(adc_input_int)*2^-11;
     % yri_cut = double(yri_cut_int)*2^-11; 
 
+    width = 14;
 
-    [y_array, y_array_int] = least_mean_squares(adc_input, adc_input_int, yri_cut, yri_cut_int, sim_options.M, sim_options.N1);
+    [y_array, y_array_int] = least_mean_squares(adc_input, adc_input_int, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, width);
 
     % create main signal after LS algorithm (switch after sub-adc)
     x_after_adc = zeros(length(y_array)*sim_options.M,1);
@@ -30,7 +31,7 @@ function [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, 
             x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
         else
             x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
-            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1))*2^-14;
+            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1));
         end
     end
 
