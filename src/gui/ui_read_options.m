@@ -30,7 +30,7 @@ end
 
 
 Inter = 20;
-Fs = 1000000000 * Inter * num_ADC, 
+Fs = 1000000000 * Inter * num_ADC; % Fs = 1 GHz
 
 sim_options = struct( ...
    'freq',              initial_freq, ...

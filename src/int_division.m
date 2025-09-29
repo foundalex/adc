@@ -1,4 +1,4 @@
-function efi_out = int_division(a, b, n, width)
+function efi_out = int_division(a, b, n, width, length_word)
 
 
     a1 = double(a);
@@ -31,9 +31,9 @@ function efi_out = int_division(a, b, n, width)
     e1 = ee;
 
 
-    efi = fi(e1,1,n,width);
+    efi = fi(e1,1,length_word,width);
     efi_d = double(efi)*2^width;
-    efi_out = fi(efi_d,1,n,0);
+    efi_out = fi(efi_d,1,length_word,0);
 
 
     out = e1*2^width;

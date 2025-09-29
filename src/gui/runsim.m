@@ -18,8 +18,8 @@ start_time = clock;
 
 for num = 1:sim_options.num_cycles
     % 
-    sim_options.SNR = sim_options.SNR + 5;
-    snr_array(num) = sim_options.SNR; 
+    % sim_options.SNR = sim_options.SNR + 5;
+    % snr_array(num) = sim_options.SNR; 
 
     freq = sim_options.freq + sim_options.step;                                         % frequency of fundamental tone
     Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone

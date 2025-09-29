@@ -18,7 +18,7 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc] = gen_oversampl
     % oversampled signal transfer to sub-adc
     offset = 200;
     for i = 1:M
-        sig = s(i*Inter+1+offset:M*Inter:end);
+        sig = s(i*Inter+1+offset:M*Inter:end); % 20, 40, 60
         sig_int = s_int(i*Inter+1+offset:M*Inter:end);
         if i > 1
             indexx(i-1) = (i*Inter*+1+offset);
@@ -78,9 +78,7 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc] = gen_oversampl
 
 
     % save (sprintf(num2str(clock)) + ".mat");
-    % load ('2025              9             19             14              6         26.779.mat'); % 5 SNR
-    % load ('2025              9             25             12             12         28.894.mat'); % 60 SNR
-     load ('2025              9             26             16             43         25.239.mat'); % 60 SNR + error
+    % load ('2025              9             29             13             57         23.936.mat'); % 60 SNR + error
 
 end
 %%

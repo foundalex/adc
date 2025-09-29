@@ -14,10 +14,10 @@ function [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, 
     %% Calibration algorithm 1.2 (Least Mean Squares)
 
 
-    % adc_input = double(adc_input_int)*2^-11;
-    % yri_cut = double(yri_cut_int)*2^-11; 
+    adc_input = double(adc_input_int)*2^-11;
+    yri_cut = double(yri_cut_int)*2^-11; 
 
-    width = 14;
+    width = 11;
 
     [y_array, y_array_int] = least_mean_squares(adc_input, adc_input_int, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, width);
 
