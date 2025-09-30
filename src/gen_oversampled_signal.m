@@ -1,4 +1,4 @@
-function [s_to_subadc, adc_input, adc_input_int, s_after_subadc] = gen_oversampled_signal(M, Fs, freq, SNR, Inter, StopTime, ...
+function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(M, Fs, freq, SNR, Inter, StopTime, ...
     MODEL_ERROR, time_skew_array, gain_error_array)
 
     dt = 1/Fs;                                                                          % seconds per sample
@@ -81,6 +81,7 @@ function [s_to_subadc, adc_input, adc_input_int, s_after_subadc] = gen_oversampl
     % load ('2025              9             29             13             57         23.936.mat'); % 60 SNR + error
 
 end
+
 %%
 % function for model timing skew
 function adc_input_skew = time_skew_func(time_skew, s, indexx, Inter, num_adc) 

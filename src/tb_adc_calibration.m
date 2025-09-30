@@ -1,4 +1,4 @@
-function runsim(sim_options)
+function tb_adc_calibration (sim_options)
 
 all_figs = findobj(0, 'type', 'figure');
 delete(setdiff(all_figs, 1));
@@ -16,33 +16,33 @@ randn('state',sum(100*clock));
 % Initialize simulation timer
 start_time = clock;
 
-for num = 1:sim_options.num_cycles
-    % 
-    % sim_options.SNR = sim_options.SNR + 5;
-    % snr_array(num) = sim_options.SNR; 
+freq = sim_options.freq;
 
-    freq = sim_options.freq + sim_options.step;                                         % frequency of fundamental tone
+for num = 1:sim_options.num_cycles
+ 
     Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
-    [s_to_subadc, adc_input, adc_input_int, s_after_subadc] = gen_oversampled_signal(sim_options.M, sim_options.Fs, freq, sim_options.SNR, ...
+    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, freq, sim_options.SNR, ...
         sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
     [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, adc_input, adc_input_int, s_to_subadc, s_after_subadc, Z);
 
     %% Measurements1
     figure(5);
-    % subplot(2,1,1)
+    subplot(2,1,1)
     plot([s_to_subadc(1:length(x_after_adc)), x_after_adc])
-    % title('Отношение между отсчетами I-составляющей')
+    title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
     legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
-    % subplot(2,1,2)
-    % plot([error_out(:,1)]); %, error_out(:,2), error_out(:,3)]);
-    % title('Относительная ошибка между исходным сигналом и выходом адаптивного фильтра')
-    % xlabel('Номер отсчета') 
-    % ylabel('Отношение') 
 
+    subplot(2,1,2)
+    plot([s_to_subadc_int(1:length(x_after_adc_int)), x_after_adc_int]); %, error_out(:,2), error_out(:,3)]);
+    title('Исходный сигнал до искажения и выход адаптивного фильтра (int)')
+    xlabel('Номер отсчета') 
+    ylabel('Отношение') 
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+    %%
     figure(6);
     subplot(4,1,1);
     sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
@@ -63,73 +63,44 @@ for num = 1:sim_options.num_cycles
     subplot(4,1,4);
     snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
 
-    snr_in_id(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
-    snr_input(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-    snr_output(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    snr_in_double(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    snr_output_double(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
 
-    sfdr_in_id(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
-    sfdr_input(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-    sfdr_output(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    sfdr_in_double(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    sfdr_output_double(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
+    
     norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
-
-
-    % error_det_array(:,num) = error_det; 
-    % error_det_array_lu(:,num) = error_det_lu;
     num_array(:,num) = num;
+
+
+    % freq
+    freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
+
+    % SNR
+    sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
+    snr_array(num) = sim_options.SNR; 
 
 end
 
     figure(8);
     subplot(2,1,1)
-    plot(num_array, snr_input, '-o', num_array, snr_output, '-o', num_array, snr_in_id, '-o');
+    plot(norm_freq, snr_in_double, '-o', norm_freq, snr_in_int, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
     title('SNR')
     xlabel('Номер итерации') 
     ylabel('SNR (dB)') 
-    legend('Определитель 70 бит', 'double', 'Исходный сигнал с ошибками')
+    legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+
     subplot(2,1,2)
-    plot(num_array, sfdr_input, '-o', num_array, sfdr_output, '-o', num_array, sfdr_in_id, '-o');
+    plot(norm_freq, sfdr_in_double, '-o', norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
     title('SFDR (dB)')
     xlabel('Номер итерации') 
     ylabel('SFDR (dB)') 
-    legend('Определитель 70 бит', 'double', 'Исходный сигнал с ошибками')
+    legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
-
-    % figure(8);
-    % % subplot(7,1,1)
-    % plot([error_det_array(:,1), error_det_array_lu(:,1)]);
-    % title('Относительная ошибка определителей при SNR 10')
-    % xlabel('Номер отсчета') 
-    % ylabel('Величина ошибки') 
-    % subplot(7,1,2)
-    % plot([error_det_array(:,2), error_det_array_lu(:,2)]);
-    % title('Относительная ошибка определителей при SNR 20')
-    % xlabel('Номер отсчета') 
-    % ylabel('Величина ошибки')
-    % subplot(7,1,3)
-    % plot([error_det_array(:,3), error_det_array_lu(:,3)]);
-    % title('Относительная ошибка определителей при SNR 30')
-    % xlabel('Номер отсчета') 
-    % ylabel('Величина ошибки')
-    % subplot(7,1,4)
-    % plot([error_det_array(:,4), error_det_array_lu(:,4)]);
-    % title('Относительная ошибка определителей при SNR 40')
-    % xlabel('Номер отсчета') 
-    % ylabel('Величина ошибки')
-    % subplot(7,1,5)
-    % plot([error_det_array(:,5), error_det_array_lu(:,5)]);
-    % title('Относительная ошибка определителей при SNR 50')
-    % xlabel('Номер отсчета') 
-    % ylabel('Величина ошибки')
-    % subplot(7,1,6)
-    % plot([error_det_array(:,6), error_det_array_lu(:,6)]);
-    % title('Относительная ошибка определителей при SNR 60')
-    % xlabel('Номер отсчета') 
-    % ylabel('Величина ошибки')
-    % subplot(7,1,7)
-    % plot([error_det_array(:,7), error_det_array_lu(:,7)]);
-    % title('Относительная ошибка определителей при SNR 70')
-    % xlabel('Номер отсчета') 
-    % ylabel('Величина ошибки')
 
     %% Measurements2
     % figure(7);
