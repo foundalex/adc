@@ -16,6 +16,9 @@ function [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, 
     % adc_input = double(adc_input_int)*2^-11;
     % yri_cut = double(yri_cut_int)*2^-11; 
 
+    adc_input = double(adc_input_int);
+    yri_cut = double(yri_cut_int);
+
     [y_array, y_array_int] = least_mean_squares(adc_input, adc_input_int, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, sim_options.Width);
 
     % create main signal after LS algorithm (switch after sub-adc)
@@ -24,7 +27,8 @@ function [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, 
 
     for i = 1:sim_options.M
         if i == 1
-            x_after_adc(i:sim_options.M:end) = yri_cut1(1:length(y_array),1);
+            % x_after_adc(i:sim_options.M:end) = yri_cut1(1:length(y_array),1);
+            x_after_adc(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
             x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
         else
             x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
@@ -46,14 +50,14 @@ function [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, 
     ylabel('Амплитуда');
     % legend('double', 'double', 'Исходный сигнал с ошибками')
 
-    figure(4);
-    subplot(4,1,1);
-    snr(s_to_subadc(1:length(s_to_subadc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,2);
-    snr(s_after_subadc(1:length(s_after_subadc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,3);
-    snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,4);
-    snr(x_after_adc_int(1:length(x_after_adc_int)), sim_options.Fs/sim_options.Inter);
+    % figure(4);
+    % subplot(4,1,1);
+    % snr(s_to_subadc(1:length(s_to_subadc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,2);
+    % snr(s_after_subadc(1:length(s_after_subadc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,3);
+    % snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,4);
+    % snr(x_after_adc_int(1:length(x_after_adc_int)), sim_options.Fs/sim_options.Inter);
 
 end

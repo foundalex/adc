@@ -26,9 +26,10 @@ length_word_div = 70;
     det_matlab(tt) = det(x3);
     [det_x3, det_x3_int] = determinate(x3, x3_int);
 
-    % if (det_x3_int == 0)
-    %     det_x3_int = fi(1,1,n,0);
-    % end
+    if (det_x3_int == 0)
+        h = 1;
+        % det_x3_int = fi(1,1,70,0);
+    end
 
     if (det_matlab(tt) == 0)
         det_matlab(tt) = 1;
@@ -48,7 +49,7 @@ length_word_div = 70;
 
             %% determinant
             det_x3_shift(kk) = det(x3_shift);
-            [det_out_shift, det_out_shift_int] = determinate(x3_shift, x3_shift_int);
+            [det_out_shift(kk), det_out_shift_int(kk)] = determinate(x3_shift, x3_shift_int);
 
             if (det_x3_shift(kk) == 0)
                 det_x3_shift(kk) = 1;
@@ -56,7 +57,7 @@ length_word_div = 70;
 
             %% divide determinant
             www1(:,i) = det_x3_shift(kk) / det_matlab(tt); % double
-            www1_int(:,i) = int_division(det_out_shift_int, det_x3_int, length_word_div, width); % integer
+            www1_int(:,i) = int_division(det_out_shift_int(kk), det_x3_int, length_word_div, width); % integer
 
             www1_int_double(i,:) = double(www1_int(:,i))*2^-width;
         end
@@ -97,14 +98,15 @@ length_word_div = 70;
             tt = tt + 1;
             det_matlab(tt) = det(x3);
             [det_x3(tt), det_x3_int(tt)] = determinate(double(x3_int)*2^-11, x3_int); % int
-
+            % 
             if (det_matlab(tt) == 0)
                 det_matlab(tt) = 1;
             end
 
-            % if (j==17 & i ==5 & tt ==18)
-            %     eq = 1;
-            % end
+            if (det_x3_int == 0)
+                h = 1;
+                % det_x3_int = fi(1,1,70,0);
+            end
 
             for i = 1:N
                 kk = kk + 1;
@@ -124,11 +126,11 @@ length_word_div = 70;
                     det_x3_shift(kk) = 1;
                 end
 
-                %% divide determinant
-                % if (det_out_shift_int(kk) == 0)
-                %     det_out_shift_int(kk) = fi(1,1,n,0);
-                % end
+                if (det_out_shift_int(kk) == 0)
+                   h = 1;
+                end
 
+                %% divide determinant
                 % if (j == 346 & i == 5 & z == 3)
                 %     w = 1;
                 % end  
@@ -199,15 +201,26 @@ length_word_div = 70;
 
  end
 
-        % figure(13);
-        % subplot(4,1,1);
-        % plot(double(yri_cut_int(:,1)));
-        % subplot(4,1,2);
-        % plot(double(y_array_int(:,1)));
-        % subplot(4,1,3);
-        % plot(double(y_array_int(:,2)));
-        % subplot(4,1,4);
-        % plot(double(y_array_int(:,3)));
+        figure(13);
+        subplot(4,1,1);
+        plot(double(yri_cut_int(:,1)));
+        subplot(4,1,2);
+        plot(double(y_array_int(:,1)));
+        subplot(4,1,3);
+        plot(double(y_array_int(:,2)));
+        subplot(4,1,4);
+        plot(double(y_array_int(:,3)));
+
+
+        figure(14);
+        subplot(4,1,1);
+        plot(double(yri_cut_int(:,1)));
+        subplot(4,1,2);
+        plot(double(y_array(:,1)));
+        subplot(4,1,3);
+        plot(double(y_array(:,2)));
+        subplot(4,1,4);
+        plot(double(y_array(:,3)));
 
  min_det_matrix = min(det_matlab);
  min_shift_det_matrix = min(det_x3_shift); 

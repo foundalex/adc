@@ -20,7 +20,7 @@ freq = sim_options.freq;
 
 for num = 1:sim_options.num_cycles
  
-    Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
+    Z = ceil(freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, freq, sim_options.SNR, ...
         sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
@@ -30,7 +30,7 @@ for num = 1:sim_options.num_cycles
     %% Measurements1
     figure(5);
     subplot(2,1,1)
-    plot([s_to_subadc(1:length(x_after_adc)), x_after_adc])
+    plot([s_to_subadc_int(1:length(x_after_adc)), x_after_adc])
     title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
@@ -73,12 +73,12 @@ for num = 1:sim_options.num_cycles
     sfdr_output_double(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
     sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
     
-    norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
+    norm_freq(num) = freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
     num_array(:,num) = num;
 
 
     % freq
-    freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
+    freq = freq + sim_options.step; % frequency of fundamental tone
 
     % SNR
     sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
@@ -90,14 +90,14 @@ end
     subplot(2,1,1)
     plot(norm_freq, snr_in_double, '-o', norm_freq, snr_in_int, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
     title('SNR')
-    xlabel('Номер итерации') 
+    xlabel('Нормированная частота') 
     ylabel('SNR (dB)') 
     legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
     subplot(2,1,2)
     plot(norm_freq, sfdr_in_double, '-o', norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
     title('SFDR (dB)')
-    xlabel('Номер итерации') 
+    xlabel('Нормированная частота') 
     ylabel('SFDR (dB)') 
     legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
