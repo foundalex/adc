@@ -1,10 +1,9 @@
 function y = fir_filter(b,x)
 
-    p = 0;
-
     z = int32(zeros(size(b)));
     y = int32(zeros(size(x)));
 
+    p = 0;
     nx = length(x);
     nb = length(b);
     for n=1:nx
@@ -13,7 +12,7 @@ function y = fir_filter(b,x)
         acc = int32(0);
         k = p;
         for j=1:nb
-            acc = acc + b(j)*z(k);
+            acc = acc + b(j,:)*z(k);
             k=k-1; if k<1, k=nb; end
         end
         y(n) = acc;

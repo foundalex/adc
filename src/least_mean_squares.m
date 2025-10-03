@@ -52,7 +52,7 @@ length_word_div = 70;
             [det_out_shift(kk), det_out_shift_int(kk)] = determinate(x3_shift, x3_shift_int);
 
             if (det_x3_shift(kk) == 0)
-                det_x3_shift(kk) = 1;
+                det_x3_shift(kk) = det(pinv(x3_shift));
             end
 
             %% divide determinant
@@ -123,7 +123,7 @@ length_word_div = 70;
                 [det_out_shift(kk), det_out_shift_int(kk)] = determinate(double(x3_shift_int)*2^-11, x3_shift_int);
 
                 if (det_x3_shift(kk) == 0)
-                    det_x3_shift(kk) = 1;
+                    det_x3_shift(kk) = det(pinv(x3_shift));
                 end
 
                 if (det_out_shift_int(kk) == 0)
@@ -221,6 +221,16 @@ length_word_div = 70;
         plot(double(y_array(:,2)));
         subplot(4,1,4);
         plot(double(y_array(:,3)));
+
+
+
+        figure(15)
+        subplot(2,1,1)
+        plot(det_x3_shift);
+        subplot(2,1,2)
+        plot(double(det_out_shift_int)*2^-55);
+
+
 
  min_det_matrix = min(det_matlab);
  min_shift_det_matrix = min(det_x3_shift); 

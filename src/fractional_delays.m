@@ -1,5 +1,4 @@
 function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_signal, input_signal_int, M, N_taps, Z)
-
     n = (0:1:N_taps-1);
     Nbp = floor(Z/2); % стр 7. (24)
     del_proc = ((N_taps-1)/2);
@@ -13,7 +12,7 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
     hh(1) = 0;
     hh(37) = 0;
     hh_m = (hh .* w_blackman).';
-    hh_m_int = int16(round(hh_m * 2^15)); % int coeff fi(1,16,15)
+    hh_m_int = int16(round(hh_m * 2^15))'; % int coeff fi(1,16,15)
     %%
 
 
@@ -29,10 +28,20 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
         hrim_int(:,i) = int32(round(hrim_fi(:,i) * 2^18)); % fi(1,19,18)
 
         %% filter
-        yri(:,i) = filter(hri_m(:,i), 1, input_signal(:,1)); % (стр.6 (15))
+        yri = filter(hri_m(:,i), 1, input_signal(:,1)); % (стр.6 (15))
 
+        %% codegen
+        % buildInstrumentedMex  fir_filter -coder -o fir_filter -args {hrim_int, input_signal_int(:,1)} -histogram
+    
         y_out_arrayInt = fir_filter(hrim_int(:,i), input_signal_int(:,1)); % (стр.6 (15)) fi(1,19,18) * fi(1,12,11) = fi(1,31,29)
-        y_out_array_int16(:,i) = (int16(round(y_out_arrayInt/262144))).'; % fi(1,31,29) - 18 = fi(1,13,11)
+        y_out_array_int16 = int16(round(y_out_arrayInt/262144)); % fi(1,31,29) - 19 = fi(1,12,10)
+
+        % showInstrumentationResults fir_filter
+
+        % clear InstrumentationResults fir_filter
+        % clear fir_filter
+        % delete fir_filter.mexw64
+        % delete codegen/mex/fir_filter/fir_filter.mexw64
 
         % [yy(:,i), ff] = freqz(hri_m(:,i),1,1024, 'whole', 1000000000);
         % y_out_array_int = int32(filter(hrim_int(:,i), 1, input_signal_int(:,1))); % (стр.6 (15)) fi(1,19,18) * fi(1,12,11) = fi(1,31,29)
@@ -40,18 +49,17 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
         %% Algorithm for working in different zones of Nyquist
         %%
 
-        ymi = filter(hh_m.', 1, yri(:,i));
-
+        ymi = filter(hh_m.', 1, yri);
         % ymi_int = int32((filter(hh_m_int, 1, y_out_array_int16(:,i)))); % (стр.6 (15)) % fi(1,16,15) * fi(1,14,12) = fi(1,30,27)
-        ymi_arrayInt = fir_filter(int32(hh_m_int), int32(y_out_array_int16(:,i))); % (стр.6 (15)) fi(1,19,18) * fi(1,12,11) = fi(1,31,29)
+        ymi_arrayInt = fir_filter(int32(hh_m_int), y_out_array_int16); % (стр.6 (15)) fi(1,16,15) * fi(1,14,11) = fi(1,30,27)
         ymi_int16 = int16(round(ymi_arrayInt/32768)); % fi(1,30,27) - 16 bit = fi(1,14,11)
 
         % figure(2)
         % plot([ymi(1:500), double(ymi_int16(1:500))*2^-11]);
 
         %%
-        yhil_imag(:,i) = [ymi(del_proc+1:end); zeros(del_proc,1)];
-        yhil_imag_int(:,i) = [ymi_int16(del_proc+1:end); zeros(del_proc,1)];
+        yhil_imag = [ymi(del_proc+1:end); zeros(del_proc,1)];
+        yhil_imag_int = [ymi_int16(del_proc+1:end); zeros(del_proc,1)];
 
         nn1 = nn + delay_adc(i);
         a1 = 2*pi*nn1*Nbp;
@@ -62,33 +70,33 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
         if Z == 2 | Z == 3
            if (delay_adc(i) == 0.25)
                 yri_cos_int16 = int16(0);
-                yri_sin_int16 = yhil_imag_int(:,i);
+                yri_sin_int16 = yhil_imag_int;
            elseif (delay_adc(i) == 0.5)
-                yri_cos_int16 = -y_out_array_int16(:,i);
+                yri_cos_int16 = -y_out_array_int16;
                 yri_sin_int16 = int16(0);
            elseif (delay_adc(i) == 0.75)
                 yri_cos_int16 = int16(0);
-                yri_sin_int16 = -yhil_imag_int(:,i);
+                yri_sin_int16 = -yhil_imag_int;
            end
         elseif Z == 4
            if (delay_adc(i) == 0.25)
-                yri_cos_int16 = -y_out_array_int16(:,i);
+                yri_cos_int16 = -y_out_array_int16;
                 yri_sin_int16 = int16(0);
            elseif (delay_adc(i) == 0.5)
-                yri_cos_int16 = y_out_array_int16(:,i);
+                yri_cos_int16 = y_out_array_int16;
                 yri_sin_int16 = int16(0);
            elseif (delay_adc(i) == 0.75)
-                yri_cos_int16 = -y_out_array_int16(:,i);
+                yri_cos_int16 = -y_out_array_int16;
                 yri_sin_int16 = int16(0);
            end
         else 
-            yri_cos_int16 = y_out_array_int16(:,i);
+            yri_cos_int16 = y_out_array_int16;
             yri_sin_int16 = int16(0);
         end
 
 
-        yri_cos = cc' .* yri(:,i); 
-        yri_sin = ss' .* yhil_imag(:,i); 
+        yri_cos = cc' .* yri; 
+        yri_sin = ss' .* yhil_imag; 
 
         % figure(4);
         % plot([yri_cos(1:200), double(yri_cos_int16(1:200)), yri_sin(1:200), double(yri_sin_int16(1:200))]);
@@ -96,11 +104,11 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
         %%
         if (mod(Z,2) == 0)
             yric(:,i) = yri_cos + yri_sin;
-            yric_int16(:,i) = yri_cos_int16 + yri_sin_int16; % fi(1,15,11) + fi(1,15,11) = fi(1,16,11) 
+            yric_int16(:,i) = yri_cos_int16 + yri_sin_int16; % fi(1,12,10) + fi(1,14,11) = fi(1,15,11) 
 
         else
             yric(:,i) = yri_cos - yri_sin;
-            yric_int16(:,i) = yri_cos_int16 - yri_sin_int16; % fi(1,14,10) - fi(1,14,10) 
+            yric_int16(:,i) = yri_cos_int16 - yri_sin_int16; % fi(1,12,10) - fi(1,14,11) = fi(1,15,11) 
         end
 
         % figure(4);
@@ -151,8 +159,8 @@ function [yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(input_sig
         sig_adc_int(i:M:end) = yri_cut1(:,i);
     end
 
-    figure(4);
-    plot([sig_adc(1:250), sig_adc_int(1:250)]);
+    % figure(4);
+    % plot([sig_adc(1:250), sig_adc_int(1:250)]);
     % % 
     % figure(10);
     % subplot(2,1,1);

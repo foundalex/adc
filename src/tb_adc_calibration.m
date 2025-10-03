@@ -30,7 +30,7 @@ for num = 1:sim_options.num_cycles
     %% Measurements1
     figure(5);
     subplot(2,1,1)
-    plot([s_to_subadc_int(1:length(x_after_adc)), x_after_adc])
+    plot([x_after_adc(1:500)])
     title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
