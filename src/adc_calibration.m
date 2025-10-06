@@ -8,6 +8,7 @@
 function [sig_adc, x_after_adc, x_after_adc_int] = adc_calibration(sim_options, adc_input, adc_input_int, s_to_subadc, s_after_subadc, Z)
     %% Calibration algorithm 1 (Fractional delays)
 
+    adc_input = adc_input_int;
 	% Fractional delays of ADC0 signal
 	[yri_cut, yri_cut_int, yri_cut1, sig_adc] = fractional_delays(adc_input, adc_input_int, sim_options.M, sim_options.N, Z);
 
