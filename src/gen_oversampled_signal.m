@@ -78,7 +78,7 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
 
 
     % save (sprintf(num2str(clock)) + ".mat");
-    load ('2025             10              6             11             51         37.727.mat'); % 60 SNR + error
+    load ('2025             10              7             18              6         25.062.mat'); % 60 SNR + error
 
 end
 

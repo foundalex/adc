@@ -232,10 +232,10 @@ length_word_div = 70;
 
 
 
- min_det_matrix = min(det_matlab);
- min_shift_det_matrix = min(det_x3_shift); 
+ min_det_matrix = min(det_x3_int);
+ min_shift_det_matrix = min(det_out_shift_int); 
 
- max_det_matrix = max(det_matlab);
+ max_det_matrix = max(det_x3_int);
  max_shift_det_matrix = max(det_x3_shift);
 
  minimum = min([min_det_matrix min_shift_det_matrix]);
