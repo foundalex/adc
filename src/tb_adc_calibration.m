@@ -28,20 +28,20 @@ for num = 1:sim_options.num_cycles
     [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc, Z);
 
     %% Measurements1
-    % figure(5);
-    % subplot(2,1,1)
-    % plot([x_after_adc(1:500)])
-    % title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
-    % xlabel('Номер отсчета') 
-    % ylabel('Амплитуда') 
-    % legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
-    % 
-    % subplot(2,1,2)
-    % plot([s_to_subadc_int(1:length(x_after_adc_int)), x_after_adc_int]); %, error_out(:,2), error_out(:,3)]);
-    % title('Исходный сигнал до искажения и выход адаптивного фильтра (int)')
-    % xlabel('Номер отсчета') 
-    % ylabel('Отношение') 
-    % legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+    figure(5);
+    subplot(2,1,1)
+    plot([x_after_adc(1:500)])
+    title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
+    xlabel('Номер отсчета') 
+    ylabel('Амплитуда') 
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+
+    subplot(2,1,2)
+    plot([s_to_subadc_int(1:length(x_after_adc_int)), x_after_adc_int]); %, error_out(:,2), error_out(:,3)]);
+    title('Исходный сигнал до искажения и выход адаптивного фильтра (int)')
+    xlabel('Номер отсчета') 
+    ylabel('Отношение') 
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
     %%
     % figure(6);
     % subplot(4,1,1);
@@ -53,15 +53,15 @@ for num = 1:sim_options.num_cycles
     % subplot(4,1,4);
     % sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     % 
-    % figure(7);
-    % subplot(4,1,1);
-    % snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,2);
-    % snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,3);
-    % snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,4);
-    % snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    figure(7);
+    subplot(4,1,1);
+    snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,2);
+    snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,3);
+    snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4);
+    snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     % 
     % snr_in_double(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
     % snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
