@@ -11,14 +11,13 @@ function efi_out = int_division(a, b, length_word, width)
   
 
     ee = double(a)/double(b);
-    e1 = ee;
 
-    efi = fi(e1,1,length_word,width);
-    efi_d = double(efi)*2^width;
+    % efi = fi(ee,1,length_word,width);
+    efi_d = double(ee)*2^width;
     efi_out = fi(efi_d,1,length_word,0);
 
 
-    out = e1*2^width;
+    out = ee*2^width;
     out1 = fi(out,1,length_word,0);
     out2 = double(out1)*2^-width;
 

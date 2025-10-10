@@ -23,12 +23,12 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
 
     fractional_width = [16, 19, 21];
 
-    [y, f] = freqz(hri_w(:,1), 1,1024, 'whole', 1000000000);
-    for k = 1:sim_options.M-1
-        hrim_fi_test = fi(hri_w(:,1), 1,fractional_width(k),fractional_width(k)-1);
-        hrim_int_test = int32(hrim_fi_test * 2^(fractional_width(k)-1));
-        [y1(:,k), f1(:,k)] = freqz(double(hrim_int_test)*2^-(fractional_width(k)-1),1,1024, 'whole', 1000000000);
-    end
+    % [y, f] = freqz(hri_w(:,1), 1,1024, 'whole', 1000000000);
+    % for k = 1:sim_options.M-1
+    %     hrim_fi_test = fi(hri_w(:,1), 1,fractional_width(k),fractional_width(k)-1);
+    %     hrim_int_test = int32(hrim_fi_test * 2^(fractional_width(k)-1));
+    %     [y1(:,k), f1(:,k)] = freqz(double(hrim_int_test)*2^-(fractional_width(k)-1),1,1024, 'whole', 1000000000);
+    % end
 
     % figure(2);
     % plot(f, abs(y), f, abs(y1(:,1)), f, abs(y1(:,2)), f, abs(y1(:,3)));
@@ -45,9 +45,7 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
     hh_m = (hh .* w_blackman).';
 
     hilbert_width = 13;
-    
-
-
+    %% zones Nyquist
     nn1 = nn' + delay_adc;
     a1 = 2*pi*nn1*Nbp;
     c_os = cos(a1);
@@ -56,7 +54,7 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
     for r = 1:1
 	    % Fractional delays of ADC0 signal
         for i = 1:sim_options.M-1
-	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt] = fractional_delays(adc_input(:,1), Z, hri_w(:,i), hh_m, fractional_width(2), hilbert_width);
+	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, hilbert_out_width] = fractional_delays(adc_input(:,1), Z, hri_w(:,i), hh_m, fractional_width(2), hilbert_width);
 
             % y_fractional_outInt = fi(1,33,18)                            ymi_HilbertInt = fi(1,62,30)
 
@@ -75,43 +73,43 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
 
             if Z == 2 | Z == 3
                 if (delay_adc(i) == 0.25)
-                    yri_cos_int_32 = int32(0);
-                    yri_sin_int_32 = yhil_imag_int;
+                    yri_cos_int = fi(0,1,hilbert_out_width,0);
+                    yri_sin_int = yhil_imag_int;
                 elseif (delay_adc(i) == 0.5)
-                    yri_cos_int_32 = -y_fractional_outInt;
-                    yri_sin_int_32 = int32(0);
+                    yri_cos_int = -y_fractional_outInt;
+                    yri_sin_int = fi(0,1,hilbert_out_width,0);
                 elseif (delay_adc(i) == 0.75)
-                    yri_cos_int_32 = int32(0);
-                    yri_sin_int_32 = -yhil_imag_int;
+                    yri_cos_int = fi(0,1,hilbert_out_width,0);
+                    yri_sin_int = -yhil_imag_int;
                 end
             elseif Z == 4
                 if (delay_adc(i) == 0.25)
-                    yri_cos_int_32 = -y_fractional_outInt;
-                    yri_sin_int_32 = int32(0);
+                    yri_cos_int = -y_fractional_outInt;
+                    yri_sin_int = fi(0,1,hilbert_out_width,0);
                 elseif (delay_adc(i) == 0.5)
-                    yri_cos_int_32 = y_fractional_outInt;
-                    yri_sin_int_32 = int32(0);
+                    yri_cos_int = y_fractional_outInt;
+                    yri_sin_int = fi(0,1,hilbert_out_width,0);
                 elseif (delay_adc(i) == 0.75)
-                    yri_cos_int_32 = -y_fractional_outInt;
-                    yri_sin_int_32 = fi(0,1,62,0);
+                    yri_cos_int = -y_fractional_outInt;
+                    yri_sin_int = fi(0,1,hilbert_out_width,0);
                 end
             else 
-                yri_cos_int_32 = y_fractional_outInt;
-                yri_sin_int_32 = fi(0,1,62,0);
+                yri_cos_int = y_fractional_outInt;
+                yri_sin_int = fi(0,1,hilbert_out_width,0);
             end
 
 
             if (mod(Z,2) == 0)
                 yric = yri_cos + yri_sin;
-                yric_int_32 = yri_cos_int_32 + yri_sin_int_32; % fi(1,19,12) + fi(1,19,12) = fi(1,20,12) 
+                yric_int = yri_cos_int + yri_sin_int; % fi(1,63,0)
             else
                 yric = yri_cos - yri_sin;
-                yric_int_32 = yri_cos_int_32 - yri_sin_int_32; % fi(1,19,12) - fi(1,19,12) = fi(1,20,12) 
+                yric_int = yri_cos_int - yri_sin_int; % fi(1,63,0)
             end
             %%
 
             yri_cut(:,i+1) = yric(del_proc+1:end);
-            yri_cut_int(:,i+1) = yric_int_32(del_proc+1:end);
+            yri_cut_int(:,i+1) = yric_int(del_proc+1:end);
 
         end
 
@@ -139,26 +137,22 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
             sig_adc_int(i:sim_options.M:end) = double(yri_cut1(:,i));
         end
 
-        figure(4);
-        plot([sig_adc(1:250), sig_adc_int(1:250)]);
-        figure(10);
-        subplot(2,1,1);
-        snr(sig_adc, 8000000000);
-        subplot(2,1,2);
-        snr(sig_adc_int, 8000000000);
+        % figure(4);
+        % plot([sig_adc(1:250), sig_adc_int(1:250)]);
+        % figure(10);
+        % subplot(2,1,1);
+        % snr(sig_adc, 8000000000);
+        % subplot(2,1,2);
+        % snr(sig_adc_int, 8000000000);
 
         snr_s(r+1) = snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
-
-
 
         % yri_cut = [];
         % yri_cut_int = [];
 
     end
 
-
     snr_s(1) = snr(sig_adc, sim_options.Fs/sim_options.Inter);
-
 
     max_l = max(max_fractional);
     min_l = min(min_fractional);
@@ -166,13 +160,7 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
     max_h = max(max_hilbert);
     min_h = min(min_hilbert);
 
-    % x_after_adc = 0;
-    % x_after_adc_int = 0;
-
     %% Calibration algorithm 2 (Least Mean Squares)
-
-    % adc_input = double(adc_input)*2^-11;
-    % yri_cut = double(yri_cut_int)*2^-11; 
 
     [y_array, y_array_int] = least_mean_squares(double(adc_input), adc_input, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, sim_options.Width);
 
@@ -187,7 +175,7 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
             x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
         else
             x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
-            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-sim_options.Width;
+            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-32;
         end
     end
     % 

@@ -92,91 +92,62 @@ Mult_DetM_2x2_n_1_a33 = a(3,3) * DetM_2x2_n_1;
 Mult_DetM_2x2_n_1_a34 = a(3,4) * DetM_2x2_n_1;
 Mult_DetM_2x2_n_1_a35 = a(3,5) * DetM_2x2_n_1;
 %%
-k = 15;
-
-Mult_DetM_2x2_n_10_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_10_int, 15); 
-% diff_err1 = Mult_DetM_2x2_n_10_a31 - double(Mult_DetM_2x2_n_10_a31_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_10_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_10_int, 15);
-% diff_err2 = Mult_DetM_2x2_n_10_a32 - double(Mult_DetM_2x2_n_10_a32_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_10_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_10_int, 15);
-% diff_err3 = Mult_DetM_2x2_n_10_a33 - double(Mult_DetM_2x2_n_10_a33_int)*2^-(33-k);
+Mult_DetM_2x2_n_10_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_10_int); 
+Mult_DetM_2x2_n_10_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_10_int);
+Mult_DetM_2x2_n_10_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_10_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_7_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_7_int, 15);
-% diff_err4 = Mult_DetM_2x2_n_7_a31 - double(Mult_DetM_2x2_n_7_a31_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_7_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_7_int, 15);
-% diff_err5 = Mult_DetM_2x2_n_7_a33 - double(Mult_DetM_2x2_n_7_a33_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_7_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_7_int, 15);
-% diff_err5 = Mult_DetM_2x2_n_7_a34 - double(Mult_DetM_2x2_n_7_a34_int1)*2^-(33-k);
+Mult_DetM_2x2_n_7_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_7_int);
+Mult_DetM_2x2_n_7_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_7_int);
+Mult_DetM_2x2_n_7_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_7_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_9_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_9_int, 15);
-% diff_err6 = Mult_DetM_2x2_n_9_a31 - double(Mult_DetM_2x2_n_9_a31_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_9_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_9_int, 15);
-% diff_err7 = Mult_DetM_2x2_n_9_a32 - double(Mult_DetM_2x2_n_9_a32_int)*2^-(33-k);
- 
-Mult_DetM_2x2_n_9_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_9_int, 15);
-% diff_err8 = Mult_DetM_2x2_n_9_a34 - double(Mult_DetM_2x2_n_9_a34_int)*2^-(33-k);
+Mult_DetM_2x2_n_9_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_9_int);
+Mult_DetM_2x2_n_9_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_9_int);
+Mult_DetM_2x2_n_9_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_9_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_8_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_8_int, 15);
-% diff_err9 = Mult_DetM_2x2_n_8_a31 - double(Mult_DetM_2x2_n_8_a31_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_8_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_8_int, 15);
-% diff_err10 = Mult_DetM_2x2_n_9_a32 - double(Mult_DetM_2x2_n_9_a32_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_8_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_8_int, 15);
-% diff_err11 = Mult_DetM_2x2_n_9_a35 - double(Mult_DetM_2x2_n_9_a35_int)*2^-(33-k);
+Mult_DetM_2x2_n_8_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_8_int);
+Mult_DetM_2x2_n_8_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_8_int);
+Mult_DetM_2x2_n_8_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_8_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_6_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_6_int, 15);
-% diff_err12 = Mult_DetM_2x2_n_6_a31 - double(Mult_DetM_2x2_n_6_a31_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_6_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_6_int, 15);
-% diff_err13 = Mult_DetM_2x2_n_6_a33 - double(Mult_DetM_2x2_n_6_a33_int)*2^-(33-k);
-
-Mult_DetM_2x2_n_6_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_6_int, 15);
-% diff_err14 = Mult_DetM_2x2_n_6_a35 - double(Mult_DetM_2x2_n_6_a35_int)*2^-(33-k);
+Mult_DetM_2x2_n_6_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_6_int);
+Mult_DetM_2x2_n_6_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_6_int);
+Mult_DetM_2x2_n_6_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_6_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_5_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_5_int, 15);
-% diff_err15 = Mult_DetM_2x2_n_5_a31 - double(Mult_DetM_2x2_n_5_a31_int)*2^-(33-k);
-Mult_DetM_2x2_n_5_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_5_int, 15);
-% diff_err16 = Mult_DetM_2x2_n_5_a34 - double(Mult_DetM_2x2_n_5_a34_int)*2^-(33-k);
-Mult_DetM_2x2_n_5_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_5_int, 15);
+Mult_DetM_2x2_n_5_a31_int = mult1_shift(a_int(3,1), DetM_2x2_n_5_int);
+Mult_DetM_2x2_n_5_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_5_int);
+Mult_DetM_2x2_n_5_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_5_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_4_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_4_int, 15);
-Mult_DetM_2x2_n_4_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_4_int, 15);
-Mult_DetM_2x2_n_4_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_4_int, 15);
+Mult_DetM_2x2_n_4_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_4_int);
+Mult_DetM_2x2_n_4_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_4_int);
+Mult_DetM_2x2_n_4_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_4_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_3_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_3_int, 15);
-Mult_DetM_2x2_n_3_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_3_int, 15);
-Mult_DetM_2x2_n_3_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_3_int, 15);
+Mult_DetM_2x2_n_3_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_3_int);
+Mult_DetM_2x2_n_3_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_3_int);
+Mult_DetM_2x2_n_3_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_3_int);
 
 %-------------------------------
 
-Mult_DetM_2x2_n_2_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_2_int, 15);
-Mult_DetM_2x2_n_2_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_2_int, 15);
-Mult_DetM_2x2_n_2_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_2_int, 15);
+Mult_DetM_2x2_n_2_a32_int = mult1_shift(a_int(3,2), DetM_2x2_n_2_int);
+Mult_DetM_2x2_n_2_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_2_int);
+Mult_DetM_2x2_n_2_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_2_int);
 
 %-------------------------------
-Mult_DetM_2x2_n_1_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_1_int, 15);
-Mult_DetM_2x2_n_1_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_1_int, 15);
-Mult_DetM_2x2_n_1_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_1_int, 15); % fi(1,37,33)
+Mult_DetM_2x2_n_1_a33_int = mult1_shift(a_int(3,3), DetM_2x2_n_1_int);
+Mult_DetM_2x2_n_1_a34_int = mult1_shift(a_int(3,4), DetM_2x2_n_1_int);
+Mult_DetM_2x2_n_1_a35_int = mult1_shift(a_int(3,5), DetM_2x2_n_1_int);
 
 %-------------------------------
 
@@ -302,11 +273,11 @@ var_mult_a_det44_int = int64(a_int(2,4)) * DetM_3x3_n_44_int;
 
 DetM_4x4_n_5_int = var_mult_a_det41_int - var_mult_a_det42_int + var_mult_a_det43_int - var_mult_a_det44_int;
 
-error1 = (double(DetM_4x4_n_1_int) * 2^-44) - DetM_4x4_n_1; 
-error2 = (double(DetM_4x4_n_2_int) * 2^-44) - DetM_4x4_n_2; 
-error3 = (double(DetM_4x4_n_3_int) * 2^-44) - DetM_4x4_n_3; 
-error4 = (double(DetM_4x4_n_4_int) * 2^-44) - DetM_4x4_n_4; 
-error5 = (double(DetM_4x4_n_5_int) * 2^-44) - DetM_4x4_n_5; 
+% error1 = (double(DetM_4x4_n_1_int) * 2^-44) - DetM_4x4_n_1; 
+% error2 = (double(DetM_4x4_n_2_int) * 2^-44) - DetM_4x4_n_2; 
+% error3 = (double(DetM_4x4_n_3_int) * 2^-44) - DetM_4x4_n_3; 
+% error4 = (double(DetM_4x4_n_4_int) * 2^-44) - DetM_4x4_n_4; 
+% error5 = (double(DetM_4x4_n_5_int) * 2^-44) - DetM_4x4_n_5; 
 %%
 var1 = a(1,1)*DetM_4x4_n_1;
 var2 = a(1,2)*DetM_4x4_n_2;
@@ -320,49 +291,41 @@ DetM_5x5 = var1 - var2 + var3 - var4 + var5;
 % 115 + 70 = 185
 
 %%
-var1_intf = fi(a_int(1,1),1,12,0) * fi(DetM_4x4_n_1_int,1,54,0); % fi(1,12,11) * (1,54,44) = fi(1,66,55)
-er1f = (double(var1_intf) * 2^-55) / var1; 
-var2_intf = fi(a_int(1,2),1,12,0) * fi(DetM_4x4_n_2_int,1,54,0);
-er2f = (double(var2_intf) * 2^-55) / var2; 
-var3_intf = fi(a_int(1,3),1,12,0) * fi(DetM_4x4_n_3_int,1,54,0);
-er3f = (double(var3_intf) * 2^-55) / var3; 
-var4_intf = fi(a_int(1,4),1,12,0) * fi(DetM_4x4_n_4_int,1,54,0);
-er4f = (double(var4_intf) * 2^-55) / var4; 
-var5_intf = fi(a_int(1,5),1,12,0) * fi(DetM_4x4_n_5_int,1,54,0);
-er5f = (double(var5_intf) * 2^-55) / var5; 
+var1_intf = a_int(1,1) * DetM_4x4_n_1_int; % fi(1,12,11) * (1,54,44) = fi(1,66,55)
+% er1f = (double(var1_intf) * 2^-55) / var1; 
+var2_intf = a_int(1,2) * DetM_4x4_n_2_int;
+% er2f = (double(var2_intf) * 2^-55) / var2; 
+var3_intf = a_int(1,3) * DetM_4x4_n_3_int;
+% er3f = (double(var3_intf) * 2^-55) / var3; 
+var4_intf = a_int(1,4) * DetM_4x4_n_4_int;
+% er4f = (double(var4_intf) * 2^-55) / var4; 
+var5_intf = a_int(1,5) * DetM_4x4_n_5_int;
+% er5f = (double(var5_intf) * 2^-55) / var5; 
 
-var1_int_round = var1_intf; % fi(1,66,55) - 1 = fi(1,65,54)
-var2_int_round = var2_intf;
-var3_int_round = var3_intf;
-var4_int_round = var4_intf;
-var5_int_round = var5_intf;
+% var1_int_round = var1_intf; % fi(1,66,55) - 1 = fi(1,65,54)
+% var2_int_round = var2_intf;
+% var3_int_round = var3_intf;
+% var4_int_round = var4_intf;
+% var5_int_round = var5_intf;
 
-er1_var = (double(var1_int_round) * 2^-55) / var1; 
-er2_var = (double(var2_int_round) * 2^-55) / var2; 
-er3_var = (double(var3_int_round) * 2^-55) / var3; 
-er4_var = (double(var4_int_round) * 2^-55) / var4; 
-er5_var = (double(var5_int_round) * 2^-55) / var5; 
+% er1_var = (double(var1_int_round) * 2^-55) / var1; 
+% er2_var = (double(var2_int_round) * 2^-55) / var2; 
+% er3_var = (double(var3_int_round) * 2^-55) / var3; 
+% er4_var = (double(var4_int_round) * 2^-55) / var4; 
+% er5_var = (double(var5_int_round) * 2^-55) / var5; 
  
 DetM_5x5_int = (var1_intf - var2_intf + var3_intf - var4_intf + var5_intf); % fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) + fi(1,66,55) = fi(1,70,55) 
 
-DetM_5x5_int1 = bitshift(DetM_5x5_int,-15);
+% DetM_5x5_int1 = bitshift(DetM_5x5_int,-15);
 % 
 % DetM_5x5_int = fi(DetM_5x5_int,1,55,0); 
 
 
 % DetM_5x5_int = fi(DetM_5x5_int,1,66,0);
-de = det(double(data_in)); 
-de1 = (double(DetM_5x5_int)*2^-55);
-
-error_det =  de / de1;
-
-% if (error_det > 2)
-%     e = 1;
-% end
+% de = det(double(data_in)); 
+% de1 = (double(DetM_5x5_int)*2^-55);
 % 
-% if (DetM_5x5_int == 0)
-%     e = 1;
-% end
+% error_det =  de / de1;
 
 %%
 % a_int = data_in_int;
@@ -452,12 +415,11 @@ end
 
 function [det_out, det_out_int] = det_2x2(a, a_int)
 
-    % k = 9;
-
     det_out = a(1,1) * a(2,2) - a(2,1) * a(1,2); % fi(1,12,11) * fi(1,12,11) = fi(1,24,22)
-    mult1 = int32(a_int(1,1)) * int32(a_int(2,2));
-    mult2 = int32(a_int(2,1)) * int32(a_int(1,2));
-    det_out_int = mult1 - mult2; % fi(1,24,22) - fi(1,24,22) = fi(1,25,22)
+
+    mult1 = a_int(1,1) * a_int(2,2);
+    mult2 = a_int(2,1) * a_int(1,2);
+    det_out_int = mult1 - mult2; % fi(1,24,22) 
 
     % det_out_int = (bitshift(det_out_int, -k,'int32')); % fi(1,25,22)
     % diff_err = det_out - double(det_out_int)*2^-(22-k);
@@ -465,12 +427,9 @@ function [det_out, det_out_int] = det_2x2(a, a_int)
 end
 
 
-function product_shift = mult1_shift(a, b, k);
+function product_shift = mult1_shift(a, b);
 
-    % a_int = int64(a);
-    % b_int = int64(b);
-
-    product = int64(a) * int64(b); % fi(1,12,11) * fi(1,25,22) = fi(1,37,33)
+    product = a * b; 
     % product_shift = (bitshift(product, -k,'int64')); % fi(1,37,33) - 15 = fi(1,22,18)
     product_shift = product;
 

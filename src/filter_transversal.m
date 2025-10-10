@@ -1,4 +1,4 @@
-function [data_outd, data_out] = filter_transversal(input_data_double, coeff_double, input_data, coeff, width)
+function [data_outd, data_out] = filter_transversal(input_data_double, coeff_double, input_data, coeff)
 
     mult1 = (input_data(1) * coeff(1)); % fi(1,12,11) * fi(1,32,11)
     % mult1 = fi(bitshift(mult1, -9),1,28,0);
