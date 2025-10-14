@@ -25,7 +25,7 @@ length_word_div = 326;
     %% initial determinant
     det_matlab(tt) = det(x3);
 
-    x3_int = fi(x3_int, 1,63,0);
+    x3_int = fi(x3_int, 1,yri_cut_int.WordLength,0);
     [det_x3, det_x3_int] = determinate(x3, x3_int);
 
 

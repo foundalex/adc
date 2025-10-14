@@ -54,7 +54,7 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
     for r = 1:1
 	    % Fractional delays of ADC0 signal
         for i = 1:sim_options.M-1
-	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, hilbert_out_width] = fractional_delays(adc_input(:,1), Z, hri_w(:,i), hh_m, fractional_width(2), hilbert_width);
+	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt] = fractional_delays(adc_input(:,1), Z, hri_w(:,i), hh_m, fractional_width(2), hilbert_width);
 
             % y_fractional_outInt = fi(1,33,18)                            ymi_HilbertInt = fi(1,62,30)
 
@@ -73,38 +73,31 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
 
             if Z == 2 | Z == 3
                 if (delay_adc(i) == 0.25)
-                    yri_cos_int = fi(0,1,hilbert_out_width,0);
-                    yri_sin_int = yhil_imag_int;
+                    yric_int = yhil_imag_int;
                 elseif (delay_adc(i) == 0.5)
-                    yri_cos_int = -y_fractional_outInt;
-                    yri_sin_int = fi(0,1,hilbert_out_width,0);
+                    yric_int = -y_fractional_outInt;
                 elseif (delay_adc(i) == 0.75)
-                    yri_cos_int = fi(0,1,hilbert_out_width,0);
-                    yri_sin_int = -yhil_imag_int;
+                    yric_int = -yhil_imag_int;
                 end
             elseif Z == 4
                 if (delay_adc(i) == 0.25)
-                    yri_cos_int = -y_fractional_outInt;
-                    yri_sin_int = fi(0,1,hilbert_out_width,0);
+                    yric_int = -y_fractional_outInt;
                 elseif (delay_adc(i) == 0.5)
-                    yri_cos_int = y_fractional_outInt;
-                    yri_sin_int = fi(0,1,hilbert_out_width,0);
+                    yric_int = y_fractional_outInt;
                 elseif (delay_adc(i) == 0.75)
-                    yri_cos_int = -y_fractional_outInt;
-                    yri_sin_int = fi(0,1,hilbert_out_width,0);
+                    yric_int = -y_fractional_outInt;
                 end
             else 
-                yri_cos_int = y_fractional_outInt;
-                yri_sin_int = fi(0,1,hilbert_out_width,0);
+                yric_int = y_fractional_outInt;
             end
 
 
             if (mod(Z,2) == 0)
                 yric = yri_cos + yri_sin;
-                yric_int = yri_cos_int + yri_sin_int; % fi(1,63,0)
+                % yric_int = yri_cos_int + yri_sin_int; % fi(1,63,0)
             else
                 yric = yri_cos - yri_sin;
-                yric_int = yri_cos_int - yri_sin_int; % fi(1,63,0)
+                % yric_int = yri_cos_int - yri_sin_int; % fi(1,63,0)
             end
             %%
 
