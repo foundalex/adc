@@ -1,4 +1,4 @@
-function [yri, ymi, y_fractional_outInt, ymi_HilbertInt] = fractional_delays(input_signal, Z, hri_w, hh_m, fractional_width, hilbert_width)
+function [yri, ymi, y_fractional_outInt11, ymi_HilbertInt] = fractional_delays(input_signal, Z, hri_w, hh_m, fractional_width, hilbert_width)
 
         frac_out_width = 31;
         hilbert_out_width = 30;
@@ -8,7 +8,6 @@ function [yri, ymi, y_fractional_outInt, ymi_HilbertInt] = fractional_delays(inp
 
         %% integer
         coeff_frac_int = fi(hri_w*2^(fractional_width-1),1,fractional_width,0);
-
 
         % coeff_frac_int(2) = fi(0,1,19,0);
         % coeff_frac_int(3) = fi(0,1,19,0);
@@ -62,20 +61,17 @@ function [yri, ymi, y_fractional_outInt, ymi_HilbertInt] = fractional_delays(inp
 
 
         [y_fractional_outInt, y_fractional_outInt11] = fir_filter(coeff_frac_int, input_signal(:,1), 12, frac_out_width); % (стр.6 (15)) 
-        % fi(1,19,18) * fi(1,12,0) = fi(1,31,18)
-
-        % y_fractional_outInt = bitshift(y_fractional_outInt,-15);
-        % y_fractional_outInt = fi(y_fractional_outInt,1,16,0);
-        % fi(1,31,18) - 15 = 1,16,3
+        % y_fractional_outInt11 = fi(1,19,6)
 
         figure(4);
-        subplot(3,1,1)
-        plot([yri(1:250), double(y_fractional_outInt11(1:250))']);
-        subplot(3,1,2);
-        snr(yri, 8000000000);
-        subplot(3,1,3);
-        snr(double(y_fractional_outInt11), 8000000000);
-
+        subplot(4,1,1)
+        plot([yri(1:250), (double(y_fractional_outInt11(1:250))*2^-5)]);
+        subplot(4,1,2);
+        snr(yri, 1000000000);
+        subplot(4,1,3);
+        snr((double(y_fractional_outInt)*2^-18), 1000000000);
+        subplot(4,1,4);
+        snr(double(y_fractional_outInt11)*2^-5 , 1000000000);
         %% Hilbert
         % Negative Symmetric coefficients
         hh_m_int = fi(hh_m*2^(hilbert_width-1),1,hilbert_width,0); 

@@ -25,11 +25,11 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
 
     % [y, f] = freqz(hri_w(:,1), 1,1024, 'whole', 1000000000);
     % for k = 1:sim_options.M-1
-    %     hrim_fi_test = fi(hri_w(:,1), 1,fractional_width(k),fractional_width(k)-1);
-    %     hrim_int_test = int32(hrim_fi_test * 2^(fractional_width(k)-1));
-    %     [y1(:,k), f1(:,k)] = freqz(double(hrim_int_test)*2^-(fractional_width(k)-1),1,1024, 'whole', 1000000000);
+    %     hrim_fi_test = fi(hri_w(:,k), 1,fractional_width(1),fractional_width(1)-1);
+    %     hrim_int_test = int32(hrim_fi_test * 2^(fractional_width(1)-1));
+    %     [y1(:,k), f1(:,k)] = freqz(double(hrim_int_test)*2^-(fractional_width(1)-1),1,1024, 'whole', 1000000000);
     % end
-
+    % 
     % figure(2);
     % plot(f, abs(y), f, abs(y1(:,1)), f, abs(y1(:,2)), f, abs(y1(:,3)));
     % title('Влияние разрядностей коэффициентов на АЧХ фильтра дробной задержки')
@@ -130,13 +130,13 @@ function [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, ad
             sig_adc_int(i:sim_options.M:end) = double(yri_cut1(:,i));
         end
 
-        % figure(4);
-        % plot([sig_adc(1:250), sig_adc_int(1:250)]);
-        % figure(10);
-        % subplot(2,1,1);
-        % snr(sig_adc, 8000000000);
-        % subplot(2,1,2);
-        % snr(sig_adc_int, 8000000000);
+        figure(4);
+        plot([sig_adc(1:250), sig_adc_int(1:250)]);
+        figure(10);
+        subplot(2,1,1);
+        snr(sig_adc, 8000000000);
+        subplot(2,1,2);
+        snr(sig_adc_int, 8000000000);
 
         snr_s(r+1) = snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
 
