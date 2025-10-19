@@ -18,9 +18,9 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
 
 
     % oversampled signal transfer to sub-adc
-    offset = 200;
+    offset = 0;
     for i = 1:M
-        sig = s(i*Inter+1+offset:M*Inter:end); % 20, 40, 60
+        sig = s(i*Inter+1+offset:M*Inter:end); % 10, 20, 30
         sig_int = s_int(i*Inter+1+offset:M*Inter:end);
         if i > 1
             indexx(i-1) = (i*Inter*+1+offset);
@@ -36,6 +36,19 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
 
 
     adc_input_int(length(sig_int):end,:) = [];
+
+    % figure(2);
+    % subplot(2,1,1)
+    % plot(s(1:200));
+    % subplot(2,1,2)
+    % plot(adc_input_int(1:200,1));
+    % % 
+    % spectrumScope = spectrumAnalyzer(SampleRate=Fs/Inter/4, ...            
+    %         AveragingMethod='exponential',ForgettingFactor=0.99, ...
+    %         YLimits=[-30 10],ShowLegend=true);
+    % 
+    % spectrumScope([adc_input(:,1)]);
+
 
 	% исходный сигнал до искажений
 	s_to_subadc = zeros(M*length(adc_input(:,1)),1);
@@ -80,9 +93,8 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
 
 
     % save (sprintf(num2str(clock)) + ".mat");
-    % load ('2025             10              8             12             54         42.917.mat'); % 60 SNR 70 MHz
     % load ('2025             10              8             13             24         10.929.mat'); % 70 SNR 70 MHz
-
+    % load ('2025             10             17             15             47          4.423.mat'); % 60 SNR 70 MHz
 end
 
 %%

@@ -30,7 +30,7 @@ for i = 2:8
 end
 
 
-Inter = 20;
+Inter = 10;
 Fs = 1000000000 * Inter * num_ADC; % Fs = 1 GHz
 
 sim_options = struct( ...
@@ -47,7 +47,7 @@ sim_options = struct( ...
    'Magnitude',         magnitude,      ...
    'N',                 73,             ...    % Number taps filters fractional delay
    'N1',                5,              ...    % Number taps adaptive out filter
-   'StopTime',          0.000001,       ...    % seconds
+   'StopTime',          0.00001,       ...    % seconds
    'Inter',             Inter,          ...    % oversampling factor,
    'Width',             14              ...
    );

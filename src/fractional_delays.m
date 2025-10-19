@@ -67,11 +67,11 @@ function [yri, ymi, y_fractional_outInt11, ymi_HilbertInt] = fractional_delays(i
         subplot(4,1,1)
         plot([yri(1:250), (double(y_fractional_outInt11(1:250))*2^-5)]);
         subplot(4,1,2);
-        snr(yri, 1000000000);
+        snr(yri, 500000000);
         subplot(4,1,3);
-        snr((double(y_fractional_outInt)*2^-18), 1000000000);
+        snr((double(y_fractional_outInt)*2^-18), 500000000);
         subplot(4,1,4);
-        snr(double(y_fractional_outInt11)*2^-5 , 1000000000);
+        snr(double(y_fractional_outInt11)*2^-5 , 500000000);
         %% Hilbert
         % Negative Symmetric coefficients
         hh_m_int = fi(hh_m*2^(hilbert_width-1),1,hilbert_width,0); 
