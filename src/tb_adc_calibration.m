@@ -16,92 +16,118 @@ randn('state',sum(100*clock));
 % Initialize simulation timer
 start_time = clock;
 
-freq = sim_options.freq;
+fractional_mult_min_tb = 0;
+fractional_sum_min_tb = 0;
+
+hilbert_mult_min_tb = 0;
+hilbert_sum_min_tb = 0;
 
 for num = 1:sim_options.num_cycles
  
-    Z = ceil(freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
+    Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
-    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, freq, sim_options.SNR, ...
+    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, sim_options.freq, sim_options.SNR, ...
         sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
-    [x_after_adc, x_after_adc_int, snr_s] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc, Z);
+    [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_sum_min, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc, Z);
+
+    %% find max width fractional filter
+    if (fractional_mult_min > fractional_mult_min_tb)
+        fractional_mult_min_tb = fractional_mult_min;
+    end
+
+    if (fractional_sum_min > fractional_sum_min_tb)
+        fractional_sum_min_tb = fractional_sum_min;
+        % if (fractional_sum_min_tb > 31)
+        %     disp('Width of sum > 31 ')
+        %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
+        % end
+    end  
+    %% find max width hilbert filter
+    if (hilbert_mult_min > hilbert_mult_min_tb)
+        hilbert_mult_min_tb = hilbert_mult_min;
+    end
+
+    if (hilbert_sum_min > hilbert_sum_min_tb)
+        hilbert_sum_min_tb = hilbert_sum_min;
+        % if (hilbert_sum_min_tb > 31)
+        %     disp('Width of sum > 31 ')
+        %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
+        % end
+    end 
 
     %% Measurements1
-    figure(5);
-    subplot(2,1,1)
-    plot([x_after_adc(1:500)])
-    title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
-    xlabel('Номер отсчета') 
-    ylabel('Амплитуда') 
-    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
-
-    subplot(2,1,2)
-    plot([s_to_subadc_int(1:length(x_after_adc_int)), x_after_adc_int]); %, error_out(:,2), error_out(:,3)]);
-    title('Исходный сигнал до искажения и выход адаптивного фильтра (int)')
-    xlabel('Номер отсчета') 
-    ylabel('Отношение') 
-    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+    % figure(5);
+    % subplot(2,1,1)
+    % plot([x_after_adc(1:500)])
+    % title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
+    % xlabel('Номер отсчета') 
+    % ylabel('Амплитуда') 
+    % legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
+    % 
+    % subplot(2,1,2)
+    % plot([s_to_subadc_int(1:length(x_after_adc_int)), x_after_adc_int]); %, error_out(:,2), error_out(:,3)]);
+    % title('Исходный сигнал до искажения и выход адаптивного фильтра (int)')
+    % xlabel('Номер отсчета') 
+    % ylabel('Отношение') 
+    % legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
     %%
-    figure(6);
-    subplot(4,1,1);
-    sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,2);
-    sfdr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,3);
-    sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,4);
-    sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % figure(6);
+    % subplot(4,1,1);
+    % sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,2);
+    % sfdr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,3);
+    % sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,4);
+    % sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % % 
+    % figure(7);
+    % subplot(4,1,1);
+    % snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,2);
+    % snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,3);
+    % snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % subplot(4,1,4);
+    % snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % % 
+    % snr_in_double(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    % snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    % snr_output_double(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    % snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
     % 
-    figure(7);
-    subplot(4,1,1);
-    snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,2);
-    snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,3);
-    snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,4);
-    snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    % sfdr_in_double(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    % sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    % sfdr_output_double(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    % sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
     % 
-    snr_in_double(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
-    snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
-    snr_output_double(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
+    % norm_freq(num) = freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
+    % num_array(:,num) = num;
 
-    sfdr_in_double(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
-    sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
-    sfdr_output_double(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-    
-    norm_freq(num) = freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
-    num_array(:,num) = num;
+
 
 
     % freq
-    freq = freq + sim_options.step; % frequency of fundamental tone
-
+    sim_options.freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
     % SNR
     sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
-    % snr_double(num) = snr_s(1);
-    % snr_16(num) = snr_s(2);
-    % snr_19(num) = snr_s(3);
-    % snr_21(num) = snr_s(4);
 end
 
-    figure(8);
-    subplot(2,1,1)
-    plot(norm_freq, snr_in_double, '-o', norm_freq, snr_in_int, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
-    title('SNR')
-    xlabel('Нормированная частота') 
-    ylabel('SNR (dB)') 
-    legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
-
-    subplot(2,1,2)
-    plot(norm_freq, sfdr_in_double, '-o', norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
-    title('SFDR (dB)')
-    xlabel('Нормированная частота') 
-    ylabel('SFDR (dB)') 
-    legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+    % figure(8);
+    % subplot(2,1,1)
+    % plot(norm_freq, snr_in_double, '-o', norm_freq, snr_in_int, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
+    % title('SNR')
+    % xlabel('Нормированная частота') 
+    % ylabel('SNR (dB)') 
+    % legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+    % 
+    % subplot(2,1,2)
+    % plot(norm_freq, sfdr_in_double, '-o', norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
+    % title('SFDR (dB)')
+    % xlabel('Нормированная частота') 
+    % ylabel('SFDR (dB)') 
+    % legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
     % figure(9);
     % plot(norm_freq, snr_double, '-o', norm_freq, snr_16, '-o', norm_freq, snr_19, '-o', norm_freq, snr_21, '-o');

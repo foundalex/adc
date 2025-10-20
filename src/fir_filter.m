@@ -1,27 +1,17 @@
-function [y, y1_shift_round] = fir_filter(b, x, width_in, width_out)
-
-    z = fi(zeros(size(b)),1,width_in,0);
-    y = fi(zeros(size(x)),1,width_out,0);
-
-    p = 0;
-    nx = length(x);
-    nb = length(b);
+function [y, min_width_mult, min_width_sum]  = fir_filter(b, x)
 
     buffer = int32(zeros(1,length(b)));
+    coeff_int = b;
+	y = int32(zeros(length(x),1));
 
-    % shift = 0;
-    % shift_sum = 0;
-
-    coeff_int = int32(b);
-
-	mult2 = int32(zeros(length(x),1));
-    mult3 = int32(zeros(length(x),1));
-    mult4 = int32(zeros(length(x),1));
-    mult5 = int32(zeros(length(x),1));
-	mult6 = int32(zeros(length(x),1));
-	mult8 = int32(zeros(length(x),1));
-	mult7 = int32(zeros(length(x),1));
-	mult9 = int32(zeros(length(x),1));
+	mult2  = int32(zeros(length(x),1));
+    mult3  = int32(zeros(length(x),1));
+    mult4  = int32(zeros(length(x),1));
+    mult5  = int32(zeros(length(x),1));
+	mult6  = int32(zeros(length(x),1));
+	mult8  = int32(zeros(length(x),1));
+	mult7  = int32(zeros(length(x),1));
+	mult9  = int32(zeros(length(x),1));
 	mult10 = int32(zeros(length(x),1));
 	mult11 = int32(zeros(length(x),1));
 	mult12 = int32(zeros(length(x),1));
@@ -158,15 +148,15 @@ function [y, y1_shift_round] = fir_filter(b, x, width_in, width_out)
 	mult_overflow71 = (zeros(length(x),1));
 	mult_overflow72 = (zeros(length(x),1));
 
-    sum1 = int32(zeros(length(x),1));
-    sum2 = int32(zeros(length(x),1));
-	sum3 = int32(zeros(length(x),1));
-	sum4 = int32(zeros(length(x),1));
-	sum5 = int32(zeros(length(x),1));
-	sum6 = int32(zeros(length(x),1));
-	sum7 = int32(zeros(length(x),1));
-	sum8 = int32(zeros(length(x),1));
-	sum9 = int32(zeros(length(x),1));
+    sum1  = int32(zeros(length(x),1));
+    sum2  = int32(zeros(length(x),1));
+	sum3  = int32(zeros(length(x),1));
+	sum4  = int32(zeros(length(x),1));
+	sum5  = int32(zeros(length(x),1));
+	sum6  = int32(zeros(length(x),1));
+	sum7  = int32(zeros(length(x),1));
+	sum8  = int32(zeros(length(x),1));
+	sum9  = int32(zeros(length(x),1));
 	sum10 = int32(zeros(length(x),1));
 	sum11 = int32(zeros(length(x),1));
 	sum12 = int32(zeros(length(x),1));
@@ -228,8 +218,6 @@ function [y, y1_shift_round] = fir_filter(b, x, width_in, width_out)
 	sum68 = int32(zeros(length(x),1));
 	sum69 = int32(zeros(length(x),1));
 	sum70 = int32(zeros(length(x),1));
-	
-	y1_shift_round = int32(zeros(length(x),1));
 	
 	sum_overflow1 = (zeros(length(x),1));
     sum_overflow2 = (zeros(length(x),1));
@@ -303,20 +291,8 @@ function [y, y1_shift_round] = fir_filter(b, x, width_in, width_out)
 	sum_overflow70 = (zeros(length(x),1));
 
 
-    for n=1:nx
-        p=p+1; if p>nb, p=1; end
-        z(p) = x(n);
-        acc = fi(0,1,width_out,0);
-        k = p;
-        for j=1:nb
-            acc(:) = acc + b(j,:) * (z(k));
-            k=k-1; if k<1, k=nb; end
-        end
+    for n=1:length(x)
 
-       y(n) = acc;
-
-       %% integer
-       %%
         buffer = [x(n) buffer(1:end-1)];
 
         [mult2(n), mult_overflow2(n)] = mult(coeff_int(2), int32(buffer(2)), 32);
@@ -398,229 +374,10 @@ function [y, y1_shift_round] = fir_filter(b, x, width_in, width_out)
         [mult71(n), mult_overflow71(n)] = mult(coeff_int(71), int32(buffer(71)), 32);
         [mult72(n), mult_overflow72(n)] = mult(coeff_int(72), int32(buffer(72)), 32);
 
-
-        % mult2(n) = fi(2,0,2,0) * buffer(2); % fi(1,14,0)
-        % mult2(n) = bitshift(mult2(n),shift);
-
-        % mult3(n) = fi(-6,1,4,0) * buffer(3); % fi(1,16,0)
-        % mult3(n) = bitshift(mult3(n),shift);
-
-		% mult4(n) = fi(13,0,4,0) * buffer(4); % fi(1,16,0)
-        % mult4(n) = bitshift(mult4(n),shift);
-
-        % mult5(n) = fi(-24,1,6,0) * buffer(5); % fi(1,18,0)
-        % mult5(n) = bitshift(mult5(n),shift);
-
-        % mult6(n) = fi(39,0,6,0) * buffer(6); % fi(1,18,0)
-        % mult6(n) = bitshift(mult6(n),shift);
-		
-		% mult7(n) = fi(-58,1,7,0) * buffer(7); % fi(1,19,0)
-        % mult7(n) = bitshift(mult7(n),shift);
-		
-        % mult8(n) = fi(84,0,7,0) * buffer(8); % fi(1,19,0)
-        % mult8(n) = bitshift(mult8(n),shift);
-		
-		% mult9(n) = fi(-116,1,8,0) * buffer(9); % fi(1,20,0)
-        % mult9(n) = bitshift(mult9(n),shift);
-		
-		% mult10(n) = fi(156,0,8,0) * buffer(10); % fi(1,20,0)		
-        % mult10(n) = bitshift(mult10(n),shift);
-        
-		% mult11(n) = fi(-206,1,9,0) * buffer(11); %  fi(1,21,0)		
-        % mult11(n) = bitshift(mult11(n),shift);
-		
-		% mult12(n) = fi(266,0,9,0) * buffer(12); % fi (1,21,0)		
-        % mult12(n) = bitshift(mult12(n),shift);
-		
-		% mult13(n) = fi(-339,1,10,0) * buffer(13); % fi(1,22,0)		
-        % mult13(n) = bitshift(mult13(n),shift);
-		
-		% mult14(n) = fi(427,0,9,0) * buffer(14); % fi(1,22,0)		
-        % mult14(n) = bitshift(mult14(n),shift);
-		
-		% mult15(n) = fi(-531,1,11,0) * buffer(15); % fi(1,23,0)		
-        % mult15(n) = bitshift(mult15(n),shift);
-		
-		% mult16(n) = fi(655,0,10,0) * buffer(16); % fi(1,22,0)
-        % mult16(n) = bitshift(mult16(n),shift);
-		
-		% mult17(n) = fi(-800,1,11,0) * buffer(17); % fi(1,23,0)
-        % mult17(n) = bitshift(mult17(n),shift);
-		
-		% mult18(n) = fi(969,0,10,0) * buffer(18); % fi(1,22,0)
-        % mult18(n) = bitshift(mult18(n),shift);
-		
-		% mult19(n) = fi(-1167,1,12,0) * buffer(19); % fi(1,24,0)
-        % mult19(n) = bitshift(mult19(n),shift);
-		
-		% mult20(n) = fi(1396,0,11,0) * buffer(20); % fi(1,23,0)
-		% mult20(n) = bitshift(mult20(n),shift);
-		
-		% mult21(n) = fi(-1662,1,12,0) * buffer(21); % fi(1,24,0)
-		% mult21(n) = bitshift(mult21(n),shift);
-		
-		% mult22(n) = fi(1970,0,11,0) * buffer(22); % fi(1,23,0)
-        % mult22(n) = bitshift(mult22(n),shift);
-		
-		% mult23(n) = fi(-2327,1,13,0) * buffer(23); % fi(1,25,0)
-        % mult23(n) = bitshift(mult23(n),shift);
-		
-		% mult24(n) = fi(2742,0,12,0) * buffer(24); % fi(1,24,0)		
-        % mult24(n) = bitshift(mult24(n),shift);
-		
-		% mult25(n) = fi(-3226,1,13,0) * buffer(25); % fi(1,25,0)		
-        % mult25(n) = bitshift(mult25(n),shift);
-		
-		% mult26(n) = fi(3796,0,12,0) * buffer(26); % fi(1,24,0)		
-        % mult26(n) = bitshift(mult26(n),shift);
-		
-		% mult27(n) = fi(-4474,1,14,0) * buffer(27); % fi(1,26,0)        
-		% mult27(n) = bitshift(mult27(n),shift);
-		
-		% mult28(n) = fi(5291,0,13,0) * buffer(28); % fi(1,25,0)		
-        % mult28(n) = bitshift(mult28(n),shift);
-		
-		% mult29(n) = fi(-6298,1,14,0) * buffer(29); % fi(1,26,0)		
-        % mult29(n) = bitshift(mult29(n),shift);
-		
-		% mult30(n) = fi(7573,0,13,0) * buffer(30); % fi(1,25,0)		
-        % mult30(n) = bitshift(mult30(n),shift);
-		
-		% mult31(n) = fi(-9249,1,15,0) * buffer(31); % fi(1,27,0)		
-        % mult31(n) = bitshift(mult31(n),shift);
-		
-		% mult32(n) = fi(11573,0,14,0) * buffer(32); % fi(1,26,0)		
-        % mult32(n) = bitshift(mult32(n),shift);
-		
-		% mult33(n) = fi(-15057,1,15,0) * buffer(33); % fi(1,27,0)		
-        % mult33(n) = bitshift(mult33(n),shift);
-		
-		% mult34(n) = fi(20954,0,15,0) * buffer(34); % fi(1,27,0)		
-        % mult34(n) = bitshift(mult34(n),shift);
-		
-		% mult35(n) = fi(-33395,1,17,0) * buffer(35); % fi(1,29,0)		
-        % mult35(n) = bitshift(mult35(n),shift);
-		
-		% mult36(n) = fi(78533,0,17,0) * buffer(36); % fi(1,29,0)		
-        % mult36(n) = bitshift(mult36(n),shift);
-		
-		% mult37(n) = fi(235966,0,18,0) * buffer(37); % fi(1,30,0)      
-        %  mult37(n) = bitshift(mult37(n),shift);
-		
-		% mult38(n) = fi(-46973,1,17,0) * buffer(38); % fi(1,29,0)        
-        % mult38(n) = bitshift(mult38(n),shift);
-		
-		% mult39(n) = fi(25812,0,15,0) * buffer(39); % fi(1,27,0)		
-        % mult39(n) = bitshift(mult39(n),shift);
-		
-		% mult40(n) = fi(-17565,1,16,0) * buffer(40); % fi(1,28,0)        
-        % mult40(n) = bitshift(mult40(n),shift);
-		
-		% mult41(n) = fi(13119,0,14,0) * buffer(41); % fi(1,26,0)        
-        % mult41(n) = bitshift(mult41(n),shift);
-		
-		% mult42(n) = fi(-10307,1,15,0) * buffer(42); 		
-        % mult42(n) = bitshift(mult42(n),shift);
-		
-		% mult43(n) = fi(8349,0,14,0) * buffer(43);        
-        % mult43(n) = bitshift(mult43(n),shift);
-		
-		% mult44(n) = fi(-6895,1,14,0) * buffer(44);        
-        % mult44(n) = bitshift(mult44(n),shift);
-		
-		% mult45(n) = fi(5767,0,13,0) * buffer(45);	        
-        % mult45(n) = bitshift(mult45(n),shift);
-		
-		% mult46(n) = fi(-4862,1,14,0) * buffer(46);        
-        % mult46(n) = bitshift(mult46(n),shift);
-		
-		% mult47(n) = fi(4120,0,13,0) * buffer(47);		
-        % mult47(n) = bitshift(mult47(n),shift);
-		
-		% mult48(n) = fi(-3499,1,13,0) * buffer(48);       
-        % mult48(n) = bitshift(mult48(n),shift);
-		
-		% mult49(n) = fi(2974,0,12,0) * buffer(49);       
-        % mult49(n) = bitshift(mult49(n),shift);
-		
-		% mult50(n) = fi(-2526,1,13,0) * buffer(50);		
-        % mult50(n) = bitshift(mult50(n),shift);
-		
-		% mult51(n) = fi(2142,0,12,0) * buffer(51);      
-        % mult51(n) = bitshift(mult51(n),shift);
-		
-		% mult52(n) = fi(-1810,1,12,0) * buffer(52);      
-        % mult52(n) = bitshift(mult52(n),shift);
-		
-		% mult53(n) = fi(1524,0,11,0) * buffer(53);		
-        % mult53(n) = bitshift(mult53(n),shift);
-		
-		% mult54(n) = fi(-1277,1,12,0) * buffer(54);       
-        % mult54(n) = bitshift(mult54(n),shift);
-		
-		% mult55(n) = fi(1064,0,11,0) * buffer(55);        
-        % mult55(n) = bitshift(mult55(n),shift);
-		
-		% mult56(n) = fi(-881,1,11,0) * buffer(56);		
-        % mult56(n) = bitshift(mult56(n),shift);
-		
-		% mult57(n) = fi(724,0,10,0) * buffer(57);        
-        % mult57(n) = bitshift(mult57(n),shift);
-		
-		% mult58(n) = fi(-590,1,11,0) * buffer(58);        
-        % mult58(n) = bitshift(mult58(n),shift);
-		
-		% mult59(n) = fi(477,0,9,0) * buffer(59);		
-        % mult59(n) = bitshift(mult59(n),shift);
-		
-		% mult60(n) = fi(-381,1,10,0) * buffer(60);        
-        % mult60(n) = bitshift(mult60(n),shift);
-		
-		% mult61(n) = fi(301,0,9,0) * buffer(61);        
-        % mult61(n) = bitshift(mult61(n),shift);
-		
-		% mult62(n) = fi(-234,1,9,0) * buffer(62);		
-        % mult62(n) = bitshift(mult62(n),shift);
-		
-		% mult63(n) = fi(180,0,8,0) * buffer(63);        
-        % mult63(n) = bitshift(mult63(n),shift);
-		
-		% mult64(n) = fi(-135,1,9,0) * buffer(64);        
-        % mult64(n) = bitshift(mult64(n),shift);
-		
-		% mult65(n) = fi(99,0,7,0) * buffer(65);		
-        % mult65(n) = bitshift(mult65(n),shift);
-		
-		% mult66(n) = fi(-70,1,8,0) * buffer(66);		
-        % mult66(n) = bitshift(mult66(n),shift);
-		
-		% mult67(n) = fi(48,0,6,0) * buffer(67);       
-        % mult67(n) = bitshift(mult67(n),shift);
-		
-		% mult68(n) = fi(-31,1,6,0) * buffer(68);        
-        % mult68(n) = bitshift(mult68(n),shift);
-		
-		% mult69(n) = fi(18,0,5,0) * buffer(69);		
-        % mult69(n) = bitshift(mult69(n),shift);
-		
-		% mult70(n) = fi(-9,1,5,0) * buffer(70);        
-        % mult70(n) = bitshift(mult70(n),shift);
-		
-		% mult71(n) = fi(4,0,3,0) * buffer(71);        
-        % mult71(n) = bitshift(mult71(n),shift);
-		
-		% mult72(n) = fi(-1,1,2,0) * buffer(72);        
-		% mult72(n) = bitshift(mult72(n),shift);
-		
-
         %% adders
         %%
 
-		% sum1(n) = mult2(n) + mult3(n);
-		% sum1(n) = bitshift(sum1(n),shift_sum);
-
         [sum1(n), sum_overflow1(n)] = adder(mult2(n),  mult3(n), 32);
-		
 		[sum2(n), sum_overflow2(n)] = adder(sum1(n),  mult4(n), 32);
 		[sum3(n), sum_overflow3(n)] = adder(sum2(n),  mult5(n), 32);
 		[sum4(n), sum_overflow4(n)] = adder(sum3(n),  mult6(n), 32);
@@ -697,374 +454,160 @@ function [y, y1_shift_round] = fir_filter(b, x, width_in, width_out)
 		[sum69(n), sum_overflow69(n)] = adder(sum68(n),  mult71(n), 32);
 		[sum70(n), sum_overflow70(n)] = adder(sum69(n),  mult72(n), 32);
 
-        y1_shift_round(n) = bitshift(sum70(n),-13);
+        y(n) = sum70(n);
 		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		% sum2(n) = sum1(n) + mult4(n);	
-		% sum2(n) = bitshift(sum2(n),shift_sum);
-		
-		% sum3(n) = sum2(n) + mult5(n);
-		% sum3(n) = bitshift(sum3(n),shift_sum);
-
-		% sum4(n) = sum3(n) + mult6(n);
-		% sum4(n) = bitshift(sum4(n),shift_sum);
-
-		% sum5(n) = sum4(n) + mult7(n);
-		% sum5(n) = bitshift(sum5(n),shift_sum);
-		
-        % sum6(n) = sum5(n) + mult8(n);
-		% sum6(n) = bitshift(sum6(n),shift_sum);
-		
-        % sum7(n) = sum6(n) + mult9(n);
-		% sum7(n) = bitshift(sum7(n),shift_sum);
-		
-        % sum8(n) = sum7(n) + mult10(n);	
-        % sum8(n) = bitshift(sum8(n),shift_sum);
-		
-        % sum9(n) = sum8(n) + mult11(n);
-        % sum9(n) = bitshift(sum9(n),shift_sum);
-		
-        % sum10(n) = sum9(n) + mult12(n);
-		% sum10(n) = bitshift(sum10(n),shift_sum);
-		
-        % sum11(n) = sum10(n) + mult13(n);
-		% sum11(n) = bitshift(sum11(n),shift_sum);
-		
-        % sum12(n) = sum11(n) + mult14(n);
-		% sum12(n) = bitshift(sum12(n),shift_sum);
-		
-        % sum13(n) = sum12(n) + mult15(n);
-		% sum13(n) = bitshift(sum13(n),shift_sum);
-		
-        % sum14(n) = sum13(n) + mult16(n);
-		% sum14(n) = bitshift(sum14(n),shift_sum);
-		
-        % sum15(n) = sum14(n) + mult17(n);
-		% sum15(n) = bitshift(sum15(n),shift_sum);
-		
-        % sum16(n) = sum15(n) + mult18(n);	
-        % sum16(n) = bitshift(sum16(n),shift_sum);
-		
-        % sum17(n) = sum16(n) + mult19(n);
-        % sum17(n) = bitshift(sum17(n),shift_sum);
-		
-        % sum18(n) = sum17(n) + mult20(n);	
-		% sum18(n) = bitshift(sum18(n),shift_sum);
-		
-        % sum19(n) = sum18(n) + mult21(n);
-		% sum19(n) = bitshift(sum19(n),shift_sum);
-		
-        % sum20(n) = sum19(n) + mult22(n);	
-        % sum20(n) = bitshift(sum20(n),shift_sum);
-		
-        % sum21(n) = sum20(n) + mult23(n);
-		% sum21(n) = bitshift(sum21(n),shift_sum);
-		
-        % sum22(n) = sum21(n) + mult24(n);	
-        % sum22(n) = bitshift(sum22(n),shift_sum);
-		
-        % sum23(n) = sum22(n) + mult25(n);
-        % sum23(n) = bitshift(sum23(n),shift_sum);
-		
-        % sum24(n) = sum23(n) + mult26(n);	
-        % sum24(n) = bitshift(sum24(n),shift_sum);
-
-        % sum25(n) = sum24(n) + mult27(n);
-		% sum25(n) = bitshift(sum25(n),shift_sum);
-		
-        % sum26(n) = sum25(n) + mult28(n);	
-        % sum26(n) = bitshift(sum26(n),shift_sum);
-		
-        % sum27(n) = sum26(n) + mult29(n);
-        % sum27(n) = bitshift(sum27(n),shift_sum);
-		
-        % sum28(n) = sum27(n) + mult30(n);	
-        % sum28(n) = bitshift(sum28(n),shift_sum);
-		
-        % sum29(n) = sum28(n) + mult31(n);
-		% sum29(n) = bitshift(sum29(n),shift_sum);
-		
-        % sum30(n) = sum29(n) + mult32(n);	
-        % sum30(n) = bitshift(sum30(n),shift_sum);
-		
-        % sum31(n) = sum30(n) + mult33(n);
-        % sum31(n) = bitshift(sum31(n),shift_sum);
-
-        % sum32(n) = sum31(n) + mult34(n);
-		% sum32(n) = bitshift(sum32(n),shift_sum);
-		
-        % sum33(n) = sum32(n) + mult35(n);
-        % sum33(n) = bitshift(sum33(n),shift_sum);
-		
-        % sum34(n) = sum33(n) + mult36(n);
-		% sum34(n) = bitshift(sum34(n),shift_sum);
-		
-        % sum35(n) = sum34(n) + mult37(n);
-		% sum35(n) = bitshift(sum35(n),shift_sum);
-		
-        % sum36(n) = sum35(n) + mult38(n);	
-		% sum36(n) = bitshift(sum36(n),shift_sum);
-		
-        % sum37(n) = sum36(n) + mult39(n);
-		% sum37(n) = bitshift(sum37(n),shift_sum);
-		
-        % sum38(n) = sum37(n) + mult40(n);	
-		% sum38(n) = bitshift(sum38(n),shift_sum);
-		
-        % sum39(n) = sum38(n) + mult41(n);
-		% sum39(n) = bitshift(sum39(n),shift_sum);
-		
-        % sum40(n) = sum39(n) + mult42(n);
-        % sum40(n) = bitshift(sum40(n),shift_sum);
-		
-        % sum41(n) = sum40(n) + mult43(n);
-        % sum41(n) = bitshift(sum41(n),shift_sum);
-		
-        % sum42(n) = sum41(n) + mult44(n);	
-		% sum42(n) = bitshift(sum42(n),shift_sum);
-		
-        % sum43(n) = sum42(n) + mult45(n);
-        % sum43(n) = bitshift(sum43(n),shift_sum);
-		
-        % sum44(n) = sum43(n) + mult46(n);	
-        % sum44(n) = bitshift(sum44(n),shift_sum);
-		
-        % sum45(n) = sum44(n) + mult47(n);
-        % sum45(n) = bitshift(sum45(n),shift_sum);
-		
-        % sum46(n) = sum45(n) + mult48(n);	
-		% sum46(n) = bitshift(sum46(n),shift_sum);
-		
-        % sum47(n) = sum46(n) + mult49(n);
-        % sum47(n) = bitshift(sum47(n),shift_sum);
-		
-        % sum48(n) = sum47(n) + mult50(n);	
-        % sum48(n) = bitshift(sum48(n),shift_sum);
-		
-        % sum49(n) = sum48(n) + mult51(n);
-        % sum49(n) = bitshift(sum49(n),shift_sum);
-		
-        % sum50(n) = sum49(n) + mult52(n);	
-		% sum50(n) = bitshift(sum50(n),shift_sum);
-		
-        % sum51(n) = sum50(n) + mult53(n);
-        % sum51(n) = bitshift(sum51(n),shift_sum);
-		
-        % sum52(n) = sum51(n) + mult54(n);	
-        % sum52(n) = bitshift(sum52(n),shift_sum);
-		
-        % sum53(n) = sum52(n) + mult55(n);
-        % sum53(n) = bitshift(sum53(n),shift_sum);
-		
-        % sum54(n) = sum53(n) + mult56(n);
-		% sum54(n) = bitshift(sum54(n),shift_sum);
-		
-        % sum55(n) = sum54(n) + mult57(n);
-		% sum55(n) = bitshift(sum55(n),shift_sum);
-		
-        % sum56(n) = sum55(n) + mult58(n);	
-        % sum56(n) = bitshift(sum56(n),shift_sum);
-
-        % sum57(n) = sum56(n) + mult59(n);
-		% sum57(n) = bitshift(sum57(n),shift_sum);
-		
-        % sum58(n) = sum57(n) + mult60(n);	
-        % sum58(n) = bitshift(sum58(n),shift_sum);
-		
-        % sum59(n) = sum58(n) + mult61(n);
-        % sum59(n) = bitshift(sum59(n),shift_sum);
-		
-        % sum60(n) = sum59(n) + mult62(n);	
-        % sum60(n) = bitshift(sum60(n),shift_sum);
-		
-        % sum61(n) = sum60(n) + mult63(n);
-		% sum61(n) = bitshift(sum61(n),shift_sum);
-		
-        % sum62(n) = sum61(n) + mult64(n);	
-        % sum62(n) = bitshift(sum62(n),shift_sum);
-		
-        % sum63(n) = sum62(n) + mult65(n);
-        % sum63(n) = bitshift(sum63(n),shift_sum);
-		
-        % sum64(n) = sum63(n) + mult66(n);	
-        % sum64(n) = bitshift(sum64(n),shift_sum);
-		
-        % sum65(n) = sum64(n) + mult67(n);
-        % sum65(n) = bitshift(sum65(n),shift_sum);
-		
-        % sum66(n) = sum65(n) + mult68(n);	
-        % sum66(n) = bitshift(sum66(n),shift_sum);
-		
-        % sum67(n) = sum66(n) + mult69(n);
-        % sum67(n) = bitshift(sum67(n),shift_sum);
-		
-        % sum68(n) = sum67(n) + mult70(n);	
-        % sum68(n) = bitshift(sum68(n),shift_sum);
-		
-        % sum69(n) = sum68(n) + mult71(n);
-        % sum69(n) = bitshift(sum69(n),shift_sum);
-		
-        % y1(n) = sum69(n) + mult72(n);
-        % y1_shift_round(n) = bitshift(y1(n),-13);
-        
     end
 
-    max_mult2 = max(mult2);
-	max_mult3 = max(mult3);
-	max_mult4 = max(mult4);
-	max_mult5 = max(mult5);
-	max_mult6 = max(mult6);
-	max_mult7 = max(mult7);
-	max_mult8 = max(mult8);
-	max_mult9 = max(mult9);
-	max_mult10 = max(mult10);
-	max_mult11 = max(mult11);
-	max_mult12 = max(mult12);
-	max_mult13 = max(mult13);
-	max_mult14 = max(mult14);
-	max_mult15 = max(mult15);
-	max_mult16 = max(mult16);
-	max_mult17 = max(mult17);
-	max_mult18 = max(mult18);
-	max_mult19 = max(mult19);
-	max_mult20 = max(mult20);
-	max_mult21 = max(mult21);
-	max_mult22 = max(mult22);
-	max_mult23 = max(mult23);
-	max_mult24 = max(mult24);
-	max_mult25 = max(mult25);
-	max_mult26 = max(mult26);
-	max_mult27 = max(mult27);
-	max_mult28 = max(mult28);
-	max_mult29 = max(mult29);
-	max_mult30 = max(mult30);
-	max_mult31 = max(mult31);
-	max_mult32 = max(mult32);
-	max_mult33 = max(mult33);
-	max_mult34 = max(mult34);
-	max_mult35 = max(mult35);
-	max_mult36 = max(mult36);
-	max_mult37 = max(mult37);
-	max_mult38 = max(mult38);
-	max_mult39 = max(mult39);
-	max_mult40 = max(mult40);
-	max_mult41 = max(mult41);
-	max_mult42 = max(mult42);
-	max_mult43 = max(mult43);
-	max_mult44 = max(mult44);
-	max_mult45 = max(mult45);
-	max_mult46 = max(mult46);
-	max_mult47 = max(mult47);
-	max_mult48 = max(mult48);
-	max_mult49 = max(mult49);
-	max_mult50 = max(mult50);
-	max_mult51 = max(mult51);
-	max_mult52 = max(mult52);
-	max_mult53 = max(mult53);
-	max_mult54 = max(mult54);
-	max_mult55 = max(mult55);
-	max_mult56 = max(mult56);
-	max_mult57 = max(mult57);
-	max_mult58 = max(mult58);
-	max_mult59 = max(mult59);
-	max_mult60 = max(mult60);
-	max_mult61 = max(mult61);
-	max_mult62 = max(mult62);
-	max_mult63 = max(mult63);
-	max_mult64 = max(mult64);
-	max_mult65 = max(mult65);
-	max_mult66 = max(mult66);
-	max_mult67 = max(mult67);
-	max_mult68 = max(mult68);
-	max_mult69 = max(mult69);
-	max_mult70 = max(mult70);
-	max_mult71 = max(mult71);
-	max_mult72 = max(mult72);
+    max_mult(2) =  min(mult2);
+	max_mult(3) =  min(mult3);
+	max_mult(4) =  min(mult4);
+	max_mult(5) =  min(mult5);
+	max_mult(6) =  min(mult6);
+	max_mult(7) =  min(mult7);
+	max_mult(8) =  min(mult8);
+	max_mult(9) =  min(mult9);
+	max_mult(10) = min(mult10);
+	max_mult(11) = min(mult11);
+	max_mult(12) = min(mult12);
+	max_mult(13) = min(mult13);
+	max_mult(14) = min(mult14);
+	max_mult(15) = min(mult15);
+	max_mult(16) = min(mult16);
+	max_mult(17) = min(mult17);
+	max_mult(18) = min(mult18);
+	max_mult(19) = min(mult19);
+	max_mult(20) = min(mult20);
+	max_mult(21) = min(mult21);
+	max_mult(22) = min(mult22);
+	max_mult(23) = min(mult23);
+	max_mult(24) = min(mult24);
+	max_mult(25) = min(mult25);
+	max_mult(26) = min(mult26);
+	max_mult(27) = min(mult27);
+	max_mult(28) = min(mult28);
+	max_mult(29) = min(mult29);
+	max_mult(30) = min(mult30);
+	max_mult(31) = min(mult31);
+	max_mult(32) = min(mult32);
+	max_mult(33) = min(mult33);
+	max_mult(34) = min(mult34);
+	max_mult(35) = min(mult35);
+	max_mult(36) = min(mult36);
+	max_mult(37) = min(mult37);
+	max_mult(38) = min(mult38);
+	max_mult(39) = min(mult39);
+	max_mult(40) = min(mult40);
+	max_mult(41) = min(mult41);
+	max_mult(42) = min(mult42);
+	max_mult(43) = min(mult43);
+	max_mult(44) = min(mult44);
+	max_mult(45) = min(mult45);
+	max_mult(46) = min(mult46);
+	max_mult(47) = min(mult47);
+	max_mult(48) = min(mult48);
+	max_mult(49) = min(mult49);
+	max_mult(50) = min(mult50);
+	max_mult(51) = min(mult51);
+	max_mult(52) = min(mult52);
+	max_mult(53) = min(mult53);
+	max_mult(54) = min(mult54);
+	max_mult(55) = min(mult55);
+	max_mult(56) = min(mult56);
+	max_mult(57) = min(mult57);
+	max_mult(58) = min(mult58);
+	max_mult(59) = min(mult59);
+	max_mult(60) = min(mult60);
+	max_mult(61) = min(mult61);
+	max_mult(62) = min(mult62);
+	max_mult(63) = min(mult63);
+	max_mult(64) = min(mult64);
+	max_mult(65) = min(mult65);
+	max_mult(66) = min(mult66);
+	max_mult(67) = min(mult67);
+	max_mult(68) = min(mult68);
+	max_mult(69) = min(mult69);
+	max_mult(70) = min(mult70);
+	max_mult(71) = min(mult71);
+	max_mult(72) = min(mult72);
 	
-	max_sum1 = max(sum1);
-	max_sum2 = max(sum2);
-	max_sum3 = max(sum3);
-	max_sum4 = max(sum4);
-	max_sum5 = max(sum5);
-	max_sum6 = max(sum6);
-	max_sum7 = max(sum7);
-	max_sum8 = max(sum8);
-	max_sum9 = max(sum9);
-	max_sum10 = max(sum10);
-	max_sum11 = max(sum11);
-	max_sum12 = max(sum12);
-	max_sum13 = max(sum13);
-	max_sum14 = max(sum14);
-	max_sum15 = max(sum15);
-	max_sum16 = max(sum16);
-	max_sum17 = max(sum17);
-	max_sum18 = max(sum18);
-	max_sum19 = max(sum19);
-	max_sum20 = max(sum20);
-	max_sum21 = max(sum21);
-	max_sum22 = max(sum22);
-	max_sum23 = max(sum23);
-	max_sum24 = max(sum24);
-	max_sum25 = max(sum25);
-	max_sum26 = max(sum26);
-	max_sum27 = max(sum27);
-	max_sum28 = max(sum28);
-	max_sum29 = max(sum29);
-	max_sum30 = max(sum30);
-	max_sum31 = max(sum31);
-	max_sum32 = max(sum32);
-	max_sum33 = max(sum33);
-	max_sum34 = max(sum34);
-	max_sum35 = max(sum35);
-	max_sum36 = max(sum36);
-	max_sum37 = max(sum37);
-	max_sum38 = max(sum38);
-	max_sum39 = max(sum39);
-	max_sum40 = max(sum40);
-	max_sum41 = max(sum41);
-	max_sum42 = max(sum42);
-	max_sum43 = max(sum43);
-	max_sum44 = max(sum44);
-	max_sum45 = max(sum45);
-	max_sum46 = max(sum46);
-	max_sum47 = max(sum47);
-	max_sum48 = max(sum48);
-	max_sum49 = max(sum49);
-	max_sum50 = max(sum50);
-	max_sum51 = max(sum51);
-	max_sum52 = max(sum52);
-	max_sum53 = max(sum53);
-	max_sum54 = max(sum54);
-	max_sum55 = max(sum55);
-	max_sum56 = max(sum56);
-	max_sum57 = max(sum57);
-	max_sum58 = max(sum58);
-	max_sum59 = max(sum59);
-	max_sum60 = max(sum60);
-	max_sum61 = max(sum61);
-	max_sum62 = max(sum62);
-	max_sum63 = max(sum63);
-	max_sum64 = max(sum64);
-	max_sum65 = max(sum65);
-	max_sum66 = max(sum66);
-	max_sum67 = max(sum67);
-	max_sum68 = max(sum68);
-	max_sum69 = max(sum69);
-	max_sum70 = max(sum70);
+	max_sum(1) =  min(sum1);
+	max_sum(2) =  min(sum2);
+	max_sum(3) =  min(sum3);
+	max_sum(4) =  min(sum4);
+	max_sum(5) =  min(sum5);
+	max_sum(6) =  min(sum6);
+	max_sum(7) =  min(sum7);
+	max_sum(8) =  min(sum8);
+	max_sum(9) =  min(sum9);
+	max_sum(10) = min(sum10);
+	max_sum(11) = min(sum11);
+	max_sum(12) = min(sum12);
+	max_sum(13) = min(sum13);
+	max_sum(14) = min(sum14);
+	max_sum(15) = min(sum15);
+	max_sum(16) = min(sum16);
+	max_sum(17) = min(sum17);
+	max_sum(18) = min(sum18);
+	max_sum(19) = min(sum19);
+	max_sum(20) = min(sum20);
+	max_sum(21) = min(sum21);
+	max_sum(22) = min(sum22);
+	max_sum(23) = min(sum23);
+	max_sum(24) = min(sum24);
+	max_sum(25) = min(sum25);
+	max_sum(26) = min(sum26);
+	max_sum(27) = min(sum27);
+	max_sum(28) = min(sum28);
+	max_sum(29) = min(sum29);
+	max_sum(30) = min(sum30);
+	max_sum(31) = min(sum31);
+	max_sum(32) = min(sum32);
+	max_sum(33) = min(sum33);
+	max_sum(34) = min(sum34);
+	max_sum(35) = min(sum35);
+	max_sum(36) = min(sum36);
+	max_sum(37) = min(sum37);
+	max_sum(38) = min(sum38);
+	max_sum(39) = min(sum39);
+	max_sum(40) = min(sum40);
+	max_sum(41) = min(sum41);
+	max_sum(42) = min(sum42);
+	max_sum(43) = min(sum43);
+	max_sum(44) = min(sum44);
+	max_sum(45) = min(sum45);
+	max_sum(46) = min(sum46);
+	max_sum(47) = min(sum47);
+	max_sum(48) = min(sum48);
+	max_sum(49) = min(sum49);
+	max_sum(50) = min(sum50);
+	max_sum(51) = min(sum51);
+	max_sum(52) = min(sum52);
+	max_sum(53) = min(sum53);
+	max_sum(54) = min(sum54);
+	max_sum(55) = min(sum55);
+	max_sum(56) = min(sum56);
+	max_sum(57) = min(sum57);
+	max_sum(58) = min(sum58);
+	max_sum(59) = min(sum59);
+	max_sum(60) = min(sum60);
+	max_sum(61) = min(sum61);
+	max_sum(62) = min(sum62);
+	max_sum(63) = min(sum63);
+	max_sum(64) = min(sum64);
+	max_sum(65) = min(sum65);
+	max_sum(66) = min(sum66);
+	max_sum(67) = min(sum67);
+	max_sum(68) = min(sum68);
+	max_sum(69) = min(sum69);
+	max_sum(70) = min(sum70);
 
+    % выясняем разрядность умножителей
+    width_mult = define_of_width_int(max_mult);
+
+    % выясняем разрядность полученных сумматоров
+    width_sum = define_of_width_int(max_sum);
+
+    min_width_mult = max(width_mult);
+    min_width_sum = max(width_sum);
 	
 end

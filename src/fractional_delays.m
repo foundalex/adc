@@ -1,124 +1,73 @@
-function [yri, ymi, y_fractional_outInt11, ymi_HilbertInt] = fractional_delays(input_signal, Z, hri_w, hh_m, fractional_width, hilbert_width)
+function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(input_signal, hri_w, hh_m, coeff_frac_int, fractional_width, hilbert_coeff_int, hilbert_width, sim_options)
 
-        frac_out_width = 31;
-        hilbert_out_width = 30;
+        shift_frac_out = 13;
+        shift_hilbert_out = 13;
+        fractional_remainder = fractional_width - 1 - shift_frac_out;
+        hilbert_remainder = 4;
         %%
-        yri = filter(hri_w, 1, input_signal(:,1)); % filter (стр.6 (15))
+        yri = filter(hri_w, 1, input_signal); % filter (стр.6 (15))
         ymi = filter(hh_m.', 1, yri);
 
-        %% integer
-        coeff_frac_int = fi(hri_w*2^(fractional_width-1),1,fractional_width,0);
+        % y(n) = x(n)*(k1*2^N)+x(n-1)*(k2*2^N)+x(n-3)*(k3*2^N)
+        % N = 18
+        % y_fractional_outInt >> 13
+        % N = 18 - 13 = 5;
+        [y_fractional_outInt, fractional_mult, fractional_sum] = fir_filter(coeff_frac_int, input_signal); % (стр.6 (15)) 
+        y_fractional_outInt = bitshift(y_fractional_outInt,-shift_frac_out);
+        fractional_delay_filter_out_width = define_of_width_int(min(y_fractional_outInt)); % int18
 
-        % coeff_frac_int(2) = fi(0,1,19,0);
-        % coeff_frac_int(3) = fi(0,1,19,0);
-        % coeff_frac_int(4) = fi(1,1,19,0);
-        % 
-        % a = input_signal(:,1)* fi(2,1,19,0);
-        % a1 = bitshift(a,-4);
-        % a1 = fi(a1,1,12,0);
-        % 
-        % b = a1* fi(-6,1,19,0);
-        % a2 = bitshift(b,-4);
-        % a2 = fi(a1,1,12,0);
-        % 
-        % c = a2* fi(13,1,19,0);
-        % a3 = bitshift(c,-4);
-        % a3 = fi(a1,1,12,0);
-        % 
-        % e = a1 + a2 + a3;
+        if fractional_delay_filter_out_width > 18
+            disp('Warning, data out fractional filter overflow!')
+            disp([sim_options.SNR, sim_options.freq])
+        end
 
+        snr_fractional_out_double = snr(yri, 1000000000);
+        snr_fractional_out_int = snr(double(y_fractional_outInt)*2^-(fractional_remainder), 1000000000);
 
-        % for i = 1:73
-        %     for j = 1:64
-        %         if (abs(coeff_frac_int(i)) < 2^j)
-        %             if (coeff_frac_int(i)) < 0
-        %                 width(i) = j+1;
-        %                 break;
-        %             % elseif (hh_m_int(i) == 0)
-        %             %     width(i) = 0;
-        %             %     break;
-        %             else
-        %                 width(i) = j;
-        %                 break;
-        %             end
-        %         elseif (abs(coeff_frac_int(i)) == 2^j)
-        %             width(i) = j+1;
-        %         end
-        %     end
-        % end
-        % 
-        % figure(3)
-        % subplot(2,1,1)
-        % plot(double(coeff_frac_int))
-        % title('Импульсная характеристика фильтра Гилберта')
-        % xlabel('Номер отсчета') 
-        % ylabel('Амплитуда') 
-        % subplot(2,1,2)
-        % plot(width)
-        % title('Разрядность коэффициентов')
-        % xlabel('Номер коэффициента') 
-        % ylabel('Необходимое количество бит') 
-
-
-        [y_fractional_outInt, y_fractional_outInt11] = fir_filter(coeff_frac_int, input_signal(:,1), 12, frac_out_width); % (стр.6 (15)) 
-        % y_fractional_outInt11 = fi(1,19,6)
+        if (snr_fractional_out_double - snr_fractional_out_int) > 0.1
+            disp('SNR fractional out different!')
+            disp([sim_options.SNR, sim_options.freq])
+        end
 
         figure(4);
-        subplot(4,1,1)
-        plot([yri(1:250), (double(y_fractional_outInt11(1:250))*2^-5)]);
-        subplot(4,1,2);
-        snr(yri, 500000000);
-        subplot(4,1,3);
-        snr((double(y_fractional_outInt)*2^-18), 500000000);
-        subplot(4,1,4);
-        snr(double(y_fractional_outInt11)*2^-5 , 500000000);
+        subplot(3,1,1)
+        plot([yri(1:250), double(y_fractional_outInt(1:250))*2^-(fractional_remainder)]);
+        subplot(3,1,2);
+        snr(yri, 1000000000);
+        subplot(3,1,3);
+        snr(double(y_fractional_outInt)*2^-(fractional_remainder), 1000000000);
+
         %% Hilbert
-        % Negative Symmetric coefficients
-        hh_m_int = fi(hh_m*2^(hilbert_width-1),1,hilbert_width,0); 
+        %%
+        % y(n) = x(n)*(k1*2^N)+x(n-1)*(k2*2^N)+x(n-3)*(k3*2^N)
+        % N = 13
+        % y_fractional_outInt = 1,18,5 * 1,13,12 = 1,31,17;
+        % y_fractional_outInt >> 13
+        % N = 1,31,17 - 13 = 1,18,4;
+        [ymi_HilbertInt, hilbert_mult, hilbert_sum] = fir_filter(int32(hilbert_coeff_int), y_fractional_outInt); % (стр.6 (15)) 
+        ymi_HilbertInt = (bitshift(ymi_HilbertInt, -shift_hilbert_out));
+        hilbert_filter_out_width = define_of_width_int(min(ymi_HilbertInt)); % int18
 
-        % for i = 1:73
-        %     for j = 1:64
-        %         if (abs(hh_m_int(i)) < 2^j)
-        %             if (hh_m_int(i)) < 0
-        %                 width(i) = j+1;
-        %                 break;
-        %             % elseif (hh_m_int(i) == 0)
-        %             %     width(i) = 0;
-        %             %     break;
-        %             else
-        %                 width(i) = j;
-        %                 break;
-        %             end
-        %         elseif (abs(hh_m_int(i)) == 2^j)
-        %             width(i) = j+1;
-        %         end
-        %     end
-        % end
-        % 
-        % figure(3)
-        % subplot(2,1,1)
-        % plot(double(hh_m_int))
-        % title('Импульсная характеристика фильтра Гилберта')
-        % xlabel('Номер отсчета') 
-        % ylabel('Амплитуда') 
-        % subplot(2,1,2)
-        % plot(width)
-        % title('Разрядность коэффициентов')
-        % xlabel('Номер коэффициента') 
-        % ylabel('Необходимое количество бит') 
+        snr_hilbert_out_double = snr(ymi, 1000000000);
+        snr_hilbert_out_int = snr(double(ymi_HilbertInt)*2^-hilbert_remainder, 1000000000);
 
-        ymi_HilbertInt = fir_filter(hh_m_int, y_fractional_outInt, frac_out_width, hilbert_out_width); % (стр.6 (15)) 
-        % fi(1,13,12) * fi(1,16,3) = fi(1,29,15)
-        ymi_HilbertInt = (bitshift(ymi_HilbertInt, -13));
-        ymi_HilbertInt = fi(ymi_HilbertInt,1,16,0);
-        % % fi(1,29,15) - 13 = fi(1,16,2)
+
+        if hilbert_filter_out_width > 18
+            disp('Warning, data out Hilbert filter overflow!')
+            disp([sim_options.SNR, sim_options.freq])
+        end
+
+        if (snr_hilbert_out_double - snr_hilbert_out_int) > 0.1
+            disp('SNR hilbert out different!')
+            disp([sim_options.SNR, sim_options.freq])
+        end
 
         figure(5);
         subplot(3,1,1)
-        plot([ymi(1:250), double(ymi_HilbertInt(1:250))*2^-2]);
+        plot([ymi(1:250), double(ymi_HilbertInt(1:250))*2^-hilbert_remainder]);
         subplot(3,1,2);
-        snr(ymi, 8000000000);
+        snr(ymi, 1000000000);
         subplot(3,1,3);
-        snr(double(ymi_HilbertInt)*2^-2, 8000000000);
+        snr(double(ymi_HilbertInt)*2^-hilbert_remainder, 1000000000);
 
 end
