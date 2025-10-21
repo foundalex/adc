@@ -5,7 +5,8 @@
 % 3) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
-function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_sum_min, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc, Z)
+function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_sum_min, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input, s_to_subadc, ...
+    s_after_subadc, Z)
 
     %% Calibration algorithm 1 (Fractional delays)
     n = (0:1:sim_options.N-1);
@@ -98,8 +99,8 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
 
 	    % Fractional delays of ADC0 signal
         for i = 1:sim_options.M-1
-	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(adc_input(:,1),  hri_w(:,i), hh_m, coeff_frac_int(:,i), ...
-                fractional_width(2), hilbert_coeff_int, hilbert_width, sim_options);
+	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(adc_input(:,1),  hri_w(:,i), ...
+                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, hilbert_width, sim_options);
 
             yhil_imag = [ymi(del_proc+1:end); zeros(del_proc,1)];
             yhil_imag_int = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)];
@@ -211,10 +212,10 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
 
     %% Calibration algorithm 2 (Least Mean Squares)
 
-    x_after_adc = 0; 
-    x_after_adc_int = 0;
+    % x_after_adc = 0; 
+    % x_after_adc_int = 0;
 
-    % [y_array, y_array_int] = least_mean_squares(double(adc_input), adc_input, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, sim_options.Width);
+    [y_array, y_array_int] = least_mean_squares(double(adc_input), adc_input, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, sim_options.Width);
     % 
     % % create main signal after LS algorithm (switch after sub-adc)
     % x_after_adc = zeros(length(y_array)*sim_options.M,1);

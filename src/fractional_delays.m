@@ -1,4 +1,5 @@
-function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(input_signal, hri_w, hh_m, coeff_frac_int, fractional_width, hilbert_coeff_int, hilbert_width, sim_options)
+function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(input_signal, hri_w, hh_m, coeff_frac_int, ...
+    fractional_width, hilbert_coeff_int, hilbert_width, sim_options)
 
         shift_frac_out = 13;
         shift_hilbert_out = 13;
@@ -29,13 +30,13 @@ function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fracti
             disp([sim_options.SNR, sim_options.freq])
         end
 
-        figure(4);
-        subplot(3,1,1)
-        plot([yri(1:250), double(y_fractional_outInt(1:250))*2^-(fractional_remainder)]);
-        subplot(3,1,2);
-        snr(yri, 1000000000);
-        subplot(3,1,3);
-        snr(double(y_fractional_outInt)*2^-(fractional_remainder), 1000000000);
+        % figure(4);
+        % subplot(3,1,1)
+        % plot([yri(1:250), double(y_fractional_outInt(1:250))*2^-(fractional_remainder)]);
+        % subplot(3,1,2);
+        % snr(yri, 1000000000);
+        % subplot(3,1,3);
+        % snr(double(y_fractional_outInt)*2^-(fractional_remainder), 1000000000);
 
         %% Hilbert
         %%
@@ -62,12 +63,12 @@ function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fracti
             disp([sim_options.SNR, sim_options.freq])
         end
 
-        figure(5);
-        subplot(3,1,1)
-        plot([ymi(1:250), double(ymi_HilbertInt(1:250))*2^-hilbert_remainder]);
-        subplot(3,1,2);
-        snr(ymi, 1000000000);
-        subplot(3,1,3);
-        snr(double(ymi_HilbertInt)*2^-hilbert_remainder, 1000000000);
+        % figure(5);
+        % subplot(3,1,1)
+        % plot([ymi(1:250), double(ymi_HilbertInt(1:250))*2^-hilbert_remainder]);
+        % subplot(3,1,2);
+        % snr(ymi, 1000000000);
+        % subplot(3,1,3);
+        % snr(double(ymi_HilbertInt)*2^-hilbert_remainder, 1000000000);
 
 end

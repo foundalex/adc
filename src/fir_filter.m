@@ -458,77 +458,77 @@ function [y, min_width_mult, min_width_sum]  = fir_filter(b, x)
 		
     end
 
-    max_mult(2) =  min(mult2);
-	max_mult(3) =  min(mult3);
-	max_mult(4) =  min(mult4);
-	max_mult(5) =  min(mult5);
-	max_mult(6) =  min(mult6);
-	max_mult(7) =  min(mult7);
-	max_mult(8) =  min(mult8);
-	max_mult(9) =  min(mult9);
-	max_mult(10) = min(mult10);
-	max_mult(11) = min(mult11);
-	max_mult(12) = min(mult12);
-	max_mult(13) = min(mult13);
-	max_mult(14) = min(mult14);
-	max_mult(15) = min(mult15);
-	max_mult(16) = min(mult16);
-	max_mult(17) = min(mult17);
-	max_mult(18) = min(mult18);
-	max_mult(19) = min(mult19);
-	max_mult(20) = min(mult20);
-	max_mult(21) = min(mult21);
-	max_mult(22) = min(mult22);
-	max_mult(23) = min(mult23);
-	max_mult(24) = min(mult24);
-	max_mult(25) = min(mult25);
-	max_mult(26) = min(mult26);
-	max_mult(27) = min(mult27);
-	max_mult(28) = min(mult28);
-	max_mult(29) = min(mult29);
-	max_mult(30) = min(mult30);
-	max_mult(31) = min(mult31);
-	max_mult(32) = min(mult32);
-	max_mult(33) = min(mult33);
-	max_mult(34) = min(mult34);
-	max_mult(35) = min(mult35);
-	max_mult(36) = min(mult36);
-	max_mult(37) = min(mult37);
-	max_mult(38) = min(mult38);
-	max_mult(39) = min(mult39);
-	max_mult(40) = min(mult40);
-	max_mult(41) = min(mult41);
-	max_mult(42) = min(mult42);
-	max_mult(43) = min(mult43);
-	max_mult(44) = min(mult44);
-	max_mult(45) = min(mult45);
-	max_mult(46) = min(mult46);
-	max_mult(47) = min(mult47);
-	max_mult(48) = min(mult48);
-	max_mult(49) = min(mult49);
-	max_mult(50) = min(mult50);
-	max_mult(51) = min(mult51);
-	max_mult(52) = min(mult52);
-	max_mult(53) = min(mult53);
-	max_mult(54) = min(mult54);
-	max_mult(55) = min(mult55);
-	max_mult(56) = min(mult56);
-	max_mult(57) = min(mult57);
-	max_mult(58) = min(mult58);
-	max_mult(59) = min(mult59);
-	max_mult(60) = min(mult60);
-	max_mult(61) = min(mult61);
-	max_mult(62) = min(mult62);
-	max_mult(63) = min(mult63);
-	max_mult(64) = min(mult64);
-	max_mult(65) = min(mult65);
-	max_mult(66) = min(mult66);
-	max_mult(67) = min(mult67);
-	max_mult(68) = min(mult68);
-	max_mult(69) = min(mult69);
-	max_mult(70) = min(mult70);
-	max_mult(71) = min(mult71);
-	max_mult(72) = min(mult72);
+    max_mult(1) =  min(mult2);
+	max_mult(2) =  min(mult3);
+	max_mult(3) =  min(mult4);
+	max_mult(4) =  min(mult5);
+	max_mult(5) =  min(mult6);
+	max_mult(6) =  min(mult7);
+	max_mult(7) =  min(mult8);
+	max_mult(8) =  min(mult9);
+	max_mult(9) = min(mult10);
+	max_mult(10) = min(mult11);
+	max_mult(11) = min(mult12);
+	max_mult(12) = min(mult13);
+	max_mult(13) = min(mult14);
+	max_mult(14) = min(mult15);
+	max_mult(15) = min(mult16);
+	max_mult(16) = min(mult17);
+	max_mult(17) = min(mult18);
+	max_mult(18) = min(mult19);
+	max_mult(19) = min(mult20);
+	max_mult(20) = min(mult21);
+	max_mult(21) = min(mult22);
+	max_mult(22) = min(mult23);
+	max_mult(23) = min(mult24);
+	max_mult(24) = min(mult25);
+	max_mult(25) = min(mult26);
+	max_mult(26) = min(mult27);
+	max_mult(27) = min(mult28);
+	max_mult(28) = min(mult29);
+	max_mult(29) = min(mult30);
+	max_mult(30) = min(mult31);
+	max_mult(31) = min(mult32);
+	max_mult(32) = min(mult33);
+	max_mult(33) = min(mult34);
+	max_mult(34) = min(mult35);
+	max_mult(35) = min(mult36);
+	max_mult(36) = min(mult37);
+	max_mult(37) = min(mult38);
+	max_mult(38) = min(mult39);
+	max_mult(39) = min(mult40);
+	max_mult(40) = min(mult41);
+	max_mult(41) = min(mult42);
+	max_mult(42) = min(mult43);
+	max_mult(43) = min(mult44);
+	max_mult(44) = min(mult45);
+	max_mult(45) = min(mult46);
+	max_mult(46) = min(mult47);
+	max_mult(47) = min(mult48);
+	max_mult(48) = min(mult49);
+	max_mult(49) = min(mult50);
+	max_mult(50) = min(mult51);
+	max_mult(51) = min(mult52);
+	max_mult(52) = min(mult53);
+	max_mult(53) = min(mult54);
+	max_mult(54) = min(mult55);
+	max_mult(55) = min(mult56);
+	max_mult(56) = min(mult57);
+	max_mult(57) = min(mult58);
+	max_mult(58) = min(mult59);
+	max_mult(59) = min(mult60);
+	max_mult(60) = min(mult61);
+	max_mult(61) = min(mult62);
+	max_mult(62) = min(mult63);
+	max_mult(63) = min(mult64);
+	max_mult(64) = min(mult65);
+	max_mult(65) = min(mult66);
+	max_mult(66) = min(mult67);
+	max_mult(67) = min(mult68);
+	max_mult(68) = min(mult69);
+	max_mult(69) = min(mult70);
+	max_mult(70) = min(mult71);
+	max_mult(71) = min(mult72);
 	
 	max_sum(1) =  min(sum1);
 	max_sum(2) =  min(sum2);
@@ -603,6 +603,24 @@ function [y, min_width_mult, min_width_sum]  = fir_filter(b, x)
 
     % выясняем разрядность умножителей
     width_mult = define_of_width_int(max_mult);
+
+%%
+    bitmask = (bitand(int32(2^width_mult(1)-1), mult2));
+    c = int32(zeros(length(mult2),1));
+
+    for i = 1:length(bitmask)
+        a(i) = bitget(int32(bitmask(i)),width_mult(1));
+        if a(i) == 1
+            c(i) = (int32(bitmask(i))) - int32(2^width_mult(1));
+        else
+            c(i) = mult2(i);
+        end
+        if mult2(i) ~= c(i)
+            disp('Bit mask error');
+        end
+    end
+%%
+
 
     % выясняем разрядность полученных сумматоров
     width_sum = define_of_width_int(max_sum);
