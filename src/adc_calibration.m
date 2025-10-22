@@ -27,7 +27,7 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
     fractional_width = [16, 19, 21];
 
     coeff_frac_int = int32(hri_w*2^(fractional_width(2)-1));
-    width_frac = define_of_width_int(coeff_frac_int);
+    % width_frac = define_of_width_int(coeff_frac_int);
  
         % figure(3)
         % subplot(2,1,1)
@@ -66,7 +66,7 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
 
     % Negative Symmetric coefficients
     hilbert_coeff_int = int16(hh_m*2^(hilbert_width-1));
-    width_hilbert = define_of_width_int(hilbert_coeff_int);
+    % width_hilbert = define_of_width_int(hilbert_coeff_int);
 
     % [y, f] = freqz(double(hilbert_coeff_int)*2^-(hilbert_width-1), 1,1024, 'whole', 1000000000);
     % 
@@ -91,16 +91,16 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
     c_os = cos(a1);
     s_os = sin(a1);
 
-    fractional_mult_min = 0;
-    fractional_sum_min = 0;
+    fractional_mult_min = zeros(73,sim_options.M-1);
+    fractional_sum_min = zeros(72,sim_options.M-1);
 
-    hilbert_mult_min = 0;
-    hilbert_sum_min = 0;
+    hilbert_mult_min = zeros(73,sim_options.M-1);
+    hilbert_sum_min = zeros(72,sim_options.M-1);
 
 	    % Fractional delays of ADC0 signal
         for i = 1:sim_options.M-1
 	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(adc_input(:,1),  hri_w(:,i), ...
-                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, hilbert_width, sim_options);
+                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, sim_options);
 
             yhil_imag = [ymi(del_proc+1:end); zeros(del_proc,1)];
             yhil_imag_int = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)];
@@ -137,11 +137,11 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
                 yric_int = y_fractional_outInt;
             end
 
-            nyquist_out_width = define_of_width_int(min(yric_int));
-            if nyquist_out_width > 18
-                disp('Warning, nyquist data out overflow!')
-                disp([sim_options.SNR, sim_options.freq])
-            end
+            % nyquist_out_width = define_of_width_int(min(yric_int));
+            % if nyquist_out_width > 18
+            %     disp('Warning, nyquist data out overflow!')
+            %     disp([sim_options.SNR, sim_options.freq])
+            % end
 
             %%
             yri_cut(:,i+1) = yric(del_proc+1:end);
@@ -149,24 +149,26 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
 
 
             %% find max width fractional filter
-            if (fractional_mult > fractional_mult_min)
-                fractional_mult_min = fractional_mult;
-            end
+            % if (fractional_mult > fractional_mult_min)
+                fractional_mult_min(:,i) = fractional_mult;
+            % end
 
-            if (fractional_sum > fractional_sum_min)
-                fractional_sum_min = fractional_sum;
-            end  
+            % if (fractional_sum > fractional_sum_min)
+                fractional_sum_min(:,i) = fractional_sum;
+            % end  
 
             %% find max width hilbert filter
-            if (hilbert_mult > hilbert_mult_min)
-                hilbert_mult_min = hilbert_mult;
-            end
+            % if (hilbert_mult > hilbert_mult_min)
+                hilbert_mult_min(:,i) = hilbert_mult;
+            % end
 
-            if (hilbert_sum > hilbert_sum_min)
-                hilbert_sum_min = hilbert_sum;
-            end 
+            % if (hilbert_sum > hilbert_sum_min)
+                hilbert_sum_min(:,i) = hilbert_sum;
+            % end 
 
         end
+
+
 
         yri_cut(:,1) = adc_input(1:end-del_proc,1);
         yri_cut_int(:,1) = adc_input(1:end-del_proc,1);
@@ -212,10 +214,10 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
 
     %% Calibration algorithm 2 (Least Mean Squares)
 
-    % x_after_adc = 0; 
-    % x_after_adc_int = 0;
+    x_after_adc = 0; 
+    x_after_adc_int = 0;
 
-    [y_array, y_array_int] = least_mean_squares(double(adc_input), adc_input, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, sim_options.Width);
+    % [y_array, y_array_int] = least_mean_squares(double(adc_input), adc_input, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, sim_options.Width);
     % 
     % % create main signal after LS algorithm (switch after sub-adc)
     % x_after_adc = zeros(length(y_array)*sim_options.M,1);

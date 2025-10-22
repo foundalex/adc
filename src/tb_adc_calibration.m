@@ -22,39 +22,68 @@ fractional_sum_min_tb = 0;
 hilbert_mult_min_tb = 0;
 hilbert_sum_min_tb = 0;
 
+frac_mult_max_cycle = zeros(73,sim_options.num_cycles);
+frac_sum_max_cycle = zeros(73,sim_options.num_cycles);
+
+hilbert_mult_max_cycle = zeros(73,sim_options.num_cycles);
+hilbert_sum_max_cycle = zeros(73,sim_options.num_cycles);
+
+%%
+
+frac_mult_result = zeros(73,1);
+frac_sum_result = zeros(72,1);
+
+hilbert_mult_result = zeros(73,1);
+hilbert_sum_result = zeros(72,1);
+
+
 for num = 1:sim_options.num_cycles
  
     Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
-    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, sim_options.freq, sim_options.SNR, ...
-        sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
+    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
+        sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
-    [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_sum_min, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc, Z);
+    [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_sum_min, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input_int, ...
+        s_to_subadc_int, s_after_subadc, Z);
+
+
+    for i = 1:length(fractional_mult_min(:,3))
+        frac_mult_max_cycle(i,num) = max(fractional_mult_min(i,:));
+        hilbert_mult_max_cycle(i,num) = max(hilbert_mult_min(i,:));
+    end
+
+    for i = 1:length(fractional_sum_min(:,3))
+        frac_sum_max_cycle(i,num) = max(fractional_sum_min(i,:));
+        hilbert_sum_max_cycle(i,num) = max(hilbert_sum_min(i,:));
+    end
+
+
 
     %% find max width fractional filter
-    if (fractional_mult_min > fractional_mult_min_tb)
-        fractional_mult_min_tb = fractional_mult_min;
-    end
-
-    if (fractional_sum_min > fractional_sum_min_tb)
-        fractional_sum_min_tb = fractional_sum_min;
-        % if (fractional_sum_min_tb > 31)
-        %     disp('Width of sum > 31 ')
-        %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
-        % end
-    end  
+    % if (fractional_mult_min > fractional_mult_min_tb)
+    %     fractional_mult_min_tb = fractional_mult_min;
+    % end
+    % 
+    % if (fractional_sum_min > fractional_sum_min_tb)
+    %     fractional_sum_min_tb = fractional_sum_min;
+    %     % if (fractional_sum_min_tb > 31)
+    %     %     disp('Width of sum > 31 ')
+    %     %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
+    %     % end
+    % end  
     %% find max width hilbert filter
-    if (hilbert_mult_min > hilbert_mult_min_tb)
-        hilbert_mult_min_tb = hilbert_mult_min;
-    end
-
-    if (hilbert_sum_min > hilbert_sum_min_tb)
-        hilbert_sum_min_tb = hilbert_sum_min;
-        % if (hilbert_sum_min_tb > 31)
-        %     disp('Width of sum > 31 ')
-        %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
-        % end
-    end 
+    % if (hilbert_mult_min > hilbert_mult_min_tb)
+    %     hilbert_mult_min_tb = hilbert_mult_min;
+    % end
+    % 
+    % if (hilbert_sum_min > hilbert_sum_min_tb)
+    %     hilbert_sum_min_tb = hilbert_sum_min;
+    %     % if (hilbert_sum_min_tb > 31)
+    %     %     disp('Width of sum > 31 ')
+    %     %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
+    %     % end
+    % end 
 
     %% Measurements1
     % figure(5);
@@ -113,6 +142,21 @@ for num = 1:sim_options.num_cycles
     % SNR
     sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
 end
+
+    for i = 1:length(frac_mult_max_cycle(:,num))
+        frac_mult_result(i) = max(frac_mult_max_cycle(i,:));
+        hilbert_mult_result(i) = max(hilbert_mult_max_cycle(i,:));
+
+        frac_sum_result(i) = max(frac_sum_max_cycle(i,:));
+        hilbert_sum_result(i) = max(hilbert_sum_max_cycle(i,:));
+    end
+
+    writematrix(frac_mult_result, 'Width multiplier Fractional filter.txt');
+    writematrix(frac_sum_result, 'Width adder Fractional filter.txt');
+
+    writematrix(hilbert_mult_result, 'Width multiplier Hilbert filter.txt');
+    writematrix(hilbert_sum_result, 'Width adder Hilbert filter.txt');
+
 
     % figure(8);
     % subplot(2,1,1)
