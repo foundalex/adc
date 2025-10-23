@@ -16,25 +16,19 @@ randn('state',sum(100*clock));
 % Initialize simulation timer
 start_time = clock;
 
-fractional_mult_min_tb = 0;
-fractional_sum_min_tb = 0;
+width_mult = int8(zeros(sim_options.N,sim_options.M-1));
+width_sum = int8(zeros(sim_options.N-1,sim_options.M-1));
 
-hilbert_mult_min_tb = 0;
-hilbert_sum_min_tb = 0;
+fractional_mult_max = int32(zeros(73,3));
+fractional_sum_max = int32(zeros(72,3));
 
-frac_mult_max_cycle = zeros(73,sim_options.num_cycles);
-frac_sum_max_cycle = zeros(73,sim_options.num_cycles);
-
-hilbert_mult_max_cycle = zeros(73,sim_options.num_cycles);
-hilbert_sum_max_cycle = zeros(73,sim_options.num_cycles);
+% hilbert_mult_max_cycle = zeros(73,sim_options.num_cycles);
+% hilbert_sum_max_cycle = zeros(73,sim_options.num_cycles);
 
 %%
 
-frac_mult_result = zeros(73,1);
-frac_sum_result = zeros(72,1);
-
-hilbert_mult_result = zeros(73,1);
-hilbert_sum_result = zeros(72,1);
+% hilbert_mult_result = zeros(73,1);
+% hilbert_sum_result = zeros(72,1);
 
 
 for num = 1:sim_options.num_cycles
@@ -44,21 +38,28 @@ for num = 1:sim_options.num_cycles
     [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
         sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
-    [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_sum_min, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input_int, ...
+    [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input_int, ...
         s_to_subadc_int, s_after_subadc, Z);
 
+    % Записываем значения каждого фильтра
+    for i = 1:sim_options.M-1
+        for j = 1:sim_options.N
+            if (fractional_mult_max(j,i) < fractional_mult(j,i))
+                fractional_mult_max(j,i) = fractional_mult(j,i); 
+                fm = sim_options.freq;
+                sm = sim_options.SNR;
+            end
+        end
 
-    for i = 1:length(fractional_mult_min(:,3))
-        frac_mult_max_cycle(i,num) = max(fractional_mult_min(i,:));
-        hilbert_mult_max_cycle(i,num) = max(hilbert_mult_min(i,:));
+        for j = 1:sim_options.N-1
+            if (fractional_sum_max(j,i) < fractional_sum(j,i))
+                fractional_sum_max(j,i) = fractional_sum(j,i); 
+                fs = sim_options.freq;
+                ss = sim_options.SNR;
+            end
+        end
+
     end
-
-    for i = 1:length(fractional_sum_min(:,3))
-        frac_sum_max_cycle(i,num) = max(fractional_sum_min(i,:));
-        hilbert_sum_max_cycle(i,num) = max(hilbert_sum_min(i,:));
-    end
-
-
 
     %% find max width fractional filter
     % if (fractional_mult_min > fractional_mult_min_tb)
@@ -143,19 +144,29 @@ for num = 1:sim_options.num_cycles
     sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
 end
 
-    for i = 1:length(frac_mult_max_cycle(:,num))
-        frac_mult_result(i) = max(frac_mult_max_cycle(i,:));
-        hilbert_mult_result(i) = max(hilbert_mult_max_cycle(i,:));
 
-        frac_sum_result(i) = max(frac_sum_max_cycle(i,:));
-        hilbert_sum_result(i) = max(hilbert_sum_max_cycle(i,:));
+
+    for i = 1:3
+        width_mult(:,i) = define_of_width_int(fractional_mult_max(:,i));
+        width_sum(:,i) = define_of_width_int(fractional_sum_max(:,i));
+
+        writematrix(width_mult(:,i), ['Width multiplier Fractional filter_' num2str(i) '.txt']);
+        writematrix(width_sum(:,i), ['Width adder Fractional filter_' num2str(i) '.txt']);
     end
 
-    writematrix(frac_mult_result, 'Width multiplier Fractional filter.txt');
-    writematrix(frac_sum_result, 'Width adder Fractional filter.txt');
 
-    writematrix(hilbert_mult_result, 'Width multiplier Hilbert filter.txt');
-    writematrix(hilbert_sum_result, 'Width adder Hilbert filter.txt');
+    % for i = 1:length(frac_mult_max_cycle(:,num))
+    %     frac_mult_result(i) = max(frac_mult_max_cycle(i,:));
+    %     hilbert_mult_result(i) = max(hilbert_mult_max_cycle(i,:));
+    % 
+    %     frac_sum_result(i) = max(frac_sum_max_cycle(i,:));
+    %     hilbert_sum_result(i) = max(hilbert_sum_max_cycle(i,:));
+    % end
+
+
+
+    % writematrix(hilbert_mult_result, 'Width multiplier Hilbert filter.txt');
+    % writematrix(hilbert_sum_result, 'Width adder Hilbert filter.txt');
 
 
     % figure(8);

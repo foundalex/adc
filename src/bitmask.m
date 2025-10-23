@@ -1,4 +1,4 @@
-function [c, a] = bitmask(input, width, int_size)
+function out = bitmask(input, width, int_size)
 
     if input < 0
         m = cast(-1, int_size);
@@ -6,16 +6,17 @@ function [c, a] = bitmask(input, width, int_size)
         m = cast(1, int_size);
     end
 
-    a = input * m;
-    c = bitand(cast(2^width-1,int_size),a);
+    mask = cast((2^width)-1,int_size);
+    abs_input = input * m;
 
+    out = bitand(mask,abs_input);
 
-    % a = bitget(int32(bitmask_i), width);
-    % if a == 1
-    %     c = (int32(bitmask_i)) - int32(2^width);
-    % else
-    %     c = input;
-    % end
+    out = out * m;
+
+    % ww = int_size - width;
+    % c = bitshift(input, ww);
+    % 
+    % out = c / (2^ww);
 
 
 end

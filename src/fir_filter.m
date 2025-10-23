@@ -1,90 +1,106 @@
-function [y, min_width_mult, min_width_sum]  = fir_filter(b, x, int_size, N, enable_read, width_mult_txt, width_sum_txt)
+function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, width_mult_txt, width_sum_txt, sim_options)
 
     buffer = cast(zeros(1,length(b)),int_size);
 
-	mult_n = cast(zeros(73,length(x)),int_size);
-    mult_overflow = int8(zeros(73,length(x)));
+	mult_n = cast(zeros(sim_options.N,length(x)),int_size);
+    mult_overflow = int8(zeros(sim_options.N,length(x)));
 
-    sum = cast(zeros(72,length(x)),int_size);
-	sum_overflow = int8(zeros(72,length(x)));
+    sum = cast(zeros(sim_options.N-1,length(x)),int_size);
+	sum_overflow = int8(zeros(sim_options.N-1,length(x)));
 
-    mult_max = cast(zeros(73,1),int_size);
-    sum_max = cast(zeros(72,1),int_size);
+    mult_max = cast(zeros(sim_options.N,1),int_size);
+    sum_max = cast(zeros(sim_options.N-1,1),int_size);
 
-    for n=1:length(x)
+    if enable_mask == true
+        width_mult = readmatrix(width_mult_txt);
+        width_sum = readmatrix(width_sum_txt);
+    end
+
+    for n = 1:length(x)
 
         buffer = [x(n) buffer(1:end-1)];
 
-		for i = 1:73
+
+		for i = uint8(1:sim_options.N)
 			[mult_n(i,n), mult_overflow(i,n)] = mult(b(i), cast(buffer(i), int_size), N);
 
-            % выясняем разрядность умножителей
-            if (mult_n(i,n)) < 0
-                mult_abs = mult_n(i,n) * cast(-1, int_size); % находим число по модулю
+            if enable_mask == true
+                % Накладываем маску
+                c = bitmask(mult_n(i,n), width_mult(i), int_size);
+                    if c ~= mult_n(i,n)
+                        disp('Bit mask error mult');
+                        disp({c,mult_n(i,n)});
+                        disp({sim_options.freq, sim_options.SNR});
+                    end
+                mult_n(i,n) = c;
             else
-	            mult_abs = mult_n(i,n);
-            end
+                % выясняем разрядность умножителей
+                if (mult_n(i,n)) < 0
+                    mult_abs = mult_n(i,n) * cast(-1, int_size); % находим число по модулю
+                else
+	                mult_abs = mult_n(i,n);
+                end
 
-            if mult_max(i) < mult_abs
-                mult_max(i) = mult_abs;
+                if mult_max(i) < mult_abs % определяем максимальное значение на кажом умножителе
+                    mult_max(i) = mult_abs;
+                end
             end
 		end
 		
 		%% adders
 		[sum(1,n), sum_overflow(1,n)] = adder(mult_n(1,n),  mult_n(2,n), N);
-		
-     	for i = 1:71
-			[sum(i+1,n), sum_overflow(i+1,n)] = adder(sum(i,n),  mult_n(i+2,n), N);
 
-            % выясняем разрядность сумматоров
-            if (sum(i,n)) < 0
-                sum_abs = sum(i,n) * cast(-1, int_size); % находим число по модулю
+        if enable_mask == true
+            c1 = bitmask(sum(1,n), width_sum(1), int_size);
+            if c1 ~= sum(1,n)
+                disp('Bit mask error sum');
+                c1 = bitmask(sum(1,n), width_sum(1), int_size);
+                disp({1,n});
+                disp({c1,sum(1,n)});
+                disp({sim_options.freq, sim_options.SNR});
+            end
+            sum(1,n) = c1;
+        else
+            % выясняем разрядность сумматора
+            if (sum(1,n)) < 0
+                sum_abs = sum(1,n) * cast(-1, int_size); % находим число по модулю
             else
-	            sum_abs = sum(i,n);
+	            sum_abs = sum(1,n);
             end
 
-            if sum_max(i) < sum_abs
-                sum_max(i) = sum_abs;
+            if sum_max(1) < sum_abs
+                sum_max(1) = sum_abs;
             end
         end
-		
 
+     	for i = uint8(1:sim_options.N-2)
+			[sum(i+1,n), sum_overflow(i+1,n)] = adder(sum(i,n),  mult_n(i+2,n), N);
+
+            if enable_mask == true
+                c1 = bitmask(sum(i+1,n), width_sum(i+1), int_size);
+                if c1 ~= sum(i+1,n)
+                    disp('Bit mask error sum');
+                    % c1 = bitmask(sum(i,j), width_sum(i), int_size);
+                    disp({i,n});
+                    disp({c1,sum(i+1,n)});
+                    disp({sim_options.freq, sim_options.SNR});
+                end
+                sum(i+1,n) = c1;
+            else
+                % выясняем разрядность сумматоров
+                if (sum(i+1,n)) < 0
+                    sum_abs = sum(i+1,n) * cast(-1, int_size); % находим число по модулю
+                else
+	                sum_abs = sum(i+1,n);
+                end
+
+                if sum_max(i+1) < sum_abs
+                    sum_max(i+1) = sum_abs;
+                end
+            end
+        end
     end
 
     y = sum(72,:)';
 
-    if enable_read == 1
-        width_mult = cast(readmatrix(width_mult_txt), int_size);
-        width_sum = cast(readmatrix(width_sum_txt), int_size);
-    else
-        width_mult = cast(define_of_width_int(mult_max), int_size);
-        width_sum = cast(define_of_width_int(sum_max), int_size);
-    end
-    
-    %%
-
-    % for i = 1:length(mult_n(:,1))
-    %     for j = 1:length(mult_n(1,:))
-    %         [c,a] = bitmask(mult_n(i,j), width_mult(i), int_size);
-    %         if a ~= c
-    %             disp('Bit mask error mult');
-    %             disp({i,j});
-    %         end
-    %     end
-    % end
-    % 
-    % for i = 1:length(sum(:,1))
-    %     for j = 1:length(sum(1,:))
-    %         [c1,a1] = bitmask(sum(i,j), width_sum(i), int_size);
-    %         if a1 ~= c1
-    %             disp('Bit mask error sum');
-    %             disp({i,j});
-    %         end
-    % 
-    %     end
-    % end
-
-    min_width_mult = 0; % cast(width_mult, int_size);
-    min_width_sum = 0; %cast(width_sum, int_size);
-	
 end

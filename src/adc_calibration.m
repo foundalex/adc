@@ -5,7 +5,7 @@
 % 3) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
-function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_sum_min, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input, s_to_subadc, ...
+function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input, s_to_subadc, ...
     s_after_subadc, Z)
 
     %% Calibration algorithm 1 (Fractional delays)
@@ -97,10 +97,13 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
     hilbert_mult_min = zeros(73,sim_options.M-1);
     hilbert_sum_min = zeros(72,sim_options.M-1);
 
+    enable_mask = true;
+
 	    % Fractional delays of ADC0 signal
         for i = 1:sim_options.M-1
-	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(adc_input(:,1),  hri_w(:,i), ...
-                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, sim_options);
+	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult(:,i), fractional_sum(:,i), hilbert_mult, hilbert_sum] = fractional_delays(adc_input(:,1),  hri_w(:,i), ...
+                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, enable_mask, ...
+                ['Width multiplier Fractional filter_' num2str(i) '.txt'], ['Width adder Fractional filter_' num2str(i) '.txt'], sim_options);
 
             yhil_imag = [ymi(del_proc+1:end); zeros(del_proc,1)];
             yhil_imag_int = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)];
@@ -117,25 +120,25 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
 
             %% integer
             %%
-            if Z == 2 | Z == 3
-                if (delay_adc(i) == 0.25) % ADC2
-                    yric_int = yhil_imag_int;
-                elseif (delay_adc(i) == 0.5) % ADC3
-                    yric_int = -y_fractional_outInt;
-                elseif (delay_adc(i) == 0.75) % ADC4
-                    yric_int = -yhil_imag_int;
-                end
-            elseif Z == 4
-                if (delay_adc(i) == 0.25)
-                    yric_int = -y_fractional_outInt;
-                elseif (delay_adc(i) == 0.5)
-                    yric_int = y_fractional_outInt;
-                elseif (delay_adc(i) == 0.75)
-                    yric_int = -y_fractional_outInt;
-                end
-            else 
+            % if Z == 2 | Z == 3
+            %     if (delay_adc(i) == 0.25) % ADC2
+            %         yric_int = yhil_imag_int;
+            %     elseif (delay_adc(i) == 0.5) % ADC3
+            %         yric_int = -y_fractional_outInt;
+            %     elseif (delay_adc(i) == 0.75) % ADC4
+            %         yric_int = -yhil_imag_int;
+            %     end
+            % elseif Z == 4
+            %     if (delay_adc(i) == 0.25)
+            %         yric_int = -y_fractional_outInt;
+            %     elseif (delay_adc(i) == 0.5)
+            %         yric_int = y_fractional_outInt;
+            %     elseif (delay_adc(i) == 0.75)
+            %         yric_int = -y_fractional_outInt;
+            %     end
+            % else 
                 yric_int = y_fractional_outInt;
-            end
+            % end
 
             % nyquist_out_width = define_of_width_int(min(yric_int));
             % if nyquist_out_width > 18
@@ -150,11 +153,11 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult_min, fractional_s
 
             %% find max width fractional filter
             % if (fractional_mult > fractional_mult_min)
-                fractional_mult_min(:,i) = fractional_mult;
+                % fractional_mult_min(:,i) = fractional_mult;
             % end
 
             % if (fractional_sum > fractional_sum_min)
-                fractional_sum_min(:,i) = fractional_sum;
+                % fractional_sum_min(:,i) = fractional_sum;
             % end  
 
             %% find max width hilbert filter

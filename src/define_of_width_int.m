@@ -1,6 +1,6 @@
 function width = define_of_width_int(a)
 
-width = int32(zeros(length(a),1));
+width = int8(zeros(length(a),1));
 
 
     % for i = 1:length(a)
@@ -14,6 +14,7 @@ width = int32(zeros(length(a),1));
 
     for i = 1:length(a)  
         c = a(i) / 2;
+        width(i) = width(i) + 1;
         for k = 1:64
             if c > 1
                 width(i) = width(i) + 1;
@@ -25,5 +26,5 @@ width = int32(zeros(length(a),1));
         end
     end
 
-    width = width + int32(1);
+    width = width + int8(1); % добавляем 1 разряд для знака
 end
