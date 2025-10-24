@@ -1,30 +1,24 @@
-function width = define_of_width_int(a)
+function width = define_of_width_int(input,int_size)
 
-width = int8(zeros(length(a),1));
+width = int8(0);
+one = int8(1);
 
+divisor = cast(2,int_size);
 
-    % for i = 1:length(a)
-    %     for j = 0:63
-    %         if (a(i) < 2^j | a(i) == 2^j)
-    %             width(i) = j+1;
-    %             break;
-    %         end
-    %      end
-    % end
+% for i = 1:length(a)  
+    quotient = input / divisor;
+    width = width + one;
 
-    for i = 1:length(a)  
-        c = a(i) / 2;
-        width(i) = width(i) + 1;
         for k = 1:64
-            if c > 1
-                width(i) = width(i) + 1;
-                c = c / 2;
-            elseif c == 1
-                width(i) = width(i) + 1;
+            if quotient == 1 | quotient == 0
                 break;
+            else
+                width = width + one;
+                quotient = quotient / divisor;
             end
         end
-    end
+% end
 
-    width = width + int8(1); % добавляем 1 разряд для знака
+width = width + one; % добавляем 1 разряд для знака
+
 end

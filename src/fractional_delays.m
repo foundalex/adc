@@ -16,7 +16,7 @@ function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fracti
         [y_fractional_outInt, fractional_mult, fractional_sum] = fir_filter(coeff_frac_int, input_signal, 'int32', int32(32), ...
             enable_mask, fractional_mult_f, fractional_sum_f, sim_options); % (стр.6 (15)) 
         % y_fractional_outInt = bitshift(y_fractional_outInt,-shift_frac_out);
-        fractional_delay_filter_out_width = define_of_width_int(min(y_fractional_outInt)); % int18
+        % fractional_delay_filter_out_width = define_of_width_int(min(y_fractional_outInt)); % int18
 
         % if fractional_delay_filter_out_width > 18
         %     disp('Warning, data out fractional filter overflow!')

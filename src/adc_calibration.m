@@ -97,13 +97,11 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     hilbert_mult_min = zeros(73,sim_options.M-1);
     hilbert_sum_min = zeros(72,sim_options.M-1);
 
-    enable_mask = true;
-
 	    % Fractional delays of ADC0 signal
         for i = 1:sim_options.M-1
 	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult(:,i), fractional_sum(:,i), hilbert_mult, hilbert_sum] = fractional_delays(adc_input(:,1),  hri_w(:,i), ...
-                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, enable_mask, ...
-                ['Width multiplier Fractional filter_' num2str(i) '.txt'], ['Width adder Fractional filter_' num2str(i) '.txt'], sim_options);
+                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, sim_options.enable_mask, ...
+                ['Width_multiplier_Fractional_filter_' num2str(i) '.txt'], ['Width_adder_Fractional_filter_' num2str(i) '.txt'], sim_options);
 
             yhil_imag = [ymi(del_proc+1:end); zeros(del_proc,1)];
             yhil_imag_int = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)];

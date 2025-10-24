@@ -145,15 +145,20 @@ for num = 1:sim_options.num_cycles
 end
 
 
-
+if sim_options.enable_mask == false
     for i = 1:3
-        width_mult(:,i) = define_of_width_int(fractional_mult_max(:,i));
-        width_sum(:,i) = define_of_width_int(fractional_sum_max(:,i));
+        for j = 1:length(fractional_mult_max(:,i))
+            width_mult(j,i) = define_of_width_int(fractional_mult_max(j,i), 'int32');
+        end
+        
+        for j = 1:length(fractional_sum_max(:,i))
+            width_sum(j,i) = define_of_width_int(fractional_sum_max(j,i), 'int32');
+        end
 
-        writematrix(width_mult(:,i), ['Width multiplier Fractional filter_' num2str(i) '.txt']);
-        writematrix(width_sum(:,i), ['Width adder Fractional filter_' num2str(i) '.txt']);
+        writematrix(width_mult(:,i), ['Width_multiplier_Fractional_filter_' num2str(i) '.txt']);
+        writematrix(width_sum(:,i), ['Width_adder_Fractional_filter_' num2str(i) '.txt']);
     end
-
+end
 
     % for i = 1:length(frac_mult_max_cycle(:,num))
     %     frac_mult_result(i) = max(frac_mult_max_cycle(i,:));

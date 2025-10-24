@@ -26,9 +26,10 @@ function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, wi
 
             if enable_mask == true
                 % Накладываем маску
-                c = bitmask(mult_n(i,n), width_mult(i), int_size);
+                c = bitmask(mult_n(i,n), width_mult(i));
                     if c ~= mult_n(i,n)
                         disp('Bit mask error mult');
+                        c = bitmask(mult_n(i,n), width_mult(i));
                         disp({c,mult_n(i,n)});
                         disp({sim_options.freq, sim_options.SNR});
                     end
@@ -51,10 +52,10 @@ function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, wi
 		[sum(1,n), sum_overflow(1,n)] = adder(mult_n(1,n),  mult_n(2,n), N);
 
         if enable_mask == true
-            c1 = bitmask(sum(1,n), width_sum(1), int_size);
+            c1 = bitmask(sum(1,n), width_sum(1));
             if c1 ~= sum(1,n)
                 disp('Bit mask error sum');
-                c1 = bitmask(sum(1,n), width_sum(1), int_size);
+                c1 = bitmask(sum(1,n), width_sum(1));
                 disp({1,n});
                 disp({c1,sum(1,n)});
                 disp({sim_options.freq, sim_options.SNR});
@@ -75,13 +76,13 @@ function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, wi
 
      	for i = uint8(1:sim_options.N-2)
 			[sum(i+1,n), sum_overflow(i+1,n)] = adder(sum(i,n),  mult_n(i+2,n), N);
-
+            cc = sum(i+1,n);
             if enable_mask == true
-                c1 = bitmask(sum(i+1,n), width_sum(i+1), int_size);
-                if c1 ~= sum(i+1,n)
+                c1 = bitmask(cc, width_sum(i+1));
+                if c1 ~= cc
                     disp('Bit mask error sum');
-                    % c1 = bitmask(sum(i,j), width_sum(i), int_size);
-                    disp({i,n});
+                    c2 = bitmask(cc, width_sum(i));
+                    disp({i+1,n});
                     disp({c1,sum(i+1,n)});
                     disp({sim_options.freq, sim_options.SNR});
                 end
