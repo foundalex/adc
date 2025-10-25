@@ -5,19 +5,20 @@ one = int8(1);
 
 divisor = cast(2,int_size);
 
-% for i = 1:length(a)  
-    quotient = input / divisor;
-    width = width + one;
+quotient = input / divisor;
+width = width + one;
 
-        for k = 1:64
-            if quotient == 1 | quotient == 0
-                break;
-            else
-                width = width + one;
-                quotient = quotient / divisor;
-            end
-        end
-% end
+for k = 1:64
+    if quotient == 1
+        width = width + one;
+        break;
+    elseif (quotient == 0) 
+        break;
+    else
+        width = width + one;
+        quotient = quotient / divisor;
+    end
+end
 
 width = width + one; % добавляем 1 разряд для знака
 

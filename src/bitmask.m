@@ -1,5 +1,5 @@
 function out = bitmask(input, width)
-
+    % 
     table_list = int32([ ...
         1; ...
         3; ...
@@ -33,20 +33,40 @@ function out = bitmask(input, width)
         1073741823; ...
         2147483647;]); % 2^31 - 1
         % 4294967295;]); % 2^32 - 1
+    % 
+    % out1 = bitand(table_list(width), int32(input)); % эндим вместе со знаком
+    % 
+    % msb = bitget(out1,width); % смотрим старший бит после AND, если 1 значит число отрицательное
+    % 
+    % if msb == true
+    %     a = int64(table_list(width)) + int64(1);
+    %     tws = int64(bitcmp(out1) + int32(1)); % инверсия + 1
+    %     out = a + tws; % получаем положительное число
+    %     if out ~= input % (из-за исключения -2048)
+    %         out = int32(int64(out) * int64(-1)); % возвращаем знак
+    %     end
+    % else
+    %     out = out1;
+    % end
 
-    out1 = bitand(table_list(width), int32(input)); % эндим вместе со знаком
 
-    msb = bitget(out1,width); % смотрим старший бит после AND, если 1 значит число отрицательное
-
-    if msb == true
-        a = int64(table_list(width)) + int64(1);
-        tws = int64(bitcmp(out1) + int32(1)); % инверсия + 1
-        out = a + tws; % получаем положительное число
-        if out ~= input % (из-за исключения -2048)
-            out = int32(int64(out) * int64(-1)); % возвращаем знак
-        end
+    %%
+    if input < 0
+        m = cast(-1, 'int32');
     else
-        out = out1;
+        m = cast(1, 'int32');
     end
+
+    mask = cast(table_list(width-1),'int32');
+    abs_input = input * m;
+    % 
+    out1 = bitand(mask,abs_input);
+    
+    if (out1 == 0)
+        out = input;
+    else
+        out = out1 * m;
+    end
+   
 
 end

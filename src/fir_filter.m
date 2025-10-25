@@ -4,9 +4,11 @@ function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, wi
 
 	mult_n = cast(zeros(sim_options.N,length(x)),int_size);
     mult_overflow = int8(zeros(sim_options.N,length(x)));
+    width_total_mult = int8(zeros(sim_options.N,length(x)));
 
     sum = cast(zeros(sim_options.N-1,length(x)),int_size);
 	sum_overflow = int8(zeros(sim_options.N-1,length(x)));
+    width_total_sum = int8(zeros(sim_options.N-1,length(x)));
 
     mult_max = cast(zeros(sim_options.N,1),int_size);
     sum_max = cast(zeros(sim_options.N-1,1),int_size);
@@ -22,10 +24,19 @@ function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, wi
 
 
 		for i = uint8(1:sim_options.N)
-			[mult_n(i,n), mult_overflow(i,n)] = mult(b(i), cast(buffer(i), int_size), N);
-
+			[mult_n(i,n), mult_overflow(i,n), width_total_mult(i,n)] = mult(b(i), cast(buffer(i), int_size), int_size, N);
+            %% Проверка выходной разрядности умножителей
+            if (mult_overflow(i,n) == 1)
+                disp('Mult overflow');
+                disp({mult_n(i,n), i, n});
+            end
+        
+            if (width_total_mult(i,n) > 32)
+                disp('Mult width overflow');
+                disp({width_total_mult(i,n), i, n});
+            end
+            %% Накладываем маску
             if enable_mask == true
-                % Накладываем маску
                 c = bitmask(mult_n(i,n), width_mult(i));
                     if c ~= mult_n(i,n)
                         disp('Bit mask error mult');
@@ -49,8 +60,18 @@ function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, wi
 		end
 		
 		%% adders
-		[sum(1,n), sum_overflow(1,n)] = adder(mult_n(1,n),  mult_n(2,n), N);
+		[sum(1,n), sum_overflow(1,n), width_total_sum(1,n)] = adder(mult_n(1,n),  mult_n(2,n), int_size, N);
 
+        %% Проверка выходной разрядности сумматора
+            if (sum_overflow(1,n) == 1)
+                disp('Sum1 overflow');
+                disp({sum(1,n), 1, n});
+            end
+            if (width_total_sum(1,n) > 32)
+                disp('Sum1 width overflow');
+                disp({width_total_sum(1,n), 1, n});
+            end
+        %% Накладываем маску
         if enable_mask == true
             c1 = bitmask(sum(1,n), width_sum(1));
             if c1 ~= sum(1,n)
@@ -75,13 +96,22 @@ function [y, mult_max, sum_max]  = fir_filter(b, x, int_size, N, enable_mask, wi
         end
 
      	for i = uint8(1:sim_options.N-2)
-			[sum(i+1,n), sum_overflow(i+1,n)] = adder(sum(i,n),  mult_n(i+2,n), N);
-            cc = sum(i+1,n);
+			[sum(i+1,n), sum_overflow(i+1,n), width_total_sum(i+1,n)] = adder(sum(i,n),  mult_n(i+2,n), int_size, N);
+            %% Проверка выходной разрядности сумматора
+            if (sum_overflow(i+1,n) == 1)
+                disp('Sum overflow');
+                disp({sum(i+1,n), i+1, n});
+            end
+            if (width_total_sum(i+1,n) > 32)
+                disp('Sum1 width overflow');
+                disp({width_total_sum(i+1,n), i+1, n});
+            end
+            %% Наложение маски
             if enable_mask == true
-                c1 = bitmask(cc, width_sum(i+1));
-                if c1 ~= cc
+                c1 = bitmask(sum(i+1,n), width_sum(i+1));
+                if c1 ~= sum(i+1,n)
                     disp('Bit mask error sum');
-                    c2 = bitmask(cc, width_sum(i));
+                    % c2 = bitmask(sum(i+1,n), width_sum(i));
                     disp({i+1,n});
                     disp({c1,sum(i+1,n)});
                     disp({sim_options.freq, sim_options.SNR});
