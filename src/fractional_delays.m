@@ -1,5 +1,5 @@
-function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, hilbert_mult, hilbert_sum] = fractional_delays(input_signal, hri_w, hh_m, coeff_frac_int, ...
-    fractional_width, hilbert_coeff_int, enable_mask, fractional_mult_f, fractional_sum_f, sim_options)
+function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, hilbert_mult, hilbert_sum] = ...
+fractional_delays(input_signal, hri_w, hh_m, coeff_frac_int, fractional_width, hilbert_coeff_int, enable_mask, fractional_mult_f, fractional_sum_f, sim_options)
 
         shift_frac_out = 13;
         shift_hilbert_out = 13;
@@ -13,7 +13,7 @@ function [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult, fracti
         % N = 18
         % y_fractional_outInt >> 13
         % N = 18 - 13 = 5;
-        [y_fractional_outInt, fractional_mult, fractional_sum] = fir_filter(coeff_frac_int, input_signal, 'int32', int32(32), ...
+        [y_fractional_outInt, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum] = fir_filter(coeff_frac_int, input_signal, ...
             enable_mask, fractional_mult_f, fractional_sum_f, sim_options); % (стр.6 (15)) 
         % y_fractional_outInt = bitshift(y_fractional_outInt,-shift_frac_out);
         % fractional_delay_filter_out_width = define_of_width_int(min(y_fractional_outInt)); % int18

@@ -1,27 +1,15 @@
-function [y, overflow, width_total] = mult(a,b,int_size,N)
+function [y, overflow, width_total] = mult(a, b, int_size, width_fractonal)
+    % проверка выходной разрядности
 
-    %% проверка выходной разрядности
-    if (a < 0)
-        a_abs = a * cast(-1, int_size);
-    else
-        a_abs = a;
-    end
-
-    if (b < 0)
-        b_abs = b * cast(-1, int_size);
-    else
-        b_abs = b;
-    end
-
-    width_a = define_of_width_int(a_abs,int_size);
-    width_b = define_of_width_int(b_abs,int_size);
+    width_a = define_of_width_int(a, int_size, width_fractonal);
+    width_b = define_of_width_int(b, int_size, width_fractonal);
 
     width_total = width_a + width_b - 1;
 
-    %%
+    %% умножитель
     y = a * b;
 
-    if (y >= (2^(N-1))-1 | y < -2^(N-1))
+    if (y >= (2^(width_fractonal-1))-1 | y < -2^(width_fractonal-1))
         overflow = cast(1,int_size);
     else
         overflow = cast(0,int_size);

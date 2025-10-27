@@ -5,8 +5,8 @@
 % 3) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
-function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, hilbert_mult_min, hilbert_sum_min] = adc_calibration(sim_options, adc_input, s_to_subadc, ...
-    s_after_subadc, Z)
+function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, hilbert_mult_min, hilbert_sum_min] ...
+    = adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc, Z)
 
     %% Calibration algorithm 1 (Fractional delays)
     n = (0:1:sim_options.N-1);
@@ -24,9 +24,9 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     w_blackman_fractional = 0.42 - 0.5 * cos(2*pi*(n'+ delay_adc)/(sim_options.N-1)) + 0.08 * cos(4*pi*(n'+ delay_adc)/(sim_options.N-1)); % shift Blackman window
     hri_w = hri_m .* w_blackman_fractional; 
 
-    fractional_width = [16, 19, 21];
+    fractional_width = 19;
 
-    coeff_frac_int = int32(hri_w*2^(fractional_width(2)-1));
+    coeff_frac_int = cast((hri_w*2^(fractional_width-1)),sim_options.int_size);
     % width_frac = define_of_width_int(coeff_frac_int);
  
         % figure(3)
@@ -91,16 +91,18 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     c_os = cos(a1);
     s_os = sin(a1);
 
-    fractional_mult_min = zeros(73,sim_options.M-1);
-    fractional_sum_min = zeros(72,sim_options.M-1);
-
     hilbert_mult_min = zeros(73,sim_options.M-1);
     hilbert_sum_min = zeros(72,sim_options.M-1);
 
+    fractional_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
+    fractional_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
+    fractional_width_total_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
+    fractional_width_total_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
+
 	    % Fractional delays of ADC0 signal
         for i = 1:sim_options.M-1
-	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult(:,i), fractional_sum(:,i), hilbert_mult, hilbert_sum] = fractional_delays(adc_input(:,1),  hri_w(:,i), ...
-                hh_m, coeff_frac_int(:,i), fractional_width(2), hilbert_coeff_int, sim_options.enable_mask, ...
+	        [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult(:,i), fractional_sum(:,i), fractional_width_total_mult(:,i), fractional_width_total_sum(:,i), hilbert_mult, hilbert_sum] ...
+                = fractional_delays(adc_input(:,1),  hri_w(:,i), hh_m, coeff_frac_int(:,i), fractional_width, hilbert_coeff_int, sim_options.enable_mask, ...
                 ['Width_multiplier_Fractional_filter_' num2str(i) '.txt'], ['Width_adder_Fractional_filter_' num2str(i) '.txt'], sim_options);
 
             yhil_imag = [ymi(del_proc+1:end); zeros(del_proc,1)];
