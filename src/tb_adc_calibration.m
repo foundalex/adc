@@ -16,24 +16,27 @@ randn('state',sum(100*clock));
 % Initialize simulation timer
 start_time = clock;
 
+%%
 width_mult = int8(zeros(sim_options.N,sim_options.M-1));
 width_sum = int8(zeros(sim_options.N-1,sim_options.M-1));
 
 fractional_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-fractional_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+fractional_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
 
 fractional_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-fractional_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-
-% hilbert_mult_max_cycle = zeros(73,sim_options.num_cycles);
-% hilbert_sum_max_cycle = zeros(73,sim_options.num_cycles);
+fractional_total_width_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
 
 %%
+width_mult_h = int8(zeros(sim_options.N, sim_options.M-1));
+width_sum_h = int8(zeros(sim_options.N-1, sim_options.M-1));
 
-% hilbert_mult_result = zeros(73,1);
-% hilbert_sum_result = zeros(72,1);
+hilbert_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+hilbert_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
 
+hilbert_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+hilbert_total_width_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
 
+%%
 for num = 1:sim_options.num_cycles
  
     Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
@@ -41,7 +44,8 @@ for num = 1:sim_options.num_cycles
     [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
         sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
-    [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, hilbert_mult_min, hilbert_sum_min] ...
+    [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
+        hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum] ...
         = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc, Z);
 
     % Записываем значения каждого фильтра
@@ -51,57 +55,59 @@ for num = 1:sim_options.num_cycles
             % дробной задержки
             if (fractional_mult_max(j,i) < fractional_mult(j,i))
                 fractional_mult_max(j,i) = fractional_mult(j,i); 
-                fm = sim_options.freq;
-                sm = sim_options.SNR;
             end
 
-            % выбираем максимальное значение разрядности умножителя
+            % выбираем максимальное значение разрядности умножителя фильтра
+            % дробной задержки
             if (fractional_total_width_mult_max(j,i) < fractional_width_total_mult(j,i))
                 fractional_total_width_mult_max(j,i) = fractional_width_total_mult(j,i); 
             end
+            %%
+            % выбираем максимальное значение сигнала умножителей фильтра
+            % Гилберта
+            if (hilbert_mult_max(j,i) < hilbert_width_mult(j,i))
+                hilbert_mult_max(j,i) = hilbert_width_mult(j,i); 
+            end
+
+            % выбираем максимальное значение разрядности умножителя фильтра
+            % Гилберта
+            if (hilbert_total_width_mult_max(j,i) < hilbert_width_total_mult(j,i))
+                hilbert_total_width_mult_max(j,i) = hilbert_width_total_mult(j,i); 
+            end
+
         end
 
+
+        %%
         for j = 1:sim_options.N-1
             % выбираем максимальное значение сигнала сумматоров
+            % фильтра дробной задержки 
             if (fractional_sum_max(j,i) < fractional_sum(j,i))
                 fractional_sum_max(j,i) = fractional_sum(j,i); 
-                fs = sim_options.freq;
-                ss = sim_options.SNR;
             end
 
             % выбираем максимальное значение разрядности сумматоров
+            % фильтра дробной задержки
             if (fractional_total_width_sum_max(j,i) < fractional_width_total_sum(j,i))
                 fractional_total_width_sum_max(j,i) = fractional_width_total_sum(j,i); 
+            end
+
+            %%
+            % выбираем максимальное значение сигнала сумматоров
+            % фильтра Гилберта
+            if (hilbert_sum_max(j,i) < hilbert_width_sum(j,i))
+                hilbert_sum_max(j,i) = hilbert_width_sum(j,i); 
+            end
+
+            % выбираем максимальное значение разрядности сумматоров
+            % фильтра Гилберта
+            if (hilbert_total_width_sum_max(j,i) < hilbert_width_total_sum(j,i))
+                hilbert_total_width_sum_max(j,i) = hilbert_width_total_sum(j,i); 
             end
 
         end
 
     end
-
-    %% find max width fractional filter
-    % if (fractional_mult_min > fractional_mult_min_tb)
-    %     fractional_mult_min_tb = fractional_mult_min;
-    % end
-    % 
-    % if (fractional_sum_min > fractional_sum_min_tb)
-    %     fractional_sum_min_tb = fractional_sum_min;
-    %     % if (fractional_sum_min_tb > 31)
-    %     %     disp('Width of sum > 31 ')
-    %     %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
-    %     % end
-    % end  
-    %% find max width hilbert filter
-    % if (hilbert_mult_min > hilbert_mult_min_tb)
-    %     hilbert_mult_min_tb = hilbert_mult_min;
-    % end
-    % 
-    % if (hilbert_sum_min > hilbert_sum_min_tb)
-    %     hilbert_sum_min_tb = hilbert_sum_min;
-    %     % if (hilbert_sum_min_tb > 31)
-    %     %     disp('Width of sum > 31 ')
-    %     %     disp({'SNR', sim_options.SNR, 'Frequency', sim_options.freq})
-    %     % end
-    % end 
 
     %% Measurements1
     % figure(5);
@@ -152,9 +158,6 @@ for num = 1:sim_options.num_cycles
     % norm_freq(num) = freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
     % num_array(:,num) = num;
 
-
-
-
     % freq
     sim_options.freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
     % SNR
@@ -165,35 +168,36 @@ end
 if sim_options.enable_mask == false
     for i = 1:sim_options.M-1
         for j = 1:length(fractional_mult_max(:,i))
-            width_mult(j,i) = define_of_width_int(fractional_mult_max(j,i), sim_options.int_size, sim_options.width_fractonal);
-        end
-        
-        for j = 1:length(fractional_sum_max(:,i))
-            width_sum(j,i) = define_of_width_int(fractional_sum_max(j,i), sim_options.int_size, sim_options.width_fractonal);
+            width_mult(j,i) = define_of_width_int(fractional_mult_max(j,i), sim_options.int_size, sim_options.width_fractional);
+            width_mult_h(j,i) = define_of_width_int(hilbert_mult_max(j,i), sim_options.int_size, sim_options.width_hilbert);
         end
 
+        for j = 1:length(fractional_sum_max(:,i))
+            width_sum(j,i) = define_of_width_int(fractional_sum_max(j,i), sim_options.int_size, sim_options.width_fractional);
+            width_sum_h(j,i) = define_of_width_int(hilbert_sum_max(j,i), sim_options.int_size, sim_options.width_hilbert);
+        end
+        %% Запись данных для фильтра дробной задержки
+        % запись макс. значений сигнала
+        writematrix(fractional_mult_max(:,i), ['src/width_txt/Max_value_multiplier_Fractional_filter_' num2str(i) '.txt']);
+        writematrix(fractional_sum_max(:,i), ['src/width_txt/Max_value_adder_Fractional_filter_' num2str(i) '.txt']);
         % запись разрядности макс. значений сигнала
-        writematrix(width_mult(:,i), [width_txt/'Width_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        writematrix(width_sum(:,i), [width_txt/'Width_adder_Fractional_filter_' num2str(i) '.txt']);
+        writematrix(width_mult(:,i), ['src/width_txt/Width_multiplier_Fractional_filter_' num2str(i) '.txt']);
+        writematrix(width_sum(:,i), ['src/width_txt/Width_adder_Fractional_filter_' num2str(i) '.txt']);
         % запись суммарной разрядности сумматоров и умножителей
-        writematrix(fractional_total_width_mult_max(:,i), [width_txt/'Total_width_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        writematrix(fractional_total_width_sum_max(:,i), [width_txt/'Total_width_adder_Fractional_filter_' num2str(i) '.txt']);
+        writematrix(fractional_total_width_mult_max(:,i), ['src/width_txt/Total_width_multiplier_Fractional_filter_' num2str(i) '.txt']);
+        writematrix(fractional_total_width_sum_max(:,i), ['src/width_txt/Total_width_adder_Fractional_filter_' num2str(i) '.txt']);
+        %% Запись данных для фильтра Гилберта
+        % запись макс. значений сигнала
+        writematrix(hilbert_mult_max(:,i), ['src/width_txt/Max_value_multiplier_Hilbert_filter_' num2str(i) '.txt']);
+        writematrix(hilbert_sum_max(:,i), ['src/width_txt/Max_value_adder_Hilbert_filter_' num2str(i) '.txt']);
+        % запись разрядности макс. значений сигнала
+        writematrix(width_mult_h(:,i), ['src/width_txt/Width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
+        writematrix(width_sum_h(:,i), ['src/width_txt/Width_adder_Hilbert_filter_' num2str(i) '.txt']);
+        % запись суммарной разрядности сумматоров и умножителей
+        writematrix(hilbert_total_width_mult_max(:,i), ['src/width_txt/Total_width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
+        writematrix(hilbert_total_width_sum_max(:,i), ['src/width_txt/Total_width_adder_Hilbert_filter_' num2str(i) '.txt']);
     end
 end
-
-    % for i = 1:length(frac_mult_max_cycle(:,num))
-    %     frac_mult_result(i) = max(frac_mult_max_cycle(i,:));
-    %     hilbert_mult_result(i) = max(hilbert_mult_max_cycle(i,:));
-    % 
-    %     frac_sum_result(i) = max(frac_sum_max_cycle(i,:));
-    %     hilbert_sum_result(i) = max(hilbert_sum_max_cycle(i,:));
-    % end
-
-
-
-    % writematrix(hilbert_mult_result, 'Width multiplier Hilbert filter.txt');
-    % writematrix(hilbert_sum_result, 'Width adder Hilbert filter.txt');
-
 
     % figure(8);
     % subplot(2,1,1)

@@ -1,9 +1,12 @@
-function [y_array, y_array_int] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N, width)
+function [y_array, y_array_int] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N, width, int_size)
 
 kk = 0;
 tt = 0;
 
-length_word_div = 326;
+
+ x3 = zeros(N,N);                       % (стр.6, (20))
+ x3_int = cast(zeros(N,N), int_size); 
+
 
  for z = 2:M
     %% блок для расчета первых N коэффициентов фильтра
@@ -25,7 +28,6 @@ length_word_div = 326;
     %% initial determinant
     det_matlab(tt) = det(x3);
 
-    x3_int = fi(x3_int, 1,yri_cut_int.WordLength,0);
     [det_x3, det_x3_int] = determinate(x3, x3_int);
 
 
@@ -63,7 +65,7 @@ length_word_div = 326;
 
             %% divide determinant
             www1(:,i) = det_x3_shift(kk) / det_matlab(tt); % double
-            www1_int(:,i) = int_division(det_out_shift_int(kk), det_x3_int, length_word_div, width); % integer
+            www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int, width); % integer
 
             www1_int_double(i,:) = double(www1_int(:,i))*2^-width;
         end
@@ -82,7 +84,6 @@ length_word_div = 326;
         %% array out
         y_array(1,z-1) = y_out;
         y_array_int(1,z-1) = y_out_int;
-
 
 
 
@@ -136,7 +137,7 @@ length_word_div = 326;
 
                 www1(:,i) = det_x3_shift(kk) ./ det_matlab(tt); % double
 
-                www1_int(:,i) = int_division(det_out_shift_int(kk), det_x3_int(tt), length_word_div, width); % int
+                www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int(tt), width); % int
                 www1_int_double(i,:) = double(www1_int(:,i))*2^-width;
 
                 %% filter
