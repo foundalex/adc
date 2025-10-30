@@ -1,17 +1,27 @@
-function [y_array, y_array_int] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N, width, int_size)
+function [y_array, y_array_int, DetM_2x2, DetM_2x2_int, Det2x2_mult1_abs_max, Det2x2_mult2_abs_max, Det2x2_sum_abs_max] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, M, N, width, int_size)
 
 kk = 0;
 tt = 0;
 
 
- x3 = zeros(N,N);                       % (стр.6, (20))
- x3_int = cast(zeros(N,N), int_size); 
 
+x3 = zeros(N,N);                       % (стр.6, (20))
+x3_int = cast(zeros(N,N), int_size); 
 
+% функция поиска определителя 2x2
+num_det2x2 = 10;
+Det2x2_mult1_abs_max = cast(zeros(10,M-1), int_size); % первые 10 умножителей1
+Det2x2_mult2_abs_max = cast(zeros(10,M-1), int_size); % первые 10 умножителей2
+Det2x2_sum_abs_max = cast(zeros(10,M-1), int_size); % первые 10 сумматоров
+
+DetM_2x2_array = 0;
+DetM_2x2_array_int = 0;
  for z = 2:M
     %% блок для расчета первых N коэффициентов фильтра
     %%
     
+    bb = 0;
+
     % создаем матрицу входного сигнала
     for i = 1:N
         x3(i,:) = adc_input(i:N+i-1,z).'; % (стр.6, (20))
@@ -28,14 +38,38 @@ tt = 0;
     %% initial determinant
     det_matlab(tt) = det(x3);
 
-    [det_x3, det_x3_int] = determinate(x3, x3_int);
+    [det_x3, det_x3_int, DetM_2x2, DetM_2x2_int, Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] = determinate(x3, x3_int, int_size, width);
 
+    %% определяем макс. значения в функции поиска определителя 2x2
+    for n = 1:num_det2x2
+        % определяем максимальное значение на каждом из 10 умножителей
+        if Det2x2_mult1_abs_max(n,z-1) < Det2x2_mult1_abs(n) 
+            Det2x2_mult1_abs_max(n,z-1) = Det2x2_mult1_abs(n);
+        end
+
+        % определяем максимальное значение на каждом из 10 умножителей
+        if Det2x2_mult2_abs_max(n,z-1) < Det2x2_mult2_abs(n)
+            Det2x2_mult2_abs_max(n,z-1) = Det2x2_mult2_abs(n);
+        end
+
+        % определяем максимальное значение на каждом из 10 сумматоров
+        if Det2x2_sum_abs_max(n,z-1) < Det2x2_sum_abs(n)
+            Det2x2_sum_abs_max(n,z-1) = Det2x2_sum_abs(n);
+        end
+    end 
+
+    DetM_2x2_int_double = double(DetM_2x2_int);
+    % DetM_2x2_array_int
+    % relativeError_DetM_2x2 = DetM_2x2./DetM_2x2_int_double;
+    % figure(10)
+    % plot(relativeError_DetM_2x2, '-o');
+
+    DetM_2x2_array(1:10,z-1) = DetM_2x2;
+    bb = bb + 10;
+    %%
 
     if (det_matlab(tt) == 0)
         det_matlab(tt) = 1;
-    end
-    if (det_x3_int == 0)
-        det_x3_int = fi(1,1,length_word_div,0);
     end
 
         %%
@@ -49,25 +83,65 @@ tt = 0;
             x3_shift_int = x3_int;
             x3_shift_int(1:N,i) = yri_cut_int(1:N,z); 
 
-
             %% determinant
             det_x3_shift(kk) = det(x3_shift);
 
-            [det_out_shift(kk), det_out_shift_int(kk)] = determinate(x3_shift, x3_shift_int);
+            [det_out_shift(kk), det_out_shift_int(kk), DetM_2x2, DetM_2x2_int, Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] = determinate(x3_shift, x3_shift_int, int_size, width);
+        
+            %% определяем макс. значения в функции поиска определителя 2x2
+            for n = 1:num_det2x2
+                % определяем максимальное значение на каждом из 10 умножителей
+                if Det2x2_mult1_abs_max(n,z-1) < Det2x2_mult1_abs(n) 
+                    Det2x2_mult1_abs_max(n,z-1) = Det2x2_mult1_abs(n);
+                end
 
+                % определяем максимальное значение на каждом из 10 умножителей
+                if Det2x2_mult2_abs_max(n,z-1) < Det2x2_mult2_abs(n)
+                    Det2x2_mult2_abs_max(n,z-1) = Det2x2_mult2_abs(n);
+                end
+
+                % определяем максимальное значение на каждом из 10 сумматоров
+                if Det2x2_sum_abs_max(n,z-1) < Det2x2_sum_abs(n)
+                    Det2x2_sum_abs_max(n,z-1) = Det2x2_sum_abs(n);
+                end
+            end
+            
+            %%
+            if z == 3
+                DetM_2x2_int_double = double(DetM_2x2_int)*2^-18;
+            else
+                if i == 1
+                    DetM_2x2_int_double = [double(DetM_2x2_int(1:4))*2^-30;  double(DetM_2x2_int(5:10))];
+                elseif i == 2
+                    DetM_2x2_int_double = [double(DetM_2x2_int(1))*2^-30; double(DetM_2x2_int(2:4)); double(DetM_2x2_int(5:7))*2^-30; double(DetM_2x2_int(8:10))];
+                elseif i == 3
+                    DetM_2x2_int_double = [double(DetM_2x2_int(1)); double(DetM_2x2_int(2))*2^-30; double(DetM_2x2_int(3:4)); double(DetM_2x2_int(5))*2^-30; double(DetM_2x2_int(6:7)); ...
+                        double(DetM_2x2_int(8:9))*2^-30; double(DetM_2x2_int(10))];
+                elseif i == 4
+                    DetM_2x2_int_double = [double(DetM_2x2_int(1:2)); double(DetM_2x2_int(3))*2^-30; double(DetM_2x2_int(4:5)); double(DetM_2x2_int(6))*2^-30; double(DetM_2x2_int(7)); ...
+                        double(DetM_2x2_int(8))*2^-30; double(DetM_2x2_int(9)); double(DetM_2x2_int(10))*2^-30];
+                elseif i == 5
+                    DetM_2x2_int_double = [double(DetM_2x2_int(1:3)); double(DetM_2x2_int(4))*2^-30; double(DetM_2x2_int(5:6)); double(DetM_2x2_int(7))*2^-30; double(DetM_2x2_int(8)); ...
+                        double(DetM_2x2_int(9:10))*2^-30];
+                end
+            end
+            % 
+            % relativeError_DetM_2x2 = DetM_2x2./DetM_2x2_int_double;
+            % figure(10)
+            % plot(relativeError_DetM_2x2, '-o');
+
+            DetM_2x2_array(bb+1:bb+10,z-1) = DetM_2x2;
+            bb = bb + 10;
+            %%
             if (det_x3_shift(kk) == 0)
                 det_x3_shift(kk) = 1;
             end
 
-            if (det_out_shift_int(kk) == 0)
-                det_out_shift_int(kk) = fi(1,1,length_word_div,0);
-            end
-
             %% divide determinant
             www1(:,i) = det_x3_shift(kk) / det_matlab(tt); % double
-            www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int, width); % integer
+            www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int, 14); % integer
 
-            www1_int_double(i,:) = double(www1_int(:,i))*2^-width;
+            www1_int_double(i,:) = double(www1_int(:,i))*2^-14;
         end
 
         %% filter
@@ -76,7 +150,7 @@ tt = 0;
 
         for k = 1:N
             dat_in_filt_double(k) = adc_input(k,z);
-            dat_in_filt(k) = fi(adc_input_int(k,z),1,12,0);
+            dat_in_filt(k) = cast(adc_input_int(k,z),"double");
         end
 
         [y_out, y_out_int] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int);
@@ -105,13 +179,36 @@ tt = 0;
             det_matlab(tt) = det(double(x3));
 
             x3_int = fi(x3_int, 1,63,0);
-            [det_x3(tt), det_x3_int(tt)] = determinate(x3, x3_int); % int
+            [det_x3(tt), det_x3_int(tt), DetM_2x2, DetM_2x2_int, Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] = determinate(x3, x3_int, int_size, width); % int
 
+            %% определяем макс. значения в функции поиска определителя 2x2
+            for n = 1:num_det2x2
+                % определяем максимальное значение на каждом из 10 умножителей
+                if Det2x2_mult1_abs_max(n,z-1) < Det2x2_mult1_abs(n) 
+                    Det2x2_mult1_abs_max(n,z-1) = Det2x2_mult1_abs(n);
+                end
+
+                % определяем максимальное значение на каждом из 10 умножителей
+                if Det2x2_mult2_abs_max(n,z-1) < Det2x2_mult2_abs(n)
+                    Det2x2_mult2_abs_max(n,z-1) = Det2x2_mult2_abs(n);
+                end
+
+                % определяем максимальное значение на каждом из 10 сумматоров
+                if Det2x2_sum_abs_max(n,z-1) < Det2x2_sum_abs(n)
+                    Det2x2_sum_abs_max(n,z-1) = Det2x2_sum_abs(n);
+                end
+            end
+
+            DetM_2x2_int_double = double(DetM_2x2_int);
+            % relativeError_DetM_2x2 = DetM_2x2./DetM_2x2_int_double;
+            % figure(10)
+            % plot(relativeError_DetM_2x2, '-o');
+
+            DetM_2x2_array(bb+1:bb+10,z-1) = DetM_2x2;
+            bb = bb + 10;
+            %%
             if (det_matlab(tt) == 0)
                 det_matlab(tt) = 1;
-            end
-            if (det_x3_int == 0)
-                det_x3_int = fi(1,1,length_word_div,0);
             end
             
             for i = 1:N
@@ -125,20 +222,76 @@ tt = 0;
 
                 %% determinant
                 det_x3_shift(kk) = det(x3_shift);
-                [det_out_shift(kk), det_out_shift_int(kk)] = determinate(x3_shift, x3_shift_int);
+                [det_out_shift(kk), det_out_shift_int(kk), DetM_2x2, DetM_2x2_int, Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] = determinate(x3_shift, x3_shift_int, int_size, width);
+
+                %% определяем макс. значения в функции поиска определителя 2x2
+                for n = 1:num_det2x2
+                    % определяем максимальное значение на каждом из 10 умножителей
+                    if Det2x2_mult1_abs_max(n,z-1) < Det2x2_mult1_abs(n) 
+                        Det2x2_mult1_abs_max(n,z-1) = Det2x2_mult1_abs(n);
+                    end
+
+                    % определяем максимальное значение на каждом из 10 умножителей
+                    if Det2x2_mult2_abs_max(n,z-1) < Det2x2_mult2_abs(n)
+                        Det2x2_mult2_abs_max(n,z-1) = Det2x2_mult2_abs(n);
+                    end
+
+                    % определяем максимальное значение на каждом из 10 сумматоров
+                    if Det2x2_sum_abs_max(n,z-1) < Det2x2_sum_abs(n)
+                        Det2x2_sum_abs_max(n,z-1) = Det2x2_sum_abs(n);
+                    end
+                end
+
+                if z == 3
+                    if i == 1
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1:4))*2^-18;  double(DetM_2x2_int(5:10))];
+                    elseif i == 2
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1))*2^-18; double(DetM_2x2_int(2:4)); double(DetM_2x2_int(5:7))*2^-18; double(DetM_2x2_int(8:10))];
+                    elseif i == 3
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1)); double(DetM_2x2_int(2))*2^-18; double(DetM_2x2_int(3:4)); double(DetM_2x2_int(5))*2^-18; double(DetM_2x2_int(6:7)); ...
+                        double(DetM_2x2_int(8:9))*2^-18; double(DetM_2x2_int(10))];
+                    elseif i == 4
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1:2)); double(DetM_2x2_int(3))*2^-18; double(DetM_2x2_int(4:5)); double(DetM_2x2_int(6))*2^-18; double(DetM_2x2_int(7)); ...
+                        double(DetM_2x2_int(8))*2^-18; double(DetM_2x2_int(9)); double(DetM_2x2_int(10))*2^-18];
+                    elseif i == 5
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1:3)); double(DetM_2x2_int(4))*2^-18; double(DetM_2x2_int(5:6)); double(DetM_2x2_int(7))*2^-18; double(DetM_2x2_int(8)); ...
+                        double(DetM_2x2_int(9:10))*2^-18];
+                    end
+                else
+                    if i == 1
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1:4))*2^-30;  double(DetM_2x2_int(5:10))];
+                    elseif i == 2
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1))*2^-30; double(DetM_2x2_int(2:4)); double(DetM_2x2_int(5:7))*2^-30; double(DetM_2x2_int(8:10))];
+                    elseif i == 3
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1)); double(DetM_2x2_int(2))*2^-30; double(DetM_2x2_int(3:4)); double(DetM_2x2_int(5))*2^-30; double(DetM_2x2_int(6:7)); ...
+                        double(DetM_2x2_int(8:9))*2^-30; double(DetM_2x2_int(10))];
+                    elseif i == 4
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1:2)); double(DetM_2x2_int(3))*2^-30; double(DetM_2x2_int(4:5)); double(DetM_2x2_int(6))*2^-30; double(DetM_2x2_int(7)); ...
+                        double(DetM_2x2_int(8))*2^-30; double(DetM_2x2_int(9)); double(DetM_2x2_int(10))*2^-30];
+                    elseif i == 5
+                        DetM_2x2_int_double = [double(DetM_2x2_int(1:3)); double(DetM_2x2_int(4))*2^-30; double(DetM_2x2_int(5:6)); double(DetM_2x2_int(7))*2^-30; double(DetM_2x2_int(8)); ...
+                        double(DetM_2x2_int(9:10))*2^-30];
+                    end
+                end
+
+                % relativeError_DetM_2x2 = DetM_2x2./DetM_2x2_int_double;
+                % figure(10)
+                % plot(relativeError_DetM_2x2, '-o');
+
+                DetM_2x2_array(bb+1:bb+10,z-1) = DetM_2x2;
+                bb = bb + 10;
+                %%
 
                 if (det_x3_shift(kk) == 0)
                     det_x3_shift(kk) = 1;
                 end
-                if (det_out_shift_int(kk) == 0)
-                    det_out_shift_int(kk) = fi(1,1,length_word_div,0);
-                end
+
                 %% divide determinant
 
                 www1(:,i) = det_x3_shift(kk) ./ det_matlab(tt); % double
 
-                www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int(tt), width); % int
-                www1_int_double(i,:) = double(www1_int(:,i))*2^-width;
+                www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int(tt), 14); % int
+                www1_int_double(i,:) = double(www1_int(:,i))*2^-14;
 
                 %% filter
                 % y_outd = 0;
@@ -146,7 +299,7 @@ tt = 0;
                 for k = 1:N
                     % y_outd = y_outd + www1(k) * adc_input(j+k,z); % (стр 5, (13))
                     dat_in_filt_double(k) = adc_input(j+k,z);
-                    dat_in_filt(k) = fi(adc_input_int(j+k,z),1,12,0);
+                    dat_in_filt(k) = cast(adc_input_int(j+k,z), "double");
                 end 
 
                 [y_out, y_out_int] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int);

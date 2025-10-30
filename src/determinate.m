@@ -1,10 +1,11 @@
 
-function [DetM_5x5, DetM_5x5_int] = determinate(data_in, data_in_int)
+function [DetM_5x5, DetM_5x5_int, DetM_2x2, DetM_2x2_int, Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] = determinate(data_in, data_in_int, int_size, width)
 
 a = data_in;
 a_int = data_in_int;
 
-%% form matrix 2x2
+int_size_double = 'double';
+%% Находим матрицы 2x2
 s = struct;
 e = 0;
 t=4;
@@ -21,108 +22,318 @@ for n = 1:4
     t = t-1;
 end
 
-[DetM_2x2_n_1, DetM_2x2_n_1_int]  = det_2x2(s.a{1}, s.a_int{1});    % a41 a42
-                                                                    % a51 a52
+DetM_2x2 = zeros(10,1);
+DetM_2x2_int = cast(zeros(10,1), int_size_double);
 
-[DetM_2x2_n_2, DetM_2x2_n_2_int]  = det_2x2(s.a{2}, s.a_int{2});    % a41 a43
-                                                                    % a51 a53
+Mult_DetM_2x2_n_1_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_2_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_3_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_4_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_5_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_6_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_7_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_8_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_9_int = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_10_int = cast(zeros(3,1), int_size_double);
 
-[DetM_2x2_n_3, DetM_2x2_n_3_int] = det_2x2(s.a{3}, s.a_int{3});     % a41 a44
-                                                                    % a41 a54
+Mult_DetM_2x2_n_1_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_2_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_3_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_4_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_5_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_6_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_7_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_8_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_9_overflow = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_10_overflow = cast(zeros(3,1), int_size_double);
 
-[DetM_2x2_n_4, DetM_2x2_n_4_int] = det_2x2(s.a{4}, s.a_int{4});     % a41 a45
-                                                                    % a51 a55
+Mult_DetM_2x2_n_1_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_2_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_3_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_4_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_5_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_6_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_7_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_8_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_9_abs = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_10_abs = cast(zeros(3,1), int_size_double);
 
-[DetM_2x2_n_5, DetM_2x2_n_5_int] = det_2x2(s.a{5}, s.a_int{5});     % a42 a43
-                                                                    % a52 a53 
+Mult_DetM_2x2_n_1_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_2_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_3_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_4_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_5_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_6_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_7_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_8_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_9_total_width = cast(zeros(3,1),  int_size_double);
+Mult_DetM_2x2_n_10_total_width = cast(zeros(3,1), int_size_double);
 
-[DetM_2x2_n_6, DetM_2x2_n_6_int] = det_2x2(s.a{6}, s.a_int{6});     % a42 a44
-                                                                    % a52 a54
+Det2x2_mult1_abs = cast(zeros(10,1), int_size_double);
+Det2x2_mult2_abs = cast(zeros(10,1), int_size_double);
+Det2x2_sum_abs = cast(zeros(10,1), 	 int_size_double);
 
-[DetM_2x2_n_7, DetM_2x2_n_7_int] = det_2x2(s.a{7}, s.a_int{7});     % a42 a45
-                                                                    % a52 a55
 
-[DetM_2x2_n_8, DetM_2x2_n_8_int] = det_2x2(s.a{8}, s.a_int{8});     % a43 a44
-                                                                    % a53 a54
+%% Находим определители матриц 2x2
+for i = 1:10
+    [DetM_2x2(i), DetM_2x2_int(i), Det2x2_mult1_abs(i), Det2x2_mult2_abs(i), Det2x2_sum_abs(i), mult1_overflow(i), mult2_overflow(i), width_total_mult1(i), ...
+     width_total_mult2(i), sum_overflow(i), width_total_sum(i)]  = det_2x2(s.a{i}, s.a_int{i}, int_size_double, width); 
 
-[DetM_2x2_n_9, DetM_2x2_n_9_int] = det_2x2(s.a{9}, s.a_int{9});     % a43 a45
-                                                                    % a53 a55    
+    % %% Проверка переполнения умножителя
+    % if (mult1_overflow(i) == 1 || mult2_overflow(i) == 1)
+	% 	disp('Mult in function det2x2 overflow');
+    %     disp(width);
+    %     disp({s.a_int{i}});
+    % end
+    % 
+	% %% Проверка выходной разрядности умножителя
+    % if (width_total_mult1(i) > width || width_total_mult2(i) > width)
+	% 	disp('Mult total width in function det2x2 higher than 64');
+    %     disp(width);
+    %     disp({s.a_int{i}});
+    % end
+    % 
+	% %% Проверка переполнения сумматора
+    % if (sum_overflow(i) == 1)
+	% 	disp('Adder in function det2x2 overflow');
+    %     disp(width);
+    %     disp({s.a_int{i}});
+    % end
+    % 
+	% %% Проверка выходной разрядности сумматора
+    % if (width_total_sum(i) > width)
+	% 	disp('Sum total width in function det2x2 higher than 64');
+    %     disp(width);
+    %     disp({width_total_sum(i)});
+    % end
+	
+end
 
-[DetM_2x2_n_10, DetM_2x2_n_10_int] = det_2x2(s.a{10}, s.a_int{10}); % a44 a45
-                                                                    % a54 a55  
 
-%% variables 1
-Mult_DetM_2x2_n_10_a31 = a(3,1) * DetM_2x2_n_10;
-Mult_DetM_2x2_n_10_a32 = a(3,2) * DetM_2x2_n_10;
-Mult_DetM_2x2_n_10_a33 = a(3,3) * DetM_2x2_n_10;
+%% double
 
-Mult_DetM_2x2_n_7_a31 = a(3,1) * DetM_2x2_n_7;
-Mult_DetM_2x2_n_7_a33 = a(3,3) * DetM_2x2_n_7;
-Mult_DetM_2x2_n_7_a34 = a(3,4) * DetM_2x2_n_7;
+Mult_DetM_2x2_n_7_a31 = a(3,1) * DetM_2x2(7);
+Mult_DetM_2x2_n_7_a33 = a(3,3) * DetM_2x2(7);
+Mult_DetM_2x2_n_7_a34 = a(3,4) * DetM_2x2(7);
 
-Mult_DetM_2x2_n_9_a31 = a(3,1) * DetM_2x2_n_9;
-Mult_DetM_2x2_n_9_a32 = a(3,2) * DetM_2x2_n_9;
-Mult_DetM_2x2_n_9_a34 = a(3,4) * DetM_2x2_n_9;
+Mult_DetM_2x2_n_9_a31 = a(3,1) * DetM_2x2(9);
+Mult_DetM_2x2_n_9_a32 = a(3,2) * DetM_2x2(9);
+Mult_DetM_2x2_n_9_a34 = a(3,4) * DetM_2x2(9);
 
-Mult_DetM_2x2_n_8_a31 = a(3,1) * DetM_2x2_n_8;
-Mult_DetM_2x2_n_8_a32 = a(3,2) * DetM_2x2_n_8;
-Mult_DetM_2x2_n_8_a35 = a(3,5) * DetM_2x2_n_8;
+Mult_DetM_2x2_n_8_a31 = a(3,1) * DetM_2x2(8);
+Mult_DetM_2x2_n_8_a32 = a(3,2) * DetM_2x2(8);
+Mult_DetM_2x2_n_8_a35 = a(3,5) * DetM_2x2(8);
 
-Mult_DetM_2x2_n_6_a31 = a(3,1) * DetM_2x2_n_6;
-Mult_DetM_2x2_n_6_a33 = a(3,3) * DetM_2x2_n_6;
-Mult_DetM_2x2_n_6_a35 = a(3,5) * DetM_2x2_n_6;
+Mult_DetM_2x2_n_6_a31 = a(3,1) * DetM_2x2(6);
+Mult_DetM_2x2_n_6_a33 = a(3,3) * DetM_2x2(6);
+Mult_DetM_2x2_n_6_a35 = a(3,5) * DetM_2x2(6);
 
-Mult_DetM_2x2_n_5_a31 = a(3,1) * DetM_2x2_n_5;
-Mult_DetM_2x2_n_5_a34 = a(3,4) * DetM_2x2_n_5;
-Mult_DetM_2x2_n_5_a35 = a(3,5) * DetM_2x2_n_5;
+Mult_DetM_2x2_n_5_a31 = a(3,1) * DetM_2x2(5);
+Mult_DetM_2x2_n_5_a34 = a(3,4) * DetM_2x2(5);
+Mult_DetM_2x2_n_5_a35 = a(3,5) * DetM_2x2(5);
 
-Mult_DetM_2x2_n_4_a32 = a(3,2) * DetM_2x2_n_4;
-Mult_DetM_2x2_n_4_a33 = a(3,3) * DetM_2x2_n_4;
-Mult_DetM_2x2_n_4_a34 = a(3,4) * DetM_2x2_n_4;
+Mult_DetM_2x2_n_4_a32 = a(3,2) * DetM_2x2(4);
+Mult_DetM_2x2_n_4_a33 = a(3,3) * DetM_2x2(4);
+Mult_DetM_2x2_n_4_a34 = a(3,4) * DetM_2x2(4);
 
-Mult_DetM_2x2_n_3_a32 = a(3,2) * DetM_2x2_n_3;
-Mult_DetM_2x2_n_3_a33 = a(3,3) * DetM_2x2_n_3;
-Mult_DetM_2x2_n_3_a35 = a(3,5) * DetM_2x2_n_3;
+Mult_DetM_2x2_n_3_a32 = a(3,2) * DetM_2x2(3);
+Mult_DetM_2x2_n_3_a33 = a(3,3) * DetM_2x2(3);
+Mult_DetM_2x2_n_3_a35 = a(3,5) * DetM_2x2(3);
 
-Mult_DetM_2x2_n_2_a32 = a(3,2) * DetM_2x2_n_2;
-Mult_DetM_2x2_n_2_a34 = a(3,4) * DetM_2x2_n_2;
-Mult_DetM_2x2_n_2_a35 = a(3,5) * DetM_2x2_n_2;
+Mult_DetM_2x2_n_2_a32 = a(3,2) * DetM_2x2(2);
+Mult_DetM_2x2_n_2_a34 = a(3,4) * DetM_2x2(2);
+Mult_DetM_2x2_n_2_a35 = a(3,5) * DetM_2x2(2);
 
-Mult_DetM_2x2_n_1_a33 = a(3,3) * DetM_2x2_n_1;
-Mult_DetM_2x2_n_1_a34 = a(3,4) * DetM_2x2_n_1;
-Mult_DetM_2x2_n_1_a35 = a(3,5) * DetM_2x2_n_1;
-%%
+Mult_DetM_2x2_n_1_a33 = a(3,3) * DetM_2x2(1);
+Mult_DetM_2x2_n_1_a34 = a(3,4) * DetM_2x2(1);
+Mult_DetM_2x2_n_1_a35 = a(3,5) * DetM_2x2(1);
 
-Mult_DetM_2x2_n_10_a31_int = mult(int64(a_int(3,1)),  int64(DetM_2x2_n_10_int), 64); 
-Mult_DetM_2x2_n_10_a32_int = mult(int64(a_int(3,2)),  int64(DetM_2x2_n_10_int), 64);
-Mult_DetM_2x2_n_10_a33_int = mult(int64(a_int(3,3)),  int64(DetM_2x2_n_10_int), 64);
-Mult_DetM_2x2_n_7_a31_int =  mult(int64(a_int(3,1)),  int64(DetM_2x2_n_7_int),  64);
-Mult_DetM_2x2_n_7_a33_int =  mult(int64(a_int(3,3)),  int64(DetM_2x2_n_7_int),  64);
-Mult_DetM_2x2_n_7_a34_int =  mult(int64(a_int(3,4)),  int64(DetM_2x2_n_7_int),  64);
-Mult_DetM_2x2_n_9_a31_int =  mult(int64(a_int(3,1)),  int64(DetM_2x2_n_9_int),  64);
-Mult_DetM_2x2_n_9_a32_int =  mult(int64(a_int(3,2)),  int64(DetM_2x2_n_9_int),  64);
-Mult_DetM_2x2_n_9_a34_int =  mult(int64(a_int(3,4)),  int64(DetM_2x2_n_9_int),  64);
-Mult_DetM_2x2_n_8_a31_int =  mult(int64(a_int(3,1)),  int64(DetM_2x2_n_8_int),  64);
-Mult_DetM_2x2_n_8_a32_int =  mult(int64(a_int(3,2)),  int64(DetM_2x2_n_8_int),  64);
-Mult_DetM_2x2_n_8_a35_int =  mult(int64(a_int(3,5)),  int64(DetM_2x2_n_8_int),  64);
-Mult_DetM_2x2_n_6_a31_int =  mult(int64(a_int(3,1)),  int64(DetM_2x2_n_6_int),  64);
-Mult_DetM_2x2_n_6_a33_int =  mult(int64(a_int(3,3)),  int64(DetM_2x2_n_6_int),  64);
-Mult_DetM_2x2_n_6_a35_int =  mult(int64(a_int(3,5)),  int64(DetM_2x2_n_6_int),  64);
-Mult_DetM_2x2_n_5_a31_int =  mult(int64(a_int(3,1)),  int64(DetM_2x2_n_5_int),  64);
-Mult_DetM_2x2_n_5_a34_int =  mult(int64(a_int(3,4)),  int64(DetM_2x2_n_5_int),  64);
-Mult_DetM_2x2_n_5_a35_int =  mult(int64(a_int(3,5)),  int64(DetM_2x2_n_5_int),  64);
-Mult_DetM_2x2_n_4_a32_int =  mult(int64(a_int(3,2)),  int64(DetM_2x2_n_4_int),  64);
-Mult_DetM_2x2_n_4_a33_int =  mult(int64(a_int(3,3)),  int64(DetM_2x2_n_4_int),  64);
-Mult_DetM_2x2_n_4_a34_int =  mult(int64(a_int(3,4)),  int64(DetM_2x2_n_4_int),  64);
-Mult_DetM_2x2_n_3_a32_int =  mult(int64(a_int(3,2)),  int64(DetM_2x2_n_3_int),  64);
-Mult_DetM_2x2_n_3_a33_int =  mult(int64(a_int(3,3)),  int64(DetM_2x2_n_3_int),  64);
-Mult_DetM_2x2_n_3_a35_int =  mult(int64(a_int(3,5)),  int64(DetM_2x2_n_3_int),  64);
-Mult_DetM_2x2_n_2_a32_int =  mult(int64(a_int(3,2)),  int64(DetM_2x2_n_2_int),  64);
-Mult_DetM_2x2_n_2_a34_int =  mult(int64(a_int(3,4)),  int64(DetM_2x2_n_2_int),  64);
-Mult_DetM_2x2_n_2_a35_int =  mult(int64(a_int(3,5)),  int64(DetM_2x2_n_2_int),  64);
-Mult_DetM_2x2_n_1_a33_int =  mult(int64(a_int(3,3)),  int64(DetM_2x2_n_1_int),  64);
-Mult_DetM_2x2_n_1_a34_int =  mult(int64(a_int(3,4)),  int64(DetM_2x2_n_1_int),  64);
-Mult_DetM_2x2_n_1_a35_int =  mult(int64(a_int(3,5)),  int64(DetM_2x2_n_1_int),  64);
+Mult_DetM_2x2_n_10_a31 = a(3,1) * DetM_2x2(10);
+Mult_DetM_2x2_n_10_a32 = a(3,2) * DetM_2x2(10);
+Mult_DetM_2x2_n_10_a33 = a(3,3) * DetM_2x2(10);
+%% integer
+
+index1 = [1, 3, 4];
+index2 = [1, 2, 4];
+index3 = [1, 2, 5];
+index4 = [1, 3, 5];
+index5 = [1, 4, 5];
+index6 = [2, 3, 4];
+index7 = [2, 3, 5];
+index8 = [2, 4, 5];
+index9 = [3, 4, 5];
+
+
+% for i = 1:3
+%     [Mult_DetM_2x2_n_7_int(i), Mult_DetM_2x2_n_7_overflow(i), Mult_DetM_2x2_n_7_abs(i), Mult_DetM_2x2_n_7_total_width(i)] = mult(a_int(3,index1(i)), DetM_2x2_int(7), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_7_overflow(i) == 1)
+% 		disp('Mult in function det3x3 7 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_7_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_7_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 7 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_7_int(i)});
+%     end
+%     %%
+%     [Mult_DetM_2x2_n_9_int(i), Mult_DetM_2x2_n_9_overflow(i), Mult_DetM_2x2_n_9_abs(i), Mult_DetM_2x2_n_9_total_width(i)] = mult(a_int(3,index2(i)), DetM_2x2_int(9), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_9_overflow(i) == 1)
+% 		disp('Mult in function det3x3 9 overflow');
+%         disp({Mult_DetM_2x2_n_9_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_9_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 9 higher than 64');
+%         disp({Mult_DetM_2x2_n_9_int(i)});
+%     end
+% 	%%
+%     [Mult_DetM_2x2_n_8_int(i), Mult_DetM_2x2_n_8_overflow(i), Mult_DetM_2x2_n_8_abs(i), Mult_DetM_2x2_n_8_total_width(i)] = mult(a_int(3,index3(i)), DetM_2x2_int(8), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_8_overflow(i) == 1)
+% 		disp('Mult in function det3x3 8 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_8_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_8_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 8 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_8_int(i)});
+%     end
+%     %%
+%     [Mult_DetM_2x2_n_6_int(i), Mult_DetM_2x2_n_6_overflow(i), Mult_DetM_2x2_n_6_abs(i), Mult_DetM_2x2_n_6_total_width(i)] = mult(a_int(3,index4(i)), DetM_2x2_int(6), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_6_overflow(i) == 1)
+% 		disp('Mult in function det3x3 6 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_6_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_6_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 6 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_6_int(i)});
+%     end
+% 	%%
+%     [Mult_DetM_2x2_n_5_int(i), Mult_DetM_2x2_n_5_overflow(i), Mult_DetM_2x2_n_5_abs(i), Mult_DetM_2x2_n_5_total_width(i)] = mult(a_int(3,index5(i)), DetM_2x2_int(5), int_size_double, width);
+%         %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_5_overflow(i) == 1)
+% 		disp('Mult in function det3x3 5 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_5_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_5_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 5 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_5_int(i)});
+%     end
+% 
+%     [Mult_DetM_2x2_n_4_int(i), Mult_DetM_2x2_n_4_overflow(i), Mult_DetM_2x2_n_4_abs(i), Mult_DetM_2x2_n_4_total_width(i)] = mult(a_int(3,index6(i)), DetM_2x2_int(4), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_4_overflow(i) == 1)
+% 		disp('Mult in function det3x3 4 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_4_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_4_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 4 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_4_int(i)});
+%     end
+%     %%  
+%     [Mult_DetM_2x2_n_3_int(i), Mult_DetM_2x2_n_3_overflow(i), Mult_DetM_2x2_n_3_abs(i), Mult_DetM_2x2_n_3_total_width(i)] = mult(a_int(3,index7(i)), DetM_2x2_int(3), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_3_overflow(i) == 1)
+% 		disp('Mult in function det3x3 3 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_3_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_3_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 3 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_3_int(i)});
+%     end
+%     %%
+%     [Mult_DetM_2x2_n_2_int(i), Mult_DetM_2x2_n_2_overflow(i), Mult_DetM_2x2_n_2_abs(i), Mult_DetM_2x2_n_2_total_width(i)] = mult(a_int(3,index8(i)), DetM_2x2_int(2), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_2_overflow(i) == 1)
+% 		disp('Mult in function det3x3 2 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_2_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_2_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 2 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_2_int(i)});
+%     end
+%     %%
+%     [Mult_DetM_2x2_n_1_int(i), Mult_DetM_2x2_n_1_overflow(i), Mult_DetM_2x2_n_1_abs(i), Mult_DetM_2x2_n_1_total_width(i)] = mult(a_int(3,index9(i)), DetM_2x2_int(1), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_1_overflow(i) == 1)
+% 		disp('Mult in function det3x3 1 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_1_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_1_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 1 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_1_int(i)});
+%     end
+%     %%
+%     [Mult_DetM_2x2_n_10_int(i), Mult_DetM_2x2_n_10_overflow(i), Mult_DetM_2x2_n_10_abs(i), Mult_DetM_2x2_n_10_total_width(i)] = mult(a_int(3,i), DetM_2x2_int(10), int_size_double, width);
+%     %% Проверка переполнения умножителя
+%     if (Mult_DetM_2x2_n_10_overflow(i) == 1)
+% 		disp('Mult in function det3x3 10 overflow');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_10_int(i)});
+%     end
+% 	%% Проверка выходной разрядности умножителя
+%     if (Mult_DetM_2x2_n_7_total_width(i) > width-1)
+% 		disp('Mult total width in function det3x3 10 higher than 64');
+%         disp(width);
+%         disp({Mult_DetM_2x2_n_10_int(i)});
+%     end
+% end
+
+% [Mult_DetM_2x2_n_7_a31_int, Mult_DetM_2x2_n_7_a31_overflow, Mult_DetM_2x2_n_7_a31_abs, Mult_DetM_2x2_n_7_a31_total_width] = mult(a_int(3,1), DetM_2x2_int(7), int_size, width);
+% [Mult_DetM_2x2_n_7_a33_int, Mult_DetM_2x2_n_7_a33_overflow, Mult_DetM_2x2_n_7_a33_abs, Mult_DetM_2x2_n_7_a33_total_width] = mult(a_int(3,3), DetM_2x2_int(7), int_size, width);
+% [Mult_DetM_2x2_n_7_a34_int, Mult_DetM_2x2_n_7_a34_overflow, Mult_DetM_2x2_n_7_a34_abs, Mult_DetM_2x2_n_7_a34_total_width] = mult(a_int(3,4), DetM_2x2_int(7), int_size, width);
+% [Mult_DetM_2x2_n_9_a31_int, Mult_DetM_2x2_n_9_a31_overflow, Mult_DetM_2x2_n_9_a31_abs, Mult_DetM_2x2_n_9_a31_total_width] = mult(a_int(3,1), DetM_2x2_int(9), int_size, width);
+% [Mult_DetM_2x2_n_9_a32_int, Mult_DetM_2x2_n_9_a32_overflow, Mult_DetM_2x2_n_9_a32_abs, Mult_DetM_2x2_n_9_a32_total_width] = mult(a_int(3,2), DetM_2x2_int(9), int_size, width);
+% [Mult_DetM_2x2_n_9_a34_int, Mult_DetM_2x2_n_9_a34_overflow, Mult_DetM_2x2_n_9_a34_abs, Mult_DetM_2x2_n_9_a34_total_width] = mult(a_int(3,4), DetM_2x2_int(9), int_size, width);
+% [Mult_DetM_2x2_n_8_a31_int, Mult_DetM_2x2_n_8_a31_overflow, Mult_DetM_2x2_n_8_a31_abs, Mult_DetM_2x2_n_8_a31_total_width] = mult(a_int(3,1), DetM_2x2_int(8), int_size, width);
+% [Mult_DetM_2x2_n_8_a32_int, Mult_DetM_2x2_n_8_a32_overflow, Mult_DetM_2x2_n_8_a32_abs, Mult_DetM_2x2_n_8_a32_total_width] = mult(a_int(3,2), DetM_2x2_int(8), int_size, width);
+% [Mult_DetM_2x2_n_8_a35_int, Mult_DetM_2x2_n_8_a35_overflow, Mult_DetM_2x2_n_8_a35_abs, Mult_DetM_2x2_n_8_a35_total_width] = mult(a_int(3,5), DetM_2x2_int(8), int_size, width);
+% [Mult_DetM_2x2_n_6_a31_int, Mult_DetM_2x2_n_6_a31_overflow, Mult_DetM_2x2_n_6_a31_abs, Mult_DetM_2x2_n_6_a31_total_width] = mult(a_int(3,1), DetM_2x2_int(6), int_size, width);
+% [Mult_DetM_2x2_n_6_a33_int, Mult_DetM_2x2_n_6_a33_overflow, Mult_DetM_2x2_n_6_a33_abs, Mult_DetM_2x2_n_6_a33_total_width] = mult(a_int(3,3), DetM_2x2_int(6), int_size, width);
+% [Mult_DetM_2x2_n_6_a35_int, Mult_DetM_2x2_n_6_a35_overflow, Mult_DetM_2x2_n_6_a35_abs, Mult_DetM_2x2_n_6_a35_total_width] = mult(a_int(3,5), DetM_2x2_int(6), int_size, width);
+% [Mult_DetM_2x2_n_5_a31_int, Mult_DetM_2x2_n_5_a31_overflow, Mult_DetM_2x2_n_5_a31_abs, Mult_DetM_2x2_n_5_a31_total_width] = mult(a_int(3,1), DetM_2x2_int(5), int_size, width);
+% [Mult_DetM_2x2_n_5_a34_int, Mult_DetM_2x2_n_5_a34_overflow, Mult_DetM_2x2_n_5_a34_abs, Mult_DetM_2x2_n_5_a34_total_width] = mult(a_int(3,4), DetM_2x2_int(5), int_size, width);
+% [Mult_DetM_2x2_n_5_a35_int, Mult_DetM_2x2_n_5_a35_overflow, Mult_DetM_2x2_n_5_a35_abs, Mult_DetM_2x2_n_5_a35_total_width] = mult(a_int(3,5), DetM_2x2_int(5), int_size, width);
+% [Mult_DetM_2x2_n_4_a32_int, Mult_DetM_2x2_n_4_a32_overflow, Mult_DetM_2x2_n_4_a32_abs, Mult_DetM_2x2_n_4_a32_total_width] = mult(a_int(3,2), DetM_2x2_int(4), int_size, width);
+% [Mult_DetM_2x2_n_4_a33_int, Mult_DetM_2x2_n_4_a33_overflow, Mult_DetM_2x2_n_4_a33_abs, Mult_DetM_2x2_n_4_a33_total_width] = mult(a_int(3,3), DetM_2x2_int(4), int_size, width);
+% [Mult_DetM_2x2_n_4_a34_int, Mult_DetM_2x2_n_4_a34_overflow, Mult_DetM_2x2_n_4_a34_abs, Mult_DetM_2x2_n_4_a34_total_width] = mult(a_int(3,4), DetM_2x2_int(4), int_size, width);
+% [Mult_DetM_2x2_n_3_a32_int, Mult_DetM_2x2_n_3_a32_overflow, Mult_DetM_2x2_n_3_a32_abs, Mult_DetM_2x2_n_3_a32_total_width] = mult(a_int(3,2), DetM_2x2_int(3), int_size, width);
+% [Mult_DetM_2x2_n_3_a33_int, Mult_DetM_2x2_n_3_a33_overflow, Mult_DetM_2x2_n_3_a33_abs, Mult_DetM_2x2_n_3_a33_total_width] = mult(a_int(3,3), DetM_2x2_int(3), int_size, width);
+% [Mult_DetM_2x2_n_3_a35_int, Mult_DetM_2x2_n_3_a35_overflow, Mult_DetM_2x2_n_3_a35_abs, Mult_DetM_2x2_n_3_a35_total_width] = mult(a_int(3,5), DetM_2x2_int(3), int_size, width);
+% [Mult_DetM_2x2_n_2_a32_int, Mult_DetM_2x2_n_2_a32_overflow, Mult_DetM_2x2_n_2_a32_abs, Mult_DetM_2x2_n_2_a32_total_width] = mult(a_int(3,2), DetM_2x2_int(2), int_size, width);
+% [Mult_DetM_2x2_n_2_a34_int, Mult_DetM_2x2_n_2_a34_overflow, Mult_DetM_2x2_n_2_a34_abs, Mult_DetM_2x2_n_2_a34_total_width] = mult(a_int(3,4), DetM_2x2_int(2), int_size, width);
+% [Mult_DetM_2x2_n_2_a35_int, Mult_DetM_2x2_n_2_a35_overflow, Mult_DetM_2x2_n_2_a35_abs, Mult_DetM_2x2_n_2_a35_total_width] = mult(a_int(3,5), DetM_2x2_int(2), int_size, width);
+% [Mult_DetM_2x2_n_1_a33_int, Mult_DetM_2x2_n_1_a33_overflow, Mult_DetM_2x2_n_1_a33_abs, Mult_DetM_2x2_n_1_a33_total_width] = mult(a_int(3,3), DetM_2x2_int(1), int_size, width);
+% [Mult_DetM_2x2_n_1_a34_int, Mult_DetM_2x2_n_1_a34_overflow, Mult_DetM_2x2_n_1_a34_abs, Mult_DetM_2x2_n_1_a34_total_width] = mult(a_int(3,4), DetM_2x2_int(1), int_size, width);
+% [Mult_DetM_2x2_n_1_a35_int, Mult_DetM_2x2_n_1_a35_overflow, Mult_DetM_2x2_n_1_a35_abs, Mult_DetM_2x2_n_1_a35_total_width] = mult(a_int(3,5), DetM_2x2_int(1), int_size, width);
+% [Mult_DetM_2x2_n_10_a31_int, Mult_DetM_2x2_n_10_a31_overflow, Mult_DetM_2x2_n_10_a31_abs, Mult_DetM_2x2_n_10_a31_total_width] = mult(a_int(3,1), DetM_2x2_int(10), int_size, width); 
+% [Mult_DetM_2x2_n_10_a32_int, Mult_DetM_2x2_n_10_a32_overflow, Mult_DetM_2x2_n_10_a32_abs, Mult_DetM_2x2_n_10_a32_total_width] = mult(a_int(3,2), DetM_2x2_int(10), int_size, width);
+% [Mult_DetM_2x2_n_10_a33_int, Mult_DetM_2x2_n_10_a33_overflow, Mult_DetM_2x2_n_10_a33_abs, Mult_DetM_2x2_n_10_a33_total_width] = mult(a_int(3,3), DetM_2x2_int(10), int_size, width);
 %%
 % 1 4x4
 DetM_3x3_n_11 = Mult_DetM_2x2_n_10_a33 - Mult_DetM_2x2_n_9_a34 + Mult_DetM_2x2_n_8_a35; 
@@ -151,37 +362,177 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
 % DetM_3x3_n_54 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_1_a33;
 
 %%
-% 1 4x4
-[DetM_3x3_n_11_int_sum1, DetM_3x3_n_11_int_sum1_overflow] = adder(Mult_DetM_2x2_n_10_a33_int,  -Mult_DetM_2x2_n_9_a34_int, 64);
-[DetM_3x3_n_11_int, DetM_3x3_n_11_int_overflow] = adder(DetM_3x3_n_11_int_sum1,  Mult_DetM_2x2_n_8_a35_int, 64);
-
-[DetM_3x3_n_12_int_sum1, DetM_3x3_n_12_int_sum1_overflow] = adder(Mult_DetM_2x2_n_10_a32_int,  -Mult_DetM_2x2_n_7_a34_int, 64);
-[DetM_3x3_n_12_int, DetM_3x3_n_12_int_overflow] = adder(DetM_3x3_n_12_int_sum1,  Mult_DetM_2x2_n_6_a35_int, 64);
-
-[DetM_3x3_n_13_int_sum1, DetM_3x3_n_13_int_sum1_overflow] = adder(Mult_DetM_2x2_n_9_a32_int,  -Mult_DetM_2x2_n_7_a33_int, 64);
-[DetM_3x3_n_13_int, DetM_3x3_n_13_int_overflow] = adder(DetM_3x3_n_13_int_sum1,  Mult_DetM_2x2_n_5_a35_int, 64);
-
-[DetM_3x3_n_14_int_sum1, DetM_3x3_n_14_int_sum1_overflow] = adder(Mult_DetM_2x2_n_8_a32_int,  -Mult_DetM_2x2_n_6_a33_int, 64);
-[DetM_3x3_n_14_int, DetM_3x3_n_14_int_overflow] = adder(DetM_3x3_n_14_int_sum1,  Mult_DetM_2x2_n_5_a34_int, 64);
-
-[DetM_3x3_n_22_int_sum1, DetM_3x3_n_22_int_sum1_overflow] = adder(Mult_DetM_2x2_n_10_a31_int,  -Mult_DetM_2x2_n_4_a34_int, 64);
-[DetM_3x3_n_22_int, DetM_3x3_n_22_int_overflow] = adder(DetM_3x3_n_22_int_sum1,  Mult_DetM_2x2_n_3_a35_int, 64);
-
-[DetM_3x3_n_23_int_sum1, DetM_3x3_n_23_int_sum1_overflow] = adder(Mult_DetM_2x2_n_9_a31_int,  -Mult_DetM_2x2_n_4_a33_int, 64);
-[DetM_3x3_n_23_int, DetM_3x3_n_23_int_overflow] = adder(DetM_3x3_n_23_int_sum1,  Mult_DetM_2x2_n_2_a35_int, 64);
-
-[DetM_3x3_n_24_int_sum1, DetM_3x3_n_24_int_sum1_overflow] = adder(Mult_DetM_2x2_n_8_a31_int,  -Mult_DetM_2x2_n_3_a33_int, 64);
-[DetM_3x3_n_24_int, DetM_3x3_n_24_int_overflow] = adder(DetM_3x3_n_24_int_sum1,  Mult_DetM_2x2_n_2_a34_int, 64);
-
-[DetM_3x3_n_33_int_sum1, DetM_3x3_n_33_int_sum1_overflow] = adder(Mult_DetM_2x2_n_7_a31_int,  -Mult_DetM_2x2_n_4_a32_int, 64);
-[DetM_3x3_n_33_int, DetM_3x3_n_33_int_overflow] = adder(DetM_3x3_n_33_int_sum1,  Mult_DetM_2x2_n_1_a35_int, 64);
-
-[DetM_3x3_n_34_int_sum1, DetM_3x3_n_34_int_sum1_overflow] = adder(Mult_DetM_2x2_n_6_a31_int,  -Mult_DetM_2x2_n_3_a32_int, 64);
-[DetM_3x3_n_34_int, DetM_3x3_n_34_int_overflow] = adder(DetM_3x3_n_34_int_sum1,  Mult_DetM_2x2_n_1_a34_int, 64);
-
-[DetM_3x3_n_44_int_sum1, DetM_3x3_n_44_int_sum1_overflow] = adder(Mult_DetM_2x2_n_5_a31_int,  -Mult_DetM_2x2_n_2_a32_int, 64);
-[DetM_3x3_n_44_int, DetM_3x3_n_44_int_overflow] = adder(DetM_3x3_n_44_int_sum1,  Mult_DetM_2x2_n_1_a33_int, 64);
-
+% 4x4 
+% [DetM_3x3_n_11_int_sum1, DetM_3x3_n_11_int_sum1_overflow, DetM_3x3_n_11_int_sum1_abs, DetM_3x3_n_11_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_10_int(3),  -Mult_DetM_2x2_n_9_int(3), int_size_double, width);
+% [DetM_3x3_n_11_int, DetM_3x3_n_11_int_overflow, DetM_3x3_n_11_int_abs, DetM_3x3_n_11_int_width_total] = ...
+%     adder(DetM_3x3_n_11_int_sum1,  Mult_DetM_2x2_n_8_int(3), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_11_int_overflow == 1)
+% 		disp('Sum det3x3 11 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_11_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_11_int_width_total > width-1)
+% 		disp('Sum total width in function det3x3 11 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_11_int});
+%     end
+%     %%
+% [DetM_3x3_n_12_int_sum1, DetM_3x3_n_12_int_sum1_overflow, DetM_3x3_n_12_int_sum1_abs, DetM_3x3_n_12_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_10_int(2),  -Mult_DetM_2x2_n_7_int(3), int_size_double, width);
+% [DetM_3x3_n_12_int, DetM_3x3_n_12_int_overflow, DetM_3x3_n_12_int_abs, DetM_3x3_n_12_int_width_total] = ...
+%     adder(DetM_3x3_n_12_int_sum1,  Mult_DetM_2x2_n_6_int(3), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_12_int_overflow == 1)
+% 		disp('Sum det3x3 12 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_12_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_12_int_width_total > width-1)
+% 		disp('Sum total width in function det3x3 12 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_12_int});
+%     end
+%     %%
+% [DetM_3x3_n_13_int_sum1, DetM_3x3_n_13_int_sum1_overflow, DetM_3x3_n_13_int_sum1_abs, DetM_3x3_n_13_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_9_int(2),  -Mult_DetM_2x2_n_7_int(2), int_size_double, width);
+% [DetM_3x3_n_13_int, DetM_3x3_n_13_int_overflow, DetM_3x3_n_13_int_abs, DetM_3x3_n_13_int_width_total] = ...
+%     adder(DetM_3x3_n_13_int_sum1,  Mult_DetM_2x2_n_5_int(3), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_13_int_overflow == 1)
+% 		disp('Sum det3x3 13 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_13_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_13_int_width_total > width-1)
+% 		disp('Sum total width in function det3x3 13 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_13_int});
+%     end
+%     %%
+% [DetM_3x3_n_14_int_sum1, DetM_3x3_n_14_int_sum1_overflow, DetM_3x3_n_14_int_sum1_abs, DetM_3x3_n_14_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_8_int(2),  -Mult_DetM_2x2_n_6_int(2), int_size_double, width);
+% [DetM_3x3_n_14_int, DetM_3x3_n_14_int_overflow, DetM_3x3_n_14_int_abs, DetM_3x3_n_14_int_width_total] = ...
+%     adder(DetM_3x3_n_14_int_sum1,  Mult_DetM_2x2_n_5_int(2), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_14_int_overflow == 1)
+% 		disp('Sum det3x3 14 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_14_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_14_int_width_total > width-1)
+% 		disp('Sum total width in function det3x3 12 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_14_int});
+%     end
+%     %%
+% [DetM_3x3_n_22_int_sum1, DetM_3x3_n_22_int_sum1_overflow, DetM_3x3_n_22_int_sum1_abs, DetM_3x3_n_22_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_10_int(1),  -Mult_DetM_2x2_n_4_int(3), int_size_double, width);
+% [DetM_3x3_n_22_int, DetM_3x3_n_22_int_overflow, DetM_3x3_n_22_int_abs, DetM_3x3_n_22_int_width_total] = ...
+%     adder(DetM_3x3_n_22_int_sum1,  Mult_DetM_2x2_n_3_int(3), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_22_int_overflow == 1)
+% 		disp('Sum det3x3 22 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_22_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_22_int_width_total > width-1)
+% 		disp('Sum total width in function det3x3 22 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_22_int});
+%     end
+%     %%
+% [DetM_3x3_n_23_int_sum1, DetM_3x3_n_23_int_sum1_overflow, DetM_3x3_n_23_int_sum1_abs, DetM_3x3_n_23_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_9_int(1),  -Mult_DetM_2x2_n_4_int(2), int_size_double, width);
+% [DetM_3x3_n_23_int, DetM_3x3_n_23_int_overflow, DetM_3x3_n_23_int_abs, DetM_3x3_n_23_int_width_total] = ...
+%     adder(DetM_3x3_n_23_int_sum1,  Mult_DetM_2x2_n_2_int(3), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_23_int_overflow == 1)
+% 		disp('Sum det3x3 23 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_23_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_23_int_width_total > width)
+% 		disp('Sum total width in function det3x3 23 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_23_int});
+%     end
+%     %%
+% [DetM_3x3_n_24_int_sum1, DetM_3x3_n_24_int_sum1_overflow, DetM_3x3_n_24_int_sum1_abs, DetM_3x3_n_24_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_8_int(1),  -Mult_DetM_2x2_n_3_int(2), int_size_double, width);
+% [DetM_3x3_n_24_int, DetM_3x3_n_24_int_overflow, DetM_3x3_n_24_int_abs, DetM_3x3_n_24_int_width_total] = ...
+%     adder(DetM_3x3_n_24_int_sum1,  Mult_DetM_2x2_n_2_int(2), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_24_int_overflow == 1)
+% 		disp('Sum det3x3 24 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_24_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_24_int_width_total > width)
+% 		disp('Sum total width in function det3x3 24 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_24_int});
+%     end
+%     %%
+% [DetM_3x3_n_33_int_sum1, DetM_3x3_n_33_int_sum1_overflow, DetM_3x3_n_33_int_sum1_abs, DetM_3x3_n_33_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_7_int(1),  -Mult_DetM_2x2_n_4_int(1), int_size_double, width);
+% [DetM_3x3_n_33_int, DetM_3x3_n_33_int_overflow, DetM_3x3_n_33_int_abs, DetM_3x3_n_33_int_width_total] = ...
+%     adder(DetM_3x3_n_33_int_sum1,  Mult_DetM_2x2_n_1_int(3), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_33_int_overflow == 1)
+% 		disp('Sum det3x3 33 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_33_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_33_int_width_total > width)
+% 		disp('Sum total width in function det3x3 33 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_33_int});
+%     end
+%     %%
+% [DetM_3x3_n_34_int_sum1, DetM_3x3_n_34_int_sum1_overflow, DetM_3x3_n_34_int_sum1_abs, DetM_3x3_n_34_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_6_int(1),  -Mult_DetM_2x2_n_3_int(1), int_size_double, width);
+% [DetM_3x3_n_34_int, DetM_3x3_n_34_int_overflow, DetM_3x3_n_34_int_abs, DetM_3x3_n_34_int_width_total] = ...
+%     adder(DetM_3x3_n_34_int_sum1,  Mult_DetM_2x2_n_1_int(2), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_34_int_overflow == 1)
+% 		disp('Sum det3x3 34 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_34_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_34_int_width_total > width)
+% 		disp('Sum total width in function det3x3 34 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_34_int});
+%     end
+%     %%
+% [DetM_3x3_n_44_int_sum1, DetM_3x3_n_44_int_sum1_overflow, DetM_3x3_n_44_int_sum1_abs, DetM_3x3_n_44_int_sum1_width_total] = ...
+%     adder(Mult_DetM_2x2_n_5_int(1),  -Mult_DetM_2x2_n_2_int(1), int_size_double, width);
+% [DetM_3x3_n_44_int, DetM_3x3_n_44_int_overflow, DetM_3x3_n_44_int_abs, DetM_3x3_n_44_int_width_total] = ...
+%     adder(DetM_3x3_n_44_int_sum1,  Mult_DetM_2x2_n_1_int(1), int_size_double, width);
+%     %% Проверка переполнения сумматора
+%     if (DetM_3x3_n_44_int_overflow == 1)
+% 		disp('Sum det3x3 44 overflow');
+%         disp(width);
+%         disp({DetM_3x3_n_44_int});
+%     end
+% 	%% Проверка выходной разрядности сумматора
+%     if (DetM_3x3_n_44_int_width_total > width)
+% 		disp('Sum total width in function det3x3 44 higher than 64');
+%         disp(width);
+%         disp({DetM_3x3_n_44_int});
+%     end
+%     %%
 %%
 var_mult_a_det11 = a(2,2) * DetM_3x3_n_11; 
 var_mult_a_det12 = a(2,3) * DetM_3x3_n_12;
@@ -219,52 +570,51 @@ var_mult_a_det54 = a(2,4) * DetM_3x3_n_44;
 DetM_4x4_n_5 = var_mult_a_det51 - var_mult_a_det52 + var_mult_a_det53 - var_mult_a_det54;
 
 %%
+% [var_mult_a_det11_int, var_mult_a_det11_int_overflow, var_mult_a_det11_abs, var_mult_a_det11_width_total] = mult(double(a_int(2,2)), DetM_3x3_n_11_int, int_size_double, width);
+% [var_mult_a_det12_int, var_mult_a_det12_int_overflow, var_mult_a_det12_abs, var_mult_a_det12_width_total] = mult(double(a_int(2,3)), DetM_3x3_n_12_int, int_size_double, width);
+% [var_mult_a_det13_int, var_mult_a_det13_int_overflow, var_mult_a_det13_abs, var_mult_a_det13_width_total] = mult(double(a_int(2,4)), DetM_3x3_n_13_int, int_size_double, width);
+% [var_mult_a_det14_int, var_mult_a_det14_int_overflow, var_mult_a_det14_abs, var_mult_a_det14_width_total] = mult(double(a_int(2,5)), DetM_3x3_n_14_int, int_size_double, width);
+% 
+% [var_mult_a_det21_int, var_mult_a_det21_int_overflow, var_mult_a_det21_abs, var_mult_a_det21_width_total] = mult(double(a_int(2,1)), DetM_3x3_n_11_int, int_size_double, width);
+% [var_mult_a_det22_int, var_mult_a_det22_int_overflow, var_mult_a_det22_abs, var_mult_a_det22_width_total] = mult(double(a_int(2,3)), DetM_3x3_n_22_int, int_size_double, width);
+% [var_mult_a_det23_int, var_mult_a_det23_int_overflow, var_mult_a_det23_abs, var_mult_a_det23_width_total] = mult(double(a_int(2,4)), DetM_3x3_n_23_int, int_size_double, width);
+% [var_mult_a_det24_int, var_mult_a_det24_int_overflow, var_mult_a_det24_abs, var_mult_a_det24_width_total] = mult(double(a_int(2,5)), DetM_3x3_n_24_int, int_size_double, width);
+% 
+% [var_mult_a_det31_int, var_mult_a_det31_int_overflow, var_mult_a_det31_abs, var_mult_a_det31_width_total] = mult(double(a_int(2,1)), DetM_3x3_n_12_int, int_size_double, width);
+% [var_mult_a_det32_int, var_mult_a_det32_int_overflow, var_mult_a_det32_abs, var_mult_a_det32_width_total] = mult(double(a_int(2,2)), DetM_3x3_n_22_int, int_size_double, width);
+% [var_mult_a_det33_int, var_mult_a_det33_int_overflow, var_mult_a_det33_abs, var_mult_a_det33_width_total] = mult(double(a_int(2,4)), DetM_3x3_n_33_int, int_size_double, width);
+% [var_mult_a_det34_int, var_mult_a_det34_int_overflow, var_mult_a_det34_abs, var_mult_a_det34_width_total] = mult(double(a_int(2,5)), DetM_3x3_n_34_int, int_size_double, width);
+% 
+% [var_mult_a_det41_int, var_mult_a_det41_int_overflow, var_mult_a_det41_abs, var_mult_a_det41_width_total] = mult(double(a_int(2,1)), DetM_3x3_n_13_int, int_size_double, width);
+% [var_mult_a_det42_int, var_mult_a_det42_int_overflow, var_mult_a_det42_abs, var_mult_a_det42_width_total] = mult(double(a_int(2,2)), DetM_3x3_n_23_int, int_size_double, width);
+% [var_mult_a_det43_int, var_mult_a_det43_int_overflow, var_mult_a_det43_abs, var_mult_a_det43_width_total] = mult(double(a_int(2,3)), DetM_3x3_n_33_int, int_size_double, width);
+% [var_mult_a_det44_int, var_mult_a_det44_int_overflow, var_mult_a_det44_abs, var_mult_a_det44_width_total] = mult(double(a_int(2,5)), DetM_3x3_n_44_int, int_size_double, width);
+% 
+% [var_mult_a_det51_int, var_mult_a_det51_int_overflow, var_mult_a_det51_abs, var_mult_a_det51_width_total] = mult(double(a_int(2,1)), DetM_3x3_n_14_int, int_size_double, width);
+% [var_mult_a_det52_int, var_mult_a_det52_int_overflow, var_mult_a_det52_abs, var_mult_a_det52_width_total] = mult(double(a_int(2,2)), DetM_3x3_n_24_int, int_size_double, width);
+% [var_mult_a_det53_int, var_mult_a_det53_int_overflow, var_mult_a_det53_abs, var_mult_a_det53_width_total] = mult(double(a_int(2,3)), DetM_3x3_n_34_int, int_size_double, width);
+% [var_mult_a_det54_int, var_mult_a_det54_int_overflow, var_mult_a_det54_abs, var_mult_a_det54_width_total] = mult(double(a_int(2,4)), DetM_3x3_n_44_int, int_size_double, width);
 
-[var_mult_a_det11_int, var_mult_a_det11_int_overflow] = mult(int64(a_int(2,2)), int64(DetM_3x3_n_11_int), 64);
-[var_mult_a_det12_int, var_mult_a_det12_int_overflow] = mult(int64(a_int(2,3)), int64(DetM_3x3_n_12_int), 64);
-[var_mult_a_det13_int, var_mult_a_det13_int_overflow] = mult(int64(a_int(2,4)), int64(DetM_3x3_n_13_int), 64);
-[var_mult_a_det14_int, var_mult_a_det14_int_overflow] = mult(int64(a_int(2,5)), int64(DetM_3x3_n_14_int), 64);
-
-[var_mult_a_det21_int, var_mult_a_det21_int_overflow] = mult(int64(a_int(2,1)), int64(DetM_3x3_n_11_int), 64);
-[var_mult_a_det22_int, var_mult_a_det22_int_overflow] = mult(int64(a_int(2,3)), int64(DetM_3x3_n_22_int), 64);
-[var_mult_a_det23_int, var_mult_a_det23_int_overflow] = mult(int64(a_int(2,4)), int64(DetM_3x3_n_23_int), 64);
-[var_mult_a_det24_int, var_mult_a_det24_int_overflow] = mult(int64(a_int(2,5)), int64(DetM_3x3_n_24_int), 64);
-
-[var_mult_a_det31_int, var_mult_a_det31_int_overflow] = mult(int64(a_int(2,1)), int64(DetM_3x3_n_12_int), 64);
-[var_mult_a_det32_int, var_mult_a_det32_int_overflow] = mult(int64(a_int(2,2)), int64(DetM_3x3_n_22_int), 64);
-[var_mult_a_det33_int, var_mult_a_det33_int_overflow] = mult(int64(a_int(2,4)), int64(DetM_3x3_n_33_int), 64);
-[var_mult_a_det34_int, var_mult_a_det34_int_overflow] = mult(int64(a_int(2,5)), int64(DetM_3x3_n_34_int), 64);
-
-[var_mult_a_det41_int, var_mult_a_det41_int_overflow] = mult(int64(a_int(2,1)), int64(DetM_3x3_n_13_int), 64);
-[var_mult_a_det42_int, var_mult_a_det42_int_overflow] = mult(int64(a_int(2,2)), int64(DetM_3x3_n_23_int), 64);
-[var_mult_a_det43_int, var_mult_a_det43_int_overflow] = mult(int64(a_int(2,3)), int64(DetM_3x3_n_33_int), 64);
-[var_mult_a_det44_int, var_mult_a_det44_int_overflow] = mult(int64(a_int(2,5)), int64(DetM_3x3_n_44_int), 64);
-
-[var_mult_a_det51_int, var_mult_a_det51_int_overflow] = mult(int64(a_int(2,1)), int64(DetM_3x3_n_14_int), 64);
-[var_mult_a_det52_int, var_mult_a_det52_int_overflow] = mult(int64(a_int(2,2)), int64(DetM_3x3_n_24_int), 64);
-[var_mult_a_det53_int, var_mult_a_det53_int_overflow] = mult(int64(a_int(2,3)), int64(DetM_3x3_n_34_int), 64);
-[var_mult_a_det54_int, var_mult_a_det54_int_overflow] = mult(int64(a_int(2,4)), int64(DetM_3x3_n_44_int), 64);
-
-
-[DetM_4x4_n_1_int_sum1, DetM_4x4_n_1_int_sum1_overflow] = adder(var_mult_a_det11_int,  -var_mult_a_det12_int, 64);
-[DetM_4x4_n_1_int_sum2, DetM_4x4_n_1_int_sum2_overflow] = adder(var_mult_a_det13_int,  -var_mult_a_det14_int, 64);
-[DetM_4x4_n_1_int, DetM_4x4_n_1_int_overflow] = adder(DetM_4x4_n_1_int_sum1,  DetM_4x4_n_1_int_sum2, 64);
-
-[DetM_4x4_n_2_int_sum1, DetM_4x4_n_2_int_sum1_overflow] = adder(var_mult_a_det21_int,  -var_mult_a_det22_int, 64);
-[DetM_4x4_n_2_int_sum2, DetM_4x4_n_2_int_sum2_overflow] = adder(var_mult_a_det23_int,  -var_mult_a_det24_int, 64);
-[DetM_4x4_n_2_int, DetM_4x4_n_2_int_overflow] = adder(DetM_4x4_n_2_int_sum1,  DetM_4x4_n_2_int_sum2, 64);
-
-[DetM_4x4_n_3_int_sum1, DetM_4x4_n_3_int_sum1_overflow] = adder(var_mult_a_det31_int,  -var_mult_a_det32_int, 64);
-[DetM_4x4_n_3_int_sum2, DetM_4x4_n_3_int_sum2_overflow] = adder(var_mult_a_det33_int,  -var_mult_a_det34_int, 64);
-[DetM_4x4_n_3_int, DetM_4x4_n_3_int_overflow] = adder(DetM_4x4_n_3_int_sum1,  DetM_4x4_n_3_int_sum2, 64);
-
-[DetM_4x4_n_4_int_sum1, DetM_4x4_n_4_int_sum1_overflow] = adder(var_mult_a_det41_int,  -var_mult_a_det42_int, 64);
-[DetM_4x4_n_4_int_sum2, DetM_4x4_n_4_int_sum2_overflow] = adder(var_mult_a_det43_int,  -var_mult_a_det44_int, 64);
-[DetM_4x4_n_4_int, DetM_4x4_n_4_int_overflow] = adder(DetM_4x4_n_4_int_sum1,  DetM_4x4_n_4_int_sum2, 64);
-
-[DetM_4x4_n_5_int_sum1, DetM_4x4_n_5_int_sum1_overflow] = adder(var_mult_a_det51_int,  -var_mult_a_det52_int, 64);
-[DetM_4x4_n_5_int_sum2, DetM_4x4_n_5_int_sum2_overflow] = adder(var_mult_a_det53_int,  -var_mult_a_det54_int, 64);
-[DetM_4x4_n_5_int, DetM_4x4_n_5_int_overflow] = adder(DetM_4x4_n_5_int_sum1,  DetM_4x4_n_5_int_sum2, 64);
+%%
+% [DetM_4x4_n_1_int_sum1, DetM_4x4_n_1_int_sum1_overflow, DetM_4x4_n_1_int_sum1_abs, DetM_4x4_n_1_int_sum1_width_total] = adder(var_mult_a_det11_int,  -var_mult_a_det12_int,  int_size_double, 80);
+% [DetM_4x4_n_1_int_sum2, DetM_4x4_n_1_int_sum2_overflow, DetM_4x4_n_1_int_sum2_abs, DetM_4x4_n_1_int_sum2_width_total] = adder(var_mult_a_det13_int,  -var_mult_a_det14_int,  int_size_double, 80);
+% [DetM_4x4_n_1_int, 		DetM_4x4_n_1_int_overflow, 		DetM_4x4_n_1_int_abs, 		DetM_4x4_n_1_int_width_total] =		adder(DetM_4x4_n_1_int_sum1,  DetM_4x4_n_1_int_sum2, int_size_double, 80);
+% 
+% [DetM_4x4_n_2_int_sum1, DetM_4x4_n_2_int_sum1_overflow, DetM_4x4_n_2_int_sum1_abs, DetM_4x4_n_2_int_sum1_width_total] = adder(var_mult_a_det21_int,  -var_mult_a_det22_int,  int_size_double, 80);
+% [DetM_4x4_n_2_int_sum2, DetM_4x4_n_2_int_sum2_overflow, DetM_4x4_n_2_int_sum2_abs, DetM_4x4_n_2_int_sum2_width_total] = adder(var_mult_a_det23_int,  -var_mult_a_det24_int,  int_size_double, 80);
+% [DetM_4x4_n_2_int, 		DetM_4x4_n_2_int_overflow,		DetM_4x4_n_1_int_abs, 		DetM_4x4_n_1_int_width_total] =		adder(DetM_4x4_n_2_int_sum1,  DetM_4x4_n_2_int_sum2, int_size_double, 80);
+% 
+% [DetM_4x4_n_3_int_sum1, DetM_4x4_n_3_int_sum1_overflow, DetM_4x4_n_3_int_sum1_abs, DetM_4x4_n_3_int_sum1_width_total] = adder(var_mult_a_det31_int,  -var_mult_a_det32_int,  int_size_double, 80);
+% [DetM_4x4_n_3_int_sum2, DetM_4x4_n_3_int_sum2_overflow, DetM_4x4_n_3_int_sum2_abs, DetM_4x4_n_3_int_sum2_width_total] = adder(var_mult_a_det33_int,  -var_mult_a_det34_int,  int_size_double, 80);
+% [DetM_4x4_n_3_int, 		DetM_4x4_n_3_int_overflow,		DetM_4x4_n_3_int_abs, 		DetM_4x4_n_3_int_width_total] = 	adder(DetM_4x4_n_3_int_sum1,  DetM_4x4_n_3_int_sum2, int_size_double, 80);
+% 
+% [DetM_4x4_n_4_int_sum1, DetM_4x4_n_4_int_sum1_overflow, DetM_4x4_n_4_int_sum1_abs, DetM_4x4_n_4_int_sum1_width_total] = adder(var_mult_a_det41_int,  -var_mult_a_det42_int,  int_size_double, 80);
+% [DetM_4x4_n_4_int_sum2, DetM_4x4_n_4_int_sum2_overflow, DetM_4x4_n_4_int_sum2_abs, DetM_4x4_n_4_int_sum2_width_total] = adder(var_mult_a_det43_int,  -var_mult_a_det44_int,  int_size_double, 80);
+% [DetM_4x4_n_4_int, 		DetM_4x4_n_4_int_overflow,		DetM_4x4_n_4_int_abs, 		DetM_4x4_n_4_int_width_total] = 	adder(DetM_4x4_n_4_int_sum1,  DetM_4x4_n_4_int_sum2, int_size_double, 80);
+% 
+% [DetM_4x4_n_5_int_sum1, DetM_4x4_n_5_int_sum1_overflow, DetM_4x4_n_5_int_sum1_abs, DetM_4x4_n_5_int_sum1_width_total] = adder(var_mult_a_det51_int,  -var_mult_a_det52_int,  int_size_double, 80);
+% [DetM_4x4_n_5_int_sum2, DetM_4x4_n_5_int_sum2_overflow, DetM_4x4_n_5_int_sum2_abs, DetM_4x4_n_5_int_sum2_width_total] = adder(var_mult_a_det53_int,  -var_mult_a_det54_int,  int_size_double, 80);
+% [DetM_4x4_n_5_int, 		DetM_4x4_n_5_int_overflow,		DetM_4x4_n_5_int_abs, 		DetM_4x4_n_5_int_width_total] = 	adder(DetM_4x4_n_5_int_sum1,  DetM_4x4_n_5_int_sum2, int_size_double, 80);
 
 %%
 var1 = a(1,1) * DetM_4x4_n_1;
@@ -275,124 +625,28 @@ var5 = a(1,5) * DetM_4x4_n_5;
 DetM_5x5 = var1 - var2 + var3 - var4 + var5;
 
 %%
-
-[var1_int, var1_int_overflow] = mult(int64(a_int(1,1)), int64(DetM_4x4_n_1_int), 64);
-[var2_int, var2_int_overflow] = mult(int64(a_int(1,2)), int64(DetM_4x4_n_2_int), 64);
-[var3_int, var3_int_overflow] = mult(int64(a_int(1,3)), int64(DetM_4x4_n_3_int), 64);
-[var4_int, var4_int_overflow] = mult(int64(a_int(1,4)), int64(DetM_4x4_n_4_int), 64);
-[var5_int, var5_int_overflow] = mult(int64(a_int(1,5)), int64(DetM_4x4_n_5_int), 64);
-
-
-[DetM_5x5_int_sum1, DetM_5x5_int_sum1_overflow] = adder(var1_int,  -var2_int, 64);
-[DetM_5x5_int_sum2, DetM_5x5_int_sum2_overflow] = adder(var3_int,  -var4_int, 64);
-[DetM_5x5_int_sum3, DetM_5x5_int_sum3_overflow] = adder(DetM_5x5_int_sum1,  DetM_5x5_int_sum2, 64);
-[DetM_5x5_int, DetM_5x5_int_overflow] = adder(DetM_5x5_int_sum3,  var5_int, 64);
-
-
-
-
-% de = det(double(data_in)); 
-% de1 = (double(DetM_5x5_int)*2^-55);
+% [var1_int, var1_int_overflow, var1_int_abs, var1_int_mult_width_total] = mult(double(a_int(1,1)), DetM_4x4_n_1_int, int_size_double, width);
+% [var2_int, var2_int_overflow, var2_int_abs, var2_int_mult_width_total] = mult(double(a_int(1,2)), DetM_4x4_n_2_int, int_size_double, width);
+% [var3_int, var3_int_overflow, var3_int_abs, var3_int_mult_width_total] = mult(double(a_int(1,3)), DetM_4x4_n_3_int, int_size_double, width);
+% [var4_int, var4_int_overflow, var4_int_abs, var4_int_mult_width_total] = mult(double(a_int(1,4)), DetM_4x4_n_4_int, int_size_double, width);
+% [var5_int, var5_int_overflow, var5_int_abs, var5_int_mult_width_total] = mult(double(a_int(1,5)), DetM_4x4_n_5_int, int_size_double, width);
 % 
-% error_det =  de / de1;
+% [DetM_5x5_int_sum1, DetM_5x5_int_sum1_overflow, DetM_5x5_int_sum1_abs, DetM_5x5_int_sum1_width_total] = adder(var1_int,  -var2_int, int_size_double, width);
+% [DetM_5x5_int_sum2, DetM_5x5_int_sum2_overflow, DetM_5x5_int_sum2_abs, DetM_5x5_int_sum2_width_total] = adder(var3_int,  -var4_int, int_size_double, width);
+% [DetM_5x5_int_sum3, DetM_5x5_int_sum3_overflow, DetM_5x5_int_sum3_abs, DetM_5x5_int_sum3_width_total] = adder(DetM_5x5_int_sum1,  DetM_5x5_int_sum2, 	int_size_double, width);
+% [DetM_5x5_int, DetM_5x5_int_overflow, DetM_5x5_int_abs, DetM_5x5_int_width_total] = 					adder(DetM_5x5_int_sum3,  var5_int, 			int_size_double, width);
 
-%%
-% a_int = data_in_int;
-% 
-% a1 = a(4,4)*a(5,5) - a(5,4)*a(4,5);
-% a2 = a(4,3)*a(5,5) - a(5,3)*a(4,5);
-% a3 = a(4,3)*a(5,4) - a(5,3)*a(4,4);
-% a4 = a(4,2)*a(5,4) - a(5,2)*a(4,4);
-% a5 = a(4,2)*a(5,5) - a(5,2)*a(4,5);
-% a6 = a(4,2)*a(5,3) - a(5,2)*a(4,3);
-% a7 = a(4,1)*a(5,5) - a(5,1)*a(4,5);
-% a8 = a(4,1)*a(5,4) - a(5,1)*a(4,4);
-% a9 = a(4,1)*a(5,3) - a(5,1)*a(4,3);
-% a10 = a(4,1)*a(5,2) - a(5,1)*a(4,2);
-% 
-% aa1 = a(3,3)*a1;
-% aa2 = a(3,1)*a1;
-% aa3 = a(3,1)*a2;
-% aa4 = a(3,2)*a1;
-% aa5 = a(3,1)*a3;
-% aa6 = a(3,2)*a2;
-% aa7 = a(3,2)*a3;
-% aa8 = a(3,1)*a5;
-% aa9 = a(3,1)*a6;
-% aa10 = a(3,1)*a4; 
-% 
-% b1 = a(3,3)*a5; c1 = a(3,5)*a3;
-% b2 = a(3,3)*a4; c2 = a(3,5)*a6;
-% b3 = a(3,4)*a2; c3 = a(3,4)*a6;
-% b4 = a(3,4)*a7; c4 = a(3,5)*a8;
-% b5 = a(3,2)*a7; c5 = a(3,5)*a9;
-% b6 = a(3,3)*a7; c6 = a(3,5)*a10;
-% b7 = a(3,2)*a8; c7 = a(3,3)*a10;
-% b8 = a(3,2)*a9; c8 = a(3,4)*a10;
-% b9 = a(3,3)*a8; c9 = a(3,4)*a9;
-% b10 = a(3,4)*a5; c10 = a(3,5)*a4;
-% 
-% e1 = aa10 - b7 + c8;
-% e2 = aa9 - b8 + c7;
-% e3 = aa5 - b9 + c9;
-% e4 = aa7 - b2 + c3;
-% e5 = aa6 - b1 + c2;
-% e6 = aa2 - b4 + c4;
-% e7 = aa3 - b6 + c5;
-% e8 = aa8 - b5 + c6;
-% e9 = aa1 - b3 + c1;
-% e10 = aa4 - b10 + c10;
-
-% det1_4x4 = a(1,1) * (...
-%            a(2,2) * e9 ...
-%            -a(2,3) * e10 ...
-%            +a(2,4) * e5 ...
-%            -a(2,5) * e4 ...
-%             );
-% 
-% det2_4x4 = -a(1,2) * (...
-%            a(2,1) * e9 ...
-%            -a(2,3) * e6 ...
-%            +a(2,4) * e7 ...
-%            -a(2,5) * e3 ...
-%             );
-% 
-% det3_4x4 = a(1,3) * (...
-%            a(2,1) * e10 ...
-%            -a(2,2) * e6 ...
-%            +a(2,4) * e8 ...
-%            -a(2,5) * e1 ...
-%             );
-% 
-% det4_4x4 = -a(1,4) * (...
-%            a(2,1) * e5 ...
-%            -a(2,2) * e7 ...
-%            +a(2,3) * e8 ...
-%            -a(2,5) * e2 ...
-%             );
-% 
-% det5_4x4 = a(1,5) * (...
-%            a(2,1) * e4 ...
-%            -a(2,2) * e3 ...
-%            +a(2,3) * e1 ...
-%            -a(2,4) * e2 ...
-%             );
-% 
-% sum_deet = det1_4x4 + det2_4x4 + det3_4x4 + det4_4x4 + det5_4x4;
-
+DetM_5x5_int = 0;
 end
 
-function [det_out, det_out_int] = det_2x2(a, a_int)
+function [det_out, det_out_int, mult1_int_abs, mult2_int_abs, det_out_int_abs, ...
+    mult1_overflow, mult2_overflow, width_total_mult1, width_total_mult2, sum_overflow, width_total_sum] = det_2x2(a, a_int, int_size, width)
 
-    det_out = a(1,1) * a(2,2) - a(2,1) * a(1,2); % fi(1,12,11) * fi(1,12,11) = fi(1,24,22)
+    det_out = a(1,1) * a(2,2) - a(2,1) * a(1,2);
+	%%
+    [mult1_int, mult1_overflow, mult1_int_abs, width_total_mult1] = mult(a_int(1,1), a_int(2,2), int_size, width);
+    [mult2_int, mult2_overflow, mult2_int_abs, width_total_mult2] = mult(a_int(2,1), a_int(1,2), int_size, width);
 
-    [mult1_int, overflow1] = mult(int32(a_int(1,1)), int32(a_int(2,2)), 32);
-    [mult2_int, overflow2] = mult(int32(a_int(2,1)), int32(a_int(1,2)), 32);
-
-    if (overflow1 == 1 | overflow2 == 1)
-        disp('Mult in determinate overflow');
-    end
-
-	[det_out_int, sum_overflow] = adder(mult1_int,  -mult2_int, 32);
+	[det_out_int, sum_overflow, det_out_int_abs, width_total_sum] = adder(mult1_int,  -mult2_int, int_size, width);
 
 end

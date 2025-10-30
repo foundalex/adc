@@ -25,7 +25,7 @@ function [y, overflow, y_abs, width_total] = adder(a,b,int_size,width)
 
     y = a + b;
 
-    if (y > mmax | y < mmin)
+    if (y >= mmax || y <= mmin)
         overflow = int8(1);
     else
         overflow = int8(0);

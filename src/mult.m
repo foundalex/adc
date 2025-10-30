@@ -12,7 +12,7 @@ function [y, overflow, y_abs, width_total] = mult(a, b, int_size, width)
 
     y = a * b;
 
-    if (y >= mmax | y < mmin)
+    if (y >= mmax || y <= mmin)
         overflow = cast(1,int_size);
     else
         overflow = cast(0,int_size);
