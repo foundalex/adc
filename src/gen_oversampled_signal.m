@@ -92,9 +92,17 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
     end
 
 
-    % save (sprintf(num2str(clock)) + ".mat");
+    % save (sprintf(num2str(clock) + ".mat"));
     % load ('2025             10              8             13             24         10.929.mat'); % 70 SNR 70 MHz
     % load ('2025             10             17             15             47          4.423.mat'); % 60 SNR 70 MHz
+
+    % load ('2025             10             29             13             27          1.297.mat'); % 0 SNR 298 MHz
+    % load ('2025             10             28             13             31         30.067.mat'); % 0 SNR 298 MHz
+
+    % load ('2025             10             30             12
+    % 35          34.93.mat'); % 70 SNR 741 MHz 999 samples
+
+     load ('2025             11              1             15             44         59.704.mat'); % 70 SNR 741 MHz 9999 samples
 end
 
 %%

@@ -1,23 +1,23 @@
-function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fir_filter(b, x, enable_mask, width_mult_txt, width_sum_txt, width, sim_options)
+function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fir_filter(b, x, N, width_mult_txt, width_sum_txt, width, sim_options)
 
     buffer = cast(zeros(1,length(b)),sim_options.int_size);
 
-	mult_n = cast(zeros(sim_options.N,length(x)),sim_options.int_size);
-    mult_overflow = int8(zeros(sim_options.N,length(x)));
-    mult_abs = cast(zeros(sim_options.N,length(x)),sim_options.int_size);
-    width_total_mult = int8(zeros(sim_options.N,length(x)));
-    width_total_mult_max = int8(zeros(sim_options.N,1));
+	mult_n = cast(zeros(N,length(x)),sim_options.int_size);
+    mult_overflow = int8(zeros(N,length(x)));
+    mult_abs = cast(zeros(N,length(x)),sim_options.int_size);
+    width_total_mult = int8(zeros(N,length(x)));
+    width_total_mult_max = int8(zeros(N,1));
 
-    sum = cast(zeros(sim_options.N-1,length(x)),sim_options.int_size);
-	sum_overflow = int8(zeros(sim_options.N-1,length(x)));
-    sum_abs = cast(zeros(sim_options.N-1,length(x)),sim_options.int_size);
-    width_total_sum = int8(zeros(sim_options.N-1,length(x)));
-    width_total_sum_max = int8(zeros(sim_options.N-1,1));
+    sum = cast(zeros(N-1,length(x)),sim_options.int_size);
+	sum_overflow = int8(zeros(N-1,length(x)));
+    sum_abs = cast(zeros(N-1,length(x)),sim_options.int_size);
+    width_total_sum = int8(zeros(N-1,length(x)));
+    width_total_sum_max = int8(zeros(N-1,1));
 
-    mult_max = cast(zeros(sim_options.N,1),sim_options.int_size);
-    sum_max = cast(zeros(sim_options.N-1,1),sim_options.int_size);
+    mult_max = cast(zeros(N,1),sim_options.int_size);
+    sum_max = cast(zeros(N-1,1),sim_options.int_size);
 
-    if enable_mask == true
+    if sim_options.enable_mask == true
         width_mult = readmatrix(width_mult_txt);
         width_sum = readmatrix(width_sum_txt);
     end
@@ -28,7 +28,7 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
 
         buffer = cast([x(n) buffer(1:end-1)], sim_options.int_size);
 
-		for i = uint8(1:sim_options.N)
+		for i = uint8(1:N)
 			[mult_n(i,n), mult_overflow(i,n), mult_abs(i,n), width_total_mult(i,n)] = mult(b(i), buffer(i), sim_options.int_size, width);
             %% Проверка выходной разрядности умножителей
             if (mult_overflow(i,n) == 1)
@@ -44,7 +44,7 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
                 disp({width_total_mult(i,n), i, n});
             end
             %% Накладываем маску
-            if enable_mask == true
+            if sim_options.enable_mask == true
                 c = bitmask(mult_n(i,n), sim_options.int_size, width_mult(i));
                 if c ~= mult_n(i,n)
                     disp('Bit mask error mult');
@@ -83,7 +83,7 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
                 disp({width_total_sum(1,n), 1, n});
             end
         %% Накладываем маску
-        if enable_mask == true
+        if sim_options.enable_mask == true
             c1 = bitmask(sum(1,n), sim_options.int_size, width_sum(1));
             if c1 ~= sum(1,n)
                 disp('Bit mask error sum');
@@ -106,7 +106,7 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
             end
         end
 
-     	for i = uint8(1:sim_options.N-2)
+     	for i = uint8(1:N-2)
 			[sum(i+1,n), sum_overflow(i+1,n), sum_abs(i+1,n), width_total_sum(i+1,n)] = adder(sum(i,n),  mult_n(i+2,n), sim_options.int_size, width);
             %% Проверка выходной разрядности сумматора
             if (sum_overflow(i+1,n) == 1)
@@ -122,7 +122,7 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
                 disp({width_total_sum(i+1,n), i+1, n});
             end
             %% Наложение маски
-            if enable_mask == true
+            if sim_options.enable_mask == true
                 c1 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
                 if c1 ~= sum(i+1,n)
                     disp('Bit mask error sum');
@@ -147,6 +147,6 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
         end
     end
 
-    y = sum(72,:)';
+    y = sum(N-1,:)';
 
 end

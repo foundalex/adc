@@ -6,18 +6,48 @@
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
 function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...  
-hilbert_mult, hilbert_sum, hilbert_width_total_mult, hilbert_width_total_sum, ...
-... % Determinant
-Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] = ...
-adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc, Z)
+    hilbert_mult, hilbert_sum, hilbert_width_total_mult, hilbert_width_total_sum, ...
+    ... % Determinant
+    Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs, ...
+    Mult_DetM_2x2_1_abs_max, ...
+	Mult_DetM_2x2_2_abs_max, ...
+	Mult_DetM_2x2_3_abs_max, ...
+	Mult_DetM_2x2_4_abs_max, ...
+	Mult_DetM_2x2_5_abs_max, ...
+	Mult_DetM_2x2_6_abs_max, ...
+	Mult_DetM_2x2_7_abs_max, ...
+	Mult_DetM_2x2_8_abs_max, ...
+	Mult_DetM_2x2_9_abs_max, ...
+	Mult_DetM_2x2_10_abs_max, ...
+	... %% сумматоры определителя 3х3
+	DetM_3x3_n_11_int_sum1_abs_max, ...
+	DetM_3x3_n_11_int_abs_max, ...
+	DetM_3x3_n_12_int_sum1_abs_max, ...
+	DetM_3x3_n_12_int_abs_max, ...
+	DetM_3x3_n_13_int_sum1_abs_max, ...
+	DetM_3x3_n_13_int_abs_max, ...
+	DetM_3x3_n_14_int_sum1_abs_max, ...
+	DetM_3x3_n_14_int_abs_max, ...
+	DetM_3x3_n_22_int_sum1_abs_max, ...
+	DetM_3x3_n_22_int_abs_max, ...
+	DetM_3x3_n_23_int_sum1_abs_max, ...
+	DetM_3x3_n_23_int_abs_max, ...
+	DetM_3x3_n_24_int_sum1_abs_max, ...
+	DetM_3x3_n_24_int_abs_max, ...
+	DetM_3x3_n_33_int_sum1_abs_max, ...
+	DetM_3x3_n_33_int_abs_max, ...
+	DetM_3x3_n_34_int_sum1_abs_max, ...
+	DetM_3x3_n_34_int_abs_max, ...
+	DetM_3x3_n_44_int_sum1_abs_max, ...
+	DetM_3x3_n_44_int_abs_max ...
+] = adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc)
 
     %% Calibration algorithm 1 (Fractional delays)
     n = (0:1:sim_options.N-1);
-    Nbp = floor(Z/2); % стр 7. (24)
+    Nbp = floor(sim_options.Z/2); % стр 7. (24)
     del_proc = ((sim_options.N-1)/2);
     nn = 1:length(adc_input(:,1));
     w_blackman = 0.42 - 0.5 * cos(2*pi*n/(sim_options.N-1)) + 0.08 * cos(4*pi*n/(sim_options.N-1)); % Blackman window
-
 
     %% Fractional filter coeff
     %%
@@ -27,11 +57,9 @@ adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc, Z)
     w_blackman_fractional = 0.42 - 0.5 * cos(2*pi*(n'+ delay_adc)/(sim_options.N-1)) + 0.08 * cos(4*pi*(n'+ delay_adc)/(sim_options.N-1)); % shift Blackman window
     hri_w = hri_m .* w_blackman_fractional; 
 
-    fractional_width = 19;
-
-    coeff_frac_int = cast((hri_w*2^(fractional_width-1)), sim_options.int_size);
-    % width_frac = define_of_width_int(coeff_frac_int);
- 
+    
+    coeff_frac_int = cast((hri_w*2^(sim_options.fractional_coeff_width-1)), sim_options.int_size);
+    
     % figure(3)
     % subplot(2,1,1)
     % plot(double(coeff_frac_int))
@@ -65,14 +93,10 @@ adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc, Z)
     hh(37) = 0;
     hh_m = (hh .* w_blackman).';
 
-    hilbert_width = 13;
-
     % Negative Symmetric coefficients
-    hilbert_coeff_int = cast(hh_m*2^(hilbert_width-1), sim_options.int_size);
-    % width_hilbert = define_of_width_int(hilbert_coeff_int);
+    hilbert_coeff_int = cast(hh_m*2^(sim_options.hilbert_coeff_width-1), sim_options.int_size);
 
     % [y, f] = freqz(double(hilbert_coeff_int)*2^-(hilbert_width-1), 1,1024, 'whole', 1000000000);
-    % 
     % figure(2);
     % plot(f, abs(y));
     % 
@@ -91,12 +115,13 @@ adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc, Z)
     %% zones Nyquist
     nn1 = nn' + delay_adc;
     a1 = 2*pi*nn1*Nbp;
-    c_os = cos(a1);
-    s_os = sin(a1);
+    cosi = cos(a1);
+    sini = sin(a1);
+    % sini = sin(a1(1:end-del_proc,:));
 
     %%
-    yri_cut = zeros(length(adc_input(:,1))-del_proc,sim_options.M);
-    yri_cut_int = cast(zeros(length(adc_input(:,1))-del_proc,sim_options.M), sim_options.int_size);
+    yri_cut = zeros(length(adc_input(:,1)),sim_options.M);
+    yri_cut_int = cast(zeros(length(adc_input(:,1)),sim_options.M), sim_options.int_size);
 
     fractional_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
     fractional_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
@@ -108,135 +133,214 @@ adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc, Z)
     hilbert_width_total_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
     hilbert_width_total_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
 
-	    %% Fractional delays of ADC0 signal
-        % for i = 1:sim_options.M-1
-        % 
-        %     fractional_mult_file = ['src/width_txt/Width_multiplier_Fractional_filter_' num2str(i) '.txt'];
-        %     fractional_sum_file = ['src/width_txt/Width_adder_Fractional_filter_' num2str(i) '.txt'];
-        % 
-        %     hilbert_mult_file = ['src/width_txt/Width_multiplier_Hilbert_filter_' num2str(i) '.txt'];
-        %     hilbert_sum_file = ['src/width_txt/Width_adder_Hilbert_filter_' num2str(i) '.txt'];
-        % 
-	    %     [yri, ymi, y_fractional_outInt, ymi_HilbertInt, fractional_mult(:,i), fractional_sum(:,i), ... 
-        %         fractional_width_total_mult(:,i), fractional_width_total_sum(:,i), hilbert_mult(:,i), hilbert_sum(:,i), hilbert_width_total_mult(:,i), hilbert_width_total_sum(:,i)] ...
-        %         = fractional_delays(adc_input(:,1),  hri_w(:,i), hh_m, coeff_frac_int(:,i), fractional_width, hilbert_coeff_int, sim_options.enable_mask, ...
-        %         fractional_mult_file, fractional_sum_file, hilbert_mult_file, hilbert_sum_file, sim_options);
-        % 
-        %     yhil_imag = [ymi(del_proc+1:end); zeros(del_proc,1)];
-        %     yhil_imag_int = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)];
-        % 
-        %     %% Algorithm for working in different zones of Nyquist
-        %     yri_cos = c_os(:,i) .* yri; 
-        %     yri_sin = s_os(:,i) .* yhil_imag; 
-        % 
-        %     if (mod(Z,2) == 0)
-        %         yric = yri_cos + yri_sin;
-        %     else
-        %         yric = yri_cos - yri_sin;
-        %     end
-        % 
-        %     %% integer
-        % 
-        %     yhil_imag_int_double = double(yhil_imag_int)*2^-30;
-        %     y_fractional_outInt_double = double(y_fractional_outInt)*2^-18;
-        % 
-        %     if Z == 2 | Z == 3
-        %         if (delay_adc(i) == 0.25) % ADC2
-        %             yric_int = yhil_imag_int;
-        % 
-        %             relative_error1 = yric(del_proc+1:end)./yhil_imag_int_double(del_proc+1:end);
-        %             figure(7);
-        %             subplot(2,1,1)
-        %             plot([yric(del_proc+1:end), yhil_imag_int_double(del_proc+1:end)]);
-        %             subplot(2,1,2)
-        %             plot(relative_error1)
-        % 
-        %         elseif (delay_adc(i) == 0.5) % ADC3
-        %             yric_int = -y_fractional_outInt;
-        % 
-        %             relative_error2 = yric./-y_fractional_outInt_double;
-        %             figure(8);
-        %             subplot(2,1,1)
-        %             plot([yric(del_proc+1:end), -y_fractional_outInt_double(del_proc+1:end)]);
-        %             subplot(2,1,2)
-        %             plot(relative_error2)
-        % 
-        %         elseif (delay_adc(i) == 0.75) % ADC4
-        %             yric_int = -yhil_imag_int;
-        % 
-        %             relative_error3 = yric./-yhil_imag_int_double;
-        %             figure(9);
-        %             subplot(2,1,1)
-        %             plot([yric(del_proc+1:end), -yhil_imag_int_double(del_proc+1:end)]);
-        %             subplot(2,1,2)
-        %             plot(relative_error3)
-        % 
-        %         end
-        %     elseif Z == 4
-        %         if (delay_adc(i) == 0.25)
-        %             yric_int = -y_fractional_outInt;
-        %         elseif (delay_adc(i) == 0.5)
-        %             yric_int = y_fractional_outInt;
-        %         elseif (delay_adc(i) == 0.75)
-        %             yric_int = -y_fractional_outInt;
-        %         end
-        %     else 
-        %         yric_int = y_fractional_outInt;
-        %     end
-        % 
-        % 
-        % 
-        %     %%
-        %     yri_cut(:,i+1) = yric(del_proc+1:end);
-        %     yri_cut_int(:,i+1) = yric_int(del_proc+1:end);
-        % 
-        % end
-        % 
-        % 
-        % yri_cut(:,1) = adc_input(1:end-del_proc,1);
-        % yri_cut_int(:,1) = adc_input(1:end-del_proc,1);
-        % 
-        % yri_cut(end-del_proc:end,:) = [];
-        % yri_cut_int(end-del_proc:end,:) = [];
+	%% Fractional delays of ADC0 signal
+    % for i = 1:sim_options.M-1
+    % 
+    %     fractional_mult_file = ['src/width_txt/Width_multiplier_Fractional_filter_' num2str(i) '.txt'];
+    %     fractional_sum_file = ['src/width_txt/Width_adder_Fractional_filter_' num2str(i) '.txt'];
+    % 
+    %     hilbert_mult_file = ['src/width_txt/Width_multiplier_Hilbert_filter_' num2str(i) '.txt'];
+    %     hilbert_sum_file = ['src/width_txt/Width_adder_Hilbert_filter_' num2str(i) '.txt'];
+    % 
+    %     yri = filter(hri_w(:,i), 1, adc_input(:,1)); % filter (стр.6 (15))
+    %     ymi = filter(hh_m.', 1, yri);
+    % 
+    %     % y(n) = x(n)*(k1*2^N)+x(n-1)*(k2*2^N)+x(n-3)*(k3*2^N)
+    %     % N = 18
+    %     [y_fractional_outInt, fractional_mult(:,i), fractional_sum(:,i), fractional_width_total_mult(:,i), fractional_width_total_sum(:,i) ...
+    %         ] = fir_filter(coeff_frac_int(:,i), adc_input(:,1), sim_options.N, ...
+    %     fractional_mult_file, fractional_sum_file, sim_options.width_fractional, sim_options); % (стр.6 (15)) 
+    % 
+    %     %% Hilbert
+    %     %%
+    %     % y(n) = x(n)*(k1*2^N)+x(n-1)*(k2*2^N)+x(n-3)*(k3*2^N)
+    %     % N = 15
+    %     [ymi_HilbertInt, hilbert_mult(:,i), hilbert_sum(:,i), hilbert_width_total_mult(:,i), hilbert_width_total_sum(:,i) ...
+    %         ] = fir_filter(hilbert_coeff_int, y_fractional_outInt, sim_options.N, ...
+    %      hilbert_mult_file, hilbert_sum_file, sim_options.width_hilbert, sim_options); % (стр.6 (15)) );
+    % 
+    %     %%
+    % 
+    %     snr_fractional_out_double = snr(yri, 1000000000);
+    %     snr_fractional_out_int = snr(double(y_fractional_outInt)*2^-(sim_options.fractional_coeff_width-1), 1000000000);
+    % 
+    %     if (snr_fractional_out_double - snr_fractional_out_int) > 0.1
+    %         disp('SNR fractional out different!')
+    %         disp([sim_options.SNR, sim_options.freq])
+    %     end
+    % 
+    %     y_fractional_outInt_double = double(y_fractional_outInt)*2^-(sim_options.fractional_coeff_width-1);
+    %     relative_error_fractional = yri./y_fractional_outInt_double;
+    % 
+    %     sim_options.divide_remainder = (sim_options.fractional_coeff_width-1) + (sim_options.hilbert_coeff_width-1);
+    % 
+    %     ymi_HilbertInt_double = double(ymi_HilbertInt)*2^-(sim_options.divide_remainder);
+    %     relative_error_hilbert = ymi./ymi_HilbertInt_double;
+    % 
+    %     snr_hilbert_out_double = snr(ymi, 1000000000);
+    %     snr_hilbert_out_int = snr(double(ymi_HilbertInt)*2^-30, 1000000000);
+    % 
+    % 
+    %     if (snr_hilbert_out_double - snr_hilbert_out_int) > 0.1
+    %         disp('SNR hilbert out different!')
+    %         disp([sim_options.SNR, sim_options.freq])
+    %     end
+    % 
+    %     figure(4);
+    %     subplot(4,1,1)
+    %     plot([yri(1:500), y_fractional_outInt_double(1:500)]);
+    %     subplot(4,1,2);
+    %     snr(yri, 1000000000);
+    %     subplot(4,1,3);
+    %     snr(y_fractional_outInt_double, 1000000000);
+    % 
+    %     subplot(4,1,4);
+    %     plot(relative_error_fractional);
+    %     title('Относительная ошибка выходного сигнала фильтра дробной задержки между double и integer')
+    %     xlabel('Номер отсчета') 
+    %     ylabel('Значение ошибки') 
+    %     x4 = xline(37, '--', 'Переходной процесс фильтра')
+    %     x4.LabelHorizontalAlignment = 'center'
+    %     x4.LabelVerticalAlignment = 'middle';
+    % 
+    %     figure(5);
+    %     subplot(4,1,1)
+    %     plot([ymi(1:500), double(ymi_HilbertInt(1:500))*2^-sim_options.divide_remainder]);
+    %     subplot(4,1,2);
+    %     snr(ymi, 1000000000);
+    %     subplot(4,1,3);
+    %     snr(double(ymi_HilbertInt)*2^-sim_options.divide_remainder, 1000000000);
+    %     subplot(4,1,4);
+    %     plot(relative_error_hilbert);
+    %     title('Относительная ошибка выходного сигнала фильтра Гилберта между double и integer')
+    %     xlabel('Номер отсчета') 
+    %     ylabel('Значение ошибки') 
+    %     x4 = xline(73, '--', 'Переходной процесс фильтра')
+    %     x4.LabelHorizontalAlignment = 'center'
+    %     x4.LabelVerticalAlignment = 'middle';
+    % 
+    %     %%
+    %     [yric(:,i), yric_int(:,i)] = single_sideband(yri, y_fractional_outInt, ymi, ymi_HilbertInt, cosi(:,i), sini(:,i), i, del_proc, sim_options);
+    % 
+    % end
+    % 
+    % 
+    % %% test signal
+    % yri_cut = zeros(length(adc_input(1:end-del_proc,1)),sim_options.M);
+    % yri_cut_int = cast(zeros(length(adc_input(1:end-del_proc,1)),sim_options.M), sim_options.int_size);
+    % 
+    % 
+    % for i = 1:sim_options.M
+    %     if i == 1
+    %          yri_cut(:,1) = adc_input(1:end-del_proc,1);
+    %          yri_cut_int(:,1) = adc_input(1:end-del_proc,1);
+    %     else
+    %         yri_cut(:,i) = yric(del_proc+1:end,i-1);
+    %         yri_cut_int(:,i) = yric_int(del_proc+1:end,i-1);
+    %     end
+    % end
+    % 
+    % yri_cut(end-del_proc:end,:) = [];
+    % yri_cut_int(end-del_proc:end,:) = [];
+    % 
+    % 
+    % sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);
+    % sig_adc_int = zeros(sim_options.M*length(yri_cut_int(:,1)),1);
+    % 
+    % yri_cut1(:,1) = double(yri_cut_int(:,1));
+    % yri_cut1(:,2) = double(yri_cut_int(:,2))*2^-(sim_options.fractional_coeff_width-1+sim_options.hilbert_coeff_width-1);
+    % yri_cut1(:,3) = double(yri_cut_int(:,3))*2^-(sim_options.fractional_coeff_width-1);
+    % yri_cut1(:,4) = double(yri_cut_int(:,4))*2^-(sim_options.fractional_coeff_width-1+sim_options.hilbert_coeff_width-1);
+    % % 
+    % % 
+	% for i = 1:sim_options.M
+    %     sig_adc(i:sim_options.M:end) = yri_cut(:,i);
+    %     sig_adc_int(i:sim_options.M:end) = yri_cut1(:,i);
+    % end
 
 
-        %% test signal after fractional delay filters
-        % sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);
-        % sig_adc_int = zeros(sim_options.M*length(yri_cut_int(:,1)),1);
-        % 
-        % yri_cut1(:,1) = double(yri_cut_int(:,1));
-        % yri_cut1(:,2) = double(yri_cut_int(:,2))*2^-(30);
-        % yri_cut1(:,3) = double(yri_cut_int(:,3))*2^-(18);
-        % yri_cut1(:,4) = double(yri_cut_int(:,4))*2^-(30);
-        % % 
-        % % 
-	    % for i = 1:sim_options.M
-        %     sig_adc(i:sim_options.M:end) = yri_cut(:,i);
-        %     sig_adc_int(i:sim_options.M:end) = yri_cut1(:,i);
-        % end
-        % % 
-        % figure(6);
-        % plot([sig_adc(1:500), sig_adc_int(1:500)]);
-        % figure(10);
-        % subplot(2,1,1);
-        % snr(sig_adc, 500000000);
-        % subplot(2,1,2);
-        % snr(sig_adc_int, 500000000);
-        %%
-        % save (sprintf(num2str(clock) + ".mat"));
-        load ('2025             10             29             17             37         12.478.mat'); % 70 SNR 70 MHz
 
-    % snr_s(1) = snr(sig_adc, sim_options.Fs/sim_options.Inter);
+
+    
+    % 
+     % save (sprintf(num2str(clock) + ".mat"));
+    % load ('2025             10             29             17             37         12.478.mat'); % 70 SNR 70 MHz
+
+    load ('2025             11              1             15             48         17.087.mat'); % 888 MHz 70 SNR
+
+    figure(6);
+    plot([s_to_subadc(1:500), sig_adc(1:500), sig_adc_int(1:500)]);
+    figure(10);
+    subplot(3,1,1)
+    snr(s_to_subadc, sim_options.Fs/sim_options.Inter);
+    subplot(3,1,2);
+    snr(sig_adc, sim_options.Fs/sim_options.Inter);
+    subplot(3,1,3);
+    snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
+    %%
+
+
 
     snr_s = 0;
 
     %% Calibration algorithm 2 (Least Mean Squares)
     % 
-    % x_after_adc = 0; 
-    % x_after_adc_int = 0;
+    x_after_adc = 0; 
+    x_after_adc_int = 0;
 
-    [y_array, y_array_int, Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] = ...
-    least_mean_squares(double(adc_input), adc_input, yri_cut, yri_cut_int, sim_options.M, sim_options.N1, sim_options.width_hilbert, sim_options.int_size);
+    for i = 1:sim_options.M-1
+        [y_array(:,i), y_array_int(:,i), DetM_2x2_array(:,i), DetM_2x2_array_int(:,i), Det2x2_mult1_abs(:,i), Det2x2_mult2_abs(:,i), Det2x2_sum_abs(:,i), ...
+            Mult_DetM_2x2_1_abs_max(:,i), ...
+	        Mult_DetM_2x2_2_abs_max(:,i), ...
+	        Mult_DetM_2x2_3_abs_max(:,i), ...
+	        Mult_DetM_2x2_4_abs_max(:,i), ...
+	        Mult_DetM_2x2_5_abs_max(:,i), ...
+	        Mult_DetM_2x2_6_abs_max(:,i), ...
+	        Mult_DetM_2x2_7_abs_max(:,i), ...
+	        Mult_DetM_2x2_8_abs_max(:,i), ...
+	        Mult_DetM_2x2_9_abs_max(:,i), ...
+	        Mult_DetM_2x2_10_abs_max(:,i), ...
+			... %% сумматоры определителя 3х3
+			DetM_3x3_n_11_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_11_int_abs_max(:,i), ...
+			DetM_3x3_n_12_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_12_int_abs_max(:,i), ...
+			DetM_3x3_n_13_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_13_int_abs_max(:,i), ...
+			DetM_3x3_n_14_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_14_int_abs_max(:,i), ...
+			DetM_3x3_n_22_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_22_int_abs_max(:,i), ...
+			DetM_3x3_n_23_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_23_int_abs_max(:,i), ...
+			DetM_3x3_n_24_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_24_int_abs_max(:,i), ...
+			DetM_3x3_n_33_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_33_int_abs_max(:,i), ...
+			DetM_3x3_n_34_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_34_int_abs_max(:,i), ...
+			DetM_3x3_n_44_int_sum1_abs_max(:,i), ...
+			DetM_3x3_n_44_int_abs_max(:,i) ...
+        ] = least_mean_squares(double(adc_input(:,i+1)), adc_input(:,i+1), yri_cut(:,i+1), yri_cut_int(:,i+1), sim_options.M, sim_options.N1, sim_options.width_hilbert, sim_options.int_size);
+    
+    
+        %%  
+    
+        figure(13);
+
+        subplot(2,1,1);
+        plot(double(yri_cut_int(:,1)));
+        title('Выход референсного канала АЦП')
+        xlabel('Номер отсчета') 
+        ylabel('Амплитуда сигнала') 
+
+        subplot(2,1,2);
+        plot([y_array(:,i)]);
+        title('Выход адаптивного фильтра double для одного канала АЦП')
+        xlabel('Номер отсчета') 
+        ylabel('Амплитуда сигнала') 
+    
+    end
     % 
     % % create main signal after LS algorithm (switch after sub-adc)
     % x_after_adc = zeros(length(y_array)*sim_options.M,1);

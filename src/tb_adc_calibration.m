@@ -35,11 +35,52 @@ hilbert_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_s
 
 hilbert_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 hilbert_total_width_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
+%%
+Det2x2_mult1_abs_max = cast(zeros(10,sim_options.M-1), sim_options.int_size); 
+Det2x2_mult2_abs_max = cast(zeros(10,sim_options.M-1), sim_options.int_size); 
+Det2x2_sum_abs_max = cast(zeros(10,sim_options.M-1), sim_options.int_size); 
+
+width_mult1_det2x2 = int8(zeros(10,sim_options.M-1));
+width_mult2_det2x2 = int8(zeros(10,sim_options.M-1));
+width_sum_det2x2 = int8(zeros(10,sim_options.M-1));
 
 %%
+Mult_DetM_2x2_1_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_2_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_3_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_4_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_5_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_6_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_7_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_8_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_9_abs_max_cycle  = cast(zeros(3,sim_options.M-1), "double");
+Mult_DetM_2x2_10_abs_max_cycle = cast(zeros(3,sim_options.M-1), "double");
+
+DetM_3x3_n_11_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_11_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_12_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_12_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_13_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_13_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_14_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_14_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_22_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_22_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_23_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_23_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_24_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_24_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_33_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_33_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_34_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_34_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_44_int_sum1_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+DetM_3x3_n_44_int_abs_max_cycle = cast(zeros(1,sim_options.M-1), "double");
+%%
+
 for num = 1:sim_options.num_cycles
  
-    Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
+    sim_options.Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
         sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
@@ -47,8 +88,39 @@ for num = 1:sim_options.num_cycles
     [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
         hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum, ...
         ... % Determinant
-        Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs] ...
-        = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc, Z);
+        Det2x2_mult1_abs, Det2x2_mult2_abs, Det2x2_sum_abs, ...
+        Mult_DetM_2x2_1_abs_max, ...
+	    Mult_DetM_2x2_2_abs_max, ...
+	    Mult_DetM_2x2_3_abs_max, ...
+	    Mult_DetM_2x2_4_abs_max, ...
+	    Mult_DetM_2x2_5_abs_max, ...
+	    Mult_DetM_2x2_6_abs_max, ...
+	    Mult_DetM_2x2_7_abs_max, ...
+	    Mult_DetM_2x2_8_abs_max, ...
+	    Mult_DetM_2x2_9_abs_max, ...
+	    Mult_DetM_2x2_10_abs_max, ...
+		... %% сумматоры определителя 3х3 
+		DetM_3x3_n_11_int_sum1_abs_max, ...
+		DetM_3x3_n_11_int_abs_max, ...
+		DetM_3x3_n_12_int_sum1_abs_max, ...
+		DetM_3x3_n_12_int_abs_max, ...
+		DetM_3x3_n_13_int_sum1_abs_max, ...
+		DetM_3x3_n_13_int_abs_max, ...
+		DetM_3x3_n_14_int_sum1_abs_max, ...
+		DetM_3x3_n_14_int_abs_max, ...
+		DetM_3x3_n_22_int_sum1_abs_max, ...
+		DetM_3x3_n_22_int_abs_max, ...
+		DetM_3x3_n_23_int_sum1_abs_max, ...
+		DetM_3x3_n_23_int_abs_max, ...
+		DetM_3x3_n_24_int_sum1_abs_max, ...
+		DetM_3x3_n_24_int_abs_max, ...
+		DetM_3x3_n_33_int_sum1_abs_max, ...
+		DetM_3x3_n_33_int_abs_max, ...
+		DetM_3x3_n_34_int_sum1_abs_max, ...
+		DetM_3x3_n_34_int_abs_max, ...
+		DetM_3x3_n_44_int_sum1_abs_max, ...
+		DetM_3x3_n_44_int_abs_max ...
+	] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc);
 
     % Записываем значения каждого фильтра
     for i = 1:sim_options.M-1
@@ -79,8 +151,6 @@ for num = 1:sim_options.num_cycles
 
         end
 
-
-        %%
         for j = 1:sim_options.N-1
             % выбираем максимальное значение сигнала сумматоров
             % фильтра дробной задержки 
@@ -106,10 +176,163 @@ for num = 1:sim_options.num_cycles
             if (hilbert_total_width_sum_max(j,i) < hilbert_width_total_sum(j,i))
                 hilbert_total_width_sum_max(j,i) = hilbert_width_total_sum(j,i); 
             end
-
         end
 
+        %% Determinante 2x2
+        for k = 1:10
+            % Поиск максимального значения первых 10 умножителей1 в определителе
+            % 2х2
+            if (Det2x2_mult1_abs_max(k,i) < Det2x2_mult1_abs(k,i))
+                Det2x2_mult1_abs_max(k,i) = Det2x2_mult1_abs(k,i);
+            end
+            % Поиск максимального значения первых 10 умножителей2 в определителе
+            % 2х2
+            if (Det2x2_mult2_abs_max(k,i) < Det2x2_mult2_abs(k,i))
+                Det2x2_mult2_abs_max(k,i) = Det2x2_mult2_abs(k,i); 
+            end
+
+            % Поиск максимального значения первых 10 сумматоров в определителе
+            % 2х2
+            if (Det2x2_sum_abs_max(k,i) < Det2x2_sum_abs(k,i))
+                Det2x2_sum_abs_max(k,i) = Det2x2_sum_abs(k,i); 
+            end
+        end
+
+		%% Определитель 3х3 умножители
+        for k = 1:3
+            if (Mult_DetM_2x2_1_abs_max_cycle(k,i) < Mult_DetM_2x2_1_abs_max(k,i))
+                Mult_DetM_2x2_1_abs_max_cycle(k,i) = Mult_DetM_2x2_1_abs_max(k,i); 
+            end
+
+            if (Mult_DetM_2x2_2_abs_max_cycle(k,i) < Mult_DetM_2x2_2_abs_max(k,i))
+                Mult_DetM_2x2_2_abs_max_cycle(k,i) = Mult_DetM_2x2_2_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_3_abs_max_cycle(k,i) < Mult_DetM_2x2_3_abs_max(k,i))
+                Mult_DetM_2x2_3_abs_max_cycle(k,i) = Mult_DetM_2x2_3_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_4_abs_max_cycle(k,i) < Mult_DetM_2x2_4_abs_max(k,i))
+                Mult_DetM_2x2_4_abs_max_cycle(k,i) = Mult_DetM_2x2_4_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_5_abs_max_cycle(k,i) < Mult_DetM_2x2_5_abs_max(k,i))
+                Mult_DetM_2x2_5_abs_max_cycle(k,i) = Mult_DetM_2x2_5_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_6_abs_max_cycle(k,i) < Mult_DetM_2x2_6_abs_max(k,i))
+                Mult_DetM_2x2_6_abs_max_cycle(k,i) = Mult_DetM_2x2_6_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_7_abs_max_cycle(k,i) < Mult_DetM_2x2_7_abs_max(k,i))
+                Mult_DetM_2x2_7_abs_max_cycle(k,i) = Mult_DetM_2x2_7_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_8_abs_max_cycle(k,i) < Mult_DetM_2x2_8_abs_max(k,i))
+                Mult_DetM_2x2_8_abs_max_cycle(k,i) = Mult_DetM_2x2_8_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_9_abs_max_cycle(k,i) < Mult_DetM_2x2_9_abs_max(k,i))
+                Mult_DetM_2x2_9_abs_max_cycle(k,i) = Mult_DetM_2x2_9_abs_max(k,i); 
+            end
+			
+			if (Mult_DetM_2x2_10_abs_max_cycle(k,i) < Mult_DetM_2x2_10_abs_max(k,i))
+                Mult_DetM_2x2_10_abs_max_cycle(k,i) = Mult_DetM_2x2_10_abs_max(k,i); 
+            end
+        end
+		
+		
+		%% Определитель 3х3 сумматоры
+		if DetM_3x3_n_11_int_sum1_abs_max_cycle(i) < DetM_3x3_n_11_int_sum1_abs_max(i) 
+			DetM_3x3_n_11_int_sum1_abs_max_cycle(i) = DetM_3x3_n_11_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_11_int_abs_max_cycle(i) < DetM_3x3_n_11_int_abs_max(i) 
+			DetM_3x3_n_11_int_abs_max_cycle(i) = DetM_3x3_n_11_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_12_int_sum1_abs_max_cycle(i) < DetM_3x3_n_12_int_sum1_abs_max(i) 
+			DetM_3x3_n_12_int_sum1_abs_max_cycle(i) = DetM_3x3_n_12_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_12_int_abs_max_cycle(i) < DetM_3x3_n_12_int_abs_max(i) 
+			DetM_3x3_n_12_int_abs_max_cycle(i) = DetM_3x3_n_12_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_13_int_sum1_abs_max_cycle(i) < DetM_3x3_n_13_int_sum1_abs_max(i) 
+			DetM_3x3_n_13_int_sum1_abs_max_cycle(i) = DetM_3x3_n_13_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_13_int_abs_max_cycle(i) < DetM_3x3_n_13_int_abs_max(i) 
+			DetM_3x3_n_13_int_abs_max_cycle(i) = DetM_3x3_n_13_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_14_int_sum1_abs_max_cycle(i) < DetM_3x3_n_14_int_sum1_abs_max(i) 
+			DetM_3x3_n_14_int_sum1_abs_max_cycle(i) = DetM_3x3_n_14_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_14_int_abs_max_cycle(i) < DetM_3x3_n_14_int_abs_max(i) 
+			DetM_3x3_n_14_int_abs_max_cycle(i) = DetM_3x3_n_14_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_22_int_sum1_abs_max_cycle(i) < DetM_3x3_n_22_int_sum1_abs_max(i) 
+			DetM_3x3_n_22_int_sum1_abs_max_cycle(i) = DetM_3x3_n_22_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_22_int_abs_max_cycle(i) < DetM_3x3_n_22_int_abs_max(i) 
+			DetM_3x3_n_22_int_abs_max_cycle(i) = DetM_3x3_n_22_int_abs_max(i);
+		end
+		
+		
+		if DetM_3x3_n_23_int_sum1_abs_max_cycle(i) < DetM_3x3_n_11_int_sum1_abs_max(i) 
+			DetM_3x3_n_23_int_sum1_abs_max_cycle(i) = DetM_3x3_n_11_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_23_int_abs_max_cycle(i) < DetM_3x3_n_23_int_abs_max(i) 
+			DetM_3x3_n_23_int_abs_max_cycle(i) = DetM_3x3_n_23_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_24_int_sum1_abs_max_cycle(i) < DetM_3x3_n_24_int_sum1_abs_max(i) 
+			DetM_3x3_n_24_int_sum1_abs_max_cycle(i) = DetM_3x3_n_24_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_24_int_abs_max_cycle(i) < DetM_3x3_n_24_int_abs_max(i) 
+			DetM_3x3_n_24_int_abs_max_cycle(i) = DetM_3x3_n_24_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_33_int_sum1_abs_max_cycle(i) < DetM_3x3_n_33_int_sum1_abs_max(i) 
+			DetM_3x3_n_33_int_sum1_abs_max_cycle(i) = DetM_3x3_n_33_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_33_int_abs_max_cycle(i) < DetM_3x3_n_33_int_abs_max(i) 
+			DetM_3x3_n_33_int_abs_max_cycle(i) = DetM_3x3_n_33_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_34_int_sum1_abs_max_cycle(i) < DetM_3x3_n_34_int_sum1_abs_max(i) 
+			DetM_3x3_n_34_int_sum1_abs_max_cycle(i) = DetM_3x3_n_34_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_34_int_abs_max_cycle(i) < DetM_3x3_n_34_int_abs_max(i) 
+			DetM_3x3_n_34_int_abs_max_cycle(i) = DetM_3x3_n_34_int_abs_max(i);
+		end
+		
+		if DetM_3x3_n_44_int_sum1_abs_max_cycle(i) < DetM_3x3_n_44_int_sum1_abs_max(i) 
+			DetM_3x3_n_44_int_sum1_abs_max_cycle(i) = DetM_3x3_n_44_int_sum1_abs_max(i);
+		end
+		
+		if DetM_3x3_n_44_int_abs_max_cycle(i) < DetM_3x3_n_44_int_abs_max(i) 
+			DetM_3x3_n_44_int_abs_max_cycle(i) = DetM_3x3_n_44_int_abs_max(i);
+		end
+		
+		
+		
+		
+		
+		
+        
     end
+
+
 
     %% Measurements1
     % figure(5);
@@ -178,6 +401,13 @@ if sim_options.enable_mask == false
             width_sum(j,i) = define_of_width_int(fractional_sum_max(j,i), sim_options.int_size, sim_options.width_fractional);
             width_sum_h(j,i) = define_of_width_int(hilbert_sum_max(j,i), sim_options.int_size, sim_options.width_hilbert);
         end
+
+        %% Determinante
+        for k = 1:10
+            width_mult1_det2x2(k,i) = define_of_width_int(Det2x2_mult1_abs_max(k,i), sim_options.int_size, sim_options.width_hilbert);
+            width_mult2_det2x2(k,i) = define_of_width_int(Det2x2_mult2_abs_max(k,i), sim_options.int_size, sim_options.width_hilbert);
+            width_sum_det2x2(k,i) = define_of_width_int(Det2x2_sum_abs_max(k,i), sim_options.int_size, sim_options.width_hilbert);
+        end
         %% Запись данных для фильтра дробной задержки
         % запись макс. значений сигнала
         writematrix(fractional_mult_max(:,i), ['src/width_txt/Max_value_multiplier_Fractional_filter_' num2str(i) '.txt']);
@@ -198,6 +428,51 @@ if sim_options.enable_mask == false
         % запись суммарной разрядности сумматоров и умножителей
         writematrix(hilbert_total_width_mult_max(:,i), ['src/width_txt/Total_width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
         writematrix(hilbert_total_width_sum_max(:,i), ['src/width_txt/Total_width_adder_Hilbert_filter_' num2str(i) '.txt']);
+        %% Запись данных для определителя 2х2
+        % запись макс. значений
+        writematrix(Det2x2_mult1_abs_max(:,i), ['src/width_txt/Max_value_multiplier_1_Det2x2_' num2str(i) '.txt']);
+        writematrix(Det2x2_mult2_abs_max(:,i), ['src/width_txt/Max_value_multiplier_2_Det2x2_' num2str(i) '.txt']);
+        writematrix(Det2x2_sum_abs_max(:,i), ['src/width_txt/Max_value_adder_Det2x2_' num2str(i) '.txt']);
+        % запись макс. разрядности
+        writematrix(width_mult1_det2x2(:,i), ['src/width_txt/Total_width_multiplier_1_Det2x2_' num2str(i) '.txt']);
+        writematrix(width_mult2_det2x2(:,i), ['src/width_txt/Total_width_multiplier_2_Det2x2_' num2str(i) '.txt']);
+        writematrix(width_sum_det2x2(:,i), ['src/width_txt/Total_width_adder_Det2x2_' num2str(i) '.txt']);
+		
+		
+		%% Запись данных для определителя 3х3
+        % запись макс. значений умножителей
+        writematrix(Mult_DetM_2x2_1_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_1_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_2_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_2_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_3_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_3_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_4_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_4_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_5_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_5_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_6_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_6_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_7_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_7_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_8_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_8_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_9_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_9_Det3x3_' num2str(i) '.txt']);
+		writematrix(Mult_DetM_2x2_10_abs_max_cycle(:,i), ['src/width_txt/Max_value_multiplier_10_Det3x3_' num2str(i) '.txt']);
+		% запись макс. значений сумматоров
+		writematrix(DetM_3x3_n_11_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_1_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_11_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_1_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_12_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_2_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_12_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_2_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_13_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_3_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_13_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_3_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_14_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_4_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_14_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_4_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_22_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_5_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_22_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_5_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_23_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_6_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_23_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_6_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_24_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_7_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_24_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_7_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_33_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_8_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_33_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_8_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_34_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_9_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_34_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_9_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_44_int_sum1_abs_max_cycle(:,i), ['src/width_txt/Max_value_presum_10_Det3x3_' num2str(i) '.txt']);
+		writematrix(DetM_3x3_n_44_int_abs_max_cycle(:,i), ['src/width_txt/Max_value_sum_10_Det3x3_' num2str(i) '.txt']);
+		
     end
 end
 
