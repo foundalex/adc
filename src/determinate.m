@@ -37,8 +37,11 @@ function [DetM_5x5, DetM_5x5_int, DetM_2x2, DetM_2x2_int, Det2x2_mult1_abs, Det2
 a = data_in;
 a_int = data_in_int;
 
+num_det2x2 = 10;
+
 int_size_double = "double";
 width_double = 80;
+
 %% Находим матрицы 2x2
 s = struct;
 e = 0;
@@ -56,8 +59,15 @@ for n = 1:4
     t = t-1;
 end
 
-DetM_2x2 = zeros(10,1);
-DetM_2x2_int = cast(zeros(10,1), int_size);
+DetM_2x2 = zeros(num_det2x2,1);
+DetM_2x2_int = cast(zeros(num_det2x2,1), int_size);
+
+% DetM_2x2_multiplier_total_abs = cast(zeros(num_det2x2*2,1), int_size);
+
+Det2x2_mult1_abs = cast(zeros(num_det2x2,1), int_size);
+Det2x2_mult2_abs = cast(zeros(num_det2x2,1), int_size);
+Det2x2_sum_abs = cast(zeros(num_det2x2,1), 	 int_size);
+
 
 Mult_DetM_2x2_n_1_int = cast(zeros(3,1),  int_size_double);
 Mult_DetM_2x2_n_2_int = cast(zeros(3,1),  int_size_double);
@@ -103,13 +113,11 @@ Mult_DetM_2x2_n_8_total_width = cast(zeros(3,1),  int_size);
 Mult_DetM_2x2_n_9_total_width = cast(zeros(3,1),  int_size);
 Mult_DetM_2x2_n_10_total_width = cast(zeros(3,1), int_size);
 
-Det2x2_mult1_abs = cast(zeros(10,1), int_size);
-Det2x2_mult2_abs = cast(zeros(10,1), int_size);
-Det2x2_sum_abs = cast(zeros(10,1), 	 int_size);
+
 
 
 %% Находим определители матриц 2x2
-for i = 1:10
+for i = 1:num_det2x2
     [DetM_2x2(i), DetM_2x2_int(i), Det2x2_mult1_abs(i), Det2x2_mult2_abs(i), Det2x2_sum_abs(i), mult1_overflow(i), mult2_overflow(i), width_total_mult1(i), ...
      width_total_mult2(i), sum_overflow(i), width_total_sum(i)]  = det_2x2(s.a{i}, s.a_int{i}, int_size, width); 
 
@@ -142,6 +150,10 @@ for i = 1:10
     end
 	
 end
+% 
+% DetM_2x2_multiplier_total_abs(1:2:end) = Det2x2_mult1_abs;
+% DetM_2x2_multiplier_total_abs(2:2:end) = Det2x2_mult2_abs;
+
 
 %% double
 
@@ -354,9 +366,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
 %%
 % 4x4 
 [DetM_3x3_n_11_int_sum1, DetM_3x3_n_11_int_sum1_overflow, DetM_3x3_n_11_int_sum1_abs, DetM_3x3_n_11_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_10_int(3),  -Mult_DetM_2x2_n_9_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_8_int(3), Mult_DetM_2x2_n_9_int(3), int_size_double, width_double);
 [DetM_3x3_n_11_int, DetM_3x3_n_11_int_overflow, DetM_3x3_n_11_int_abs, DetM_3x3_n_11_int_width_total] = ...
-    adder(DetM_3x3_n_11_int_sum1,  Mult_DetM_2x2_n_8_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_10_int(3), -DetM_3x3_n_11_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_11_int_overflow == 1)
 		disp('Sum det3x3 11 overflow');
@@ -371,9 +383,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_12_int_sum1, DetM_3x3_n_12_int_sum1_overflow, DetM_3x3_n_12_int_sum1_abs, DetM_3x3_n_12_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_10_int(2),  -Mult_DetM_2x2_n_7_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_6_int(3), Mult_DetM_2x2_n_7_int(3), int_size_double, width_double);
 [DetM_3x3_n_12_int, DetM_3x3_n_12_int_overflow, DetM_3x3_n_12_int_abs, DetM_3x3_n_12_int_width_total] = ...
-    adder(DetM_3x3_n_12_int_sum1,  Mult_DetM_2x2_n_6_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_10_int(2), -DetM_3x3_n_12_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_12_int_overflow == 1)
 		disp('Sum det3x3 12 overflow');
@@ -388,9 +400,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_13_int_sum1, DetM_3x3_n_13_int_sum1_overflow, DetM_3x3_n_13_int_sum1_abs, DetM_3x3_n_13_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_9_int(2),  -Mult_DetM_2x2_n_7_int(2), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_5_int(3), Mult_DetM_2x2_n_7_int(2), int_size_double, width_double);
 [DetM_3x3_n_13_int, DetM_3x3_n_13_int_overflow, DetM_3x3_n_13_int_abs, DetM_3x3_n_13_int_width_total] = ...
-    adder(DetM_3x3_n_13_int_sum1,  Mult_DetM_2x2_n_5_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_9_int(2), -DetM_3x3_n_13_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_13_int_overflow == 1)
 		disp('Sum det3x3 13 overflow');
@@ -405,9 +417,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_14_int_sum1, DetM_3x3_n_14_int_sum1_overflow, DetM_3x3_n_14_int_sum1_abs, DetM_3x3_n_14_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_8_int(2),  -Mult_DetM_2x2_n_6_int(2), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_5_int(2), Mult_DetM_2x2_n_6_int(2), int_size_double, width_double);
 [DetM_3x3_n_14_int, DetM_3x3_n_14_int_overflow, DetM_3x3_n_14_int_abs, DetM_3x3_n_14_int_width_total] = ...
-    adder(DetM_3x3_n_14_int_sum1,  Mult_DetM_2x2_n_5_int(2), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_8_int(2), -DetM_3x3_n_14_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_14_int_overflow == 1)
 		disp('Sum det3x3 14 overflow');
@@ -422,9 +434,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_22_int_sum1, DetM_3x3_n_22_int_sum1_overflow, DetM_3x3_n_22_int_sum1_abs, DetM_3x3_n_22_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_10_int(1),  -Mult_DetM_2x2_n_4_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_3_int(3), Mult_DetM_2x2_n_4_int(3), int_size_double, width_double);
 [DetM_3x3_n_22_int, DetM_3x3_n_22_int_overflow, DetM_3x3_n_22_int_abs, DetM_3x3_n_22_int_width_total] = ...
-    adder(DetM_3x3_n_22_int_sum1,  Mult_DetM_2x2_n_3_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_10_int(1), -DetM_3x3_n_22_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_22_int_overflow == 1)
 		disp('Sum det3x3 22 overflow');
@@ -439,9 +451,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_23_int_sum1, DetM_3x3_n_23_int_sum1_overflow, DetM_3x3_n_23_int_sum1_abs, DetM_3x3_n_23_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_9_int(1),  -Mult_DetM_2x2_n_4_int(2), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_2_int(3), Mult_DetM_2x2_n_4_int(2), int_size_double, width_double);
 [DetM_3x3_n_23_int, DetM_3x3_n_23_int_overflow, DetM_3x3_n_23_int_abs, DetM_3x3_n_23_int_width_total] = ...
-    adder(DetM_3x3_n_23_int_sum1,  Mult_DetM_2x2_n_2_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_9_int(1), -DetM_3x3_n_23_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_23_int_overflow == 1)
 		disp('Sum det3x3 23 overflow');
@@ -456,9 +468,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_24_int_sum1, DetM_3x3_n_24_int_sum1_overflow, DetM_3x3_n_24_int_sum1_abs, DetM_3x3_n_24_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_8_int(1),  -Mult_DetM_2x2_n_3_int(2), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_2_int(2), Mult_DetM_2x2_n_3_int(2), int_size_double, width_double);
 [DetM_3x3_n_24_int, DetM_3x3_n_24_int_overflow, DetM_3x3_n_24_int_abs, DetM_3x3_n_24_int_width_total] = ...
-    adder(DetM_3x3_n_24_int_sum1,  Mult_DetM_2x2_n_2_int(2), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_8_int(1), -DetM_3x3_n_24_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_24_int_overflow == 1)
 		disp('Sum det3x3 24 overflow');
@@ -473,9 +485,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_33_int_sum1, DetM_3x3_n_33_int_sum1_overflow, DetM_3x3_n_33_int_sum1_abs, DetM_3x3_n_33_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_7_int(1),  -Mult_DetM_2x2_n_4_int(1), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_1_int(3), Mult_DetM_2x2_n_4_int(1), int_size_double, width_double);
 [DetM_3x3_n_33_int, DetM_3x3_n_33_int_overflow, DetM_3x3_n_33_int_abs, DetM_3x3_n_33_int_width_total] = ...
-    adder(DetM_3x3_n_33_int_sum1,  Mult_DetM_2x2_n_1_int(3), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_7_int(1), -DetM_3x3_n_33_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_33_int_overflow == 1)
 		disp('Sum det3x3 33 overflow');
@@ -490,9 +502,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_34_int_sum1, DetM_3x3_n_34_int_sum1_overflow, DetM_3x3_n_34_int_sum1_abs, DetM_3x3_n_34_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_6_int(1),  -Mult_DetM_2x2_n_3_int(1), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_1_int(2), Mult_DetM_2x2_n_3_int(1), int_size_double, width_double);
 [DetM_3x3_n_34_int, DetM_3x3_n_34_int_overflow, DetM_3x3_n_34_int_abs, DetM_3x3_n_34_int_width_total] = ...
-    adder(DetM_3x3_n_34_int_sum1,  Mult_DetM_2x2_n_1_int(2), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_6_int(1), -DetM_3x3_n_34_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_34_int_overflow == 1)
 		disp('Sum det3x3 34 overflow');
@@ -507,9 +519,9 @@ DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_
     end
     %%
 [DetM_3x3_n_44_int_sum1, DetM_3x3_n_44_int_sum1_overflow, DetM_3x3_n_44_int_sum1_abs, DetM_3x3_n_44_int_sum1_width_total] = ...
-    adder(Mult_DetM_2x2_n_5_int(1),  -Mult_DetM_2x2_n_2_int(1), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_1_int(1), Mult_DetM_2x2_n_2_int(1), int_size_double, width_double);
 [DetM_3x3_n_44_int, DetM_3x3_n_44_int_overflow, DetM_3x3_n_44_int_abs, DetM_3x3_n_44_int_width_total] = ...
-    adder(DetM_3x3_n_44_int_sum1,  Mult_DetM_2x2_n_1_int(1), int_size_double, width_double);
+    adder(Mult_DetM_2x2_n_5_int(1), -DetM_3x3_n_44_int_sum1, int_size_double, width_double);
     %% Проверка переполнения сумматора
     if (DetM_3x3_n_44_int_overflow == 1)
 		disp('Sum det3x3 44 overflow');
