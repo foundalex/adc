@@ -1,14 +1,9 @@
 function [y, overflow, y_abs, width_total] = mult(a, b, int_size, width)
     % проверка выходной разрядности
+    width_a = define_of_width_int(a, int_size, width);
+    width_b = define_of_width_int(b, int_size, width);
 
-    % if int_size == "int64"
-        width_a = define_of_width_int(a, int_size, width);
-        width_b = define_of_width_int(b, int_size, width);
-
-        width_total = width_a + width_b - 1;
-    % else
-    %     width_total = 80;
-    % end
+    width_total = width_a + width_b - 1;
 
     %% умножитель
     mmax = cast((2^(width-1))-1, int_size);

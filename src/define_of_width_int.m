@@ -1,7 +1,5 @@
 function width = define_of_width_int(input, int_size, num)
-
-
-    %% находим модуль числа
+    % находим модуль числа
     if (input < 0)
         input_abs = input * cast(-1, int_size);
     else
@@ -25,7 +23,7 @@ function width = define_of_width_int(input, int_size, num)
             end
             width = num-i+cast(1,int_size); % добавляем 1 разряд для знака
         end
-    elseif int_size == "double"
+    elseif int_size == "double" || int_size == "single" 
         for i = 1:90
             if ((2^i)-1 >= input_abs)
                 width = i+1; % 1 бит для знака
