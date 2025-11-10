@@ -292,6 +292,12 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     sim_options.remainder(1) = 33;
     sim_options.remainder(2) = 18;
     sim_options.remainder(3) = 33;
+
+    sim_options.type_2x2_det = "int64";
+    sim_options.type_3x3_det = "double";
+	sim_options.type_4x4_det = "double";
+	sim_options.type_5x5_det = "double";
+    sim_options.width_double = 80;   
     %%
 
     snr_s = 0;
@@ -345,35 +351,12 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
 			DetM_5x5_int_abs_max(:,i), ...
 			... % разрядность сумматора определителя 5х5
 			DetM_5x5_int_width_total_max(:,i) ...
-        ] = least_mean_squares(double(adc_input(:,i+1)), adc_input(:,i+1), yri_cut(:,i+1), yri_cut_int(:,i+1), sim_options.remainder(i), sim_options);
+        ] = least_mean_squares(double(adc_input(:,i+1)), adc_input(:,i+1), double(yri_cut_int(:,i+1)), yri_cut_int(:,i+1), sim_options.remainder(i), sim_options);
 
     end
-    % 
-    %     %%  
-    % 
-    %     figure(13);
-    % 
-    %     subplot(2,1,1);
-    %     plot(double(yri_cut_int(:,1)));
-    %     title('Выход референсного канала АЦП')
-    %     xlabel('Номер отсчета') 
-    %     ylabel('Амплитуда сигнала') 
-    % 
-    %     subplot(2,1,2);
-    %     plot([y_array(:,i)]);
-    %     title('Выход адаптивного фильтра double для одного канала АЦП')
-    %     xlabel('Номер отсчета') 
-    %     ylabel('Амплитуда сигнала') 
-    % 
-    % end
-    
-
-
 
     % save (sprintf(num2str(clock) + ".mat"));
     % load ('2025             11              5             11             34         46.136.mat'); % 888 MHz 70 SNR
-
-
 
 
     % % % create main signal after LS algorithm (switch after sub-adc)
@@ -383,28 +366,25 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     for i = 1:sim_options.M
         if i == 1
             x_after_adc(i:sim_options.M:end) = yri_cut1(1:length(y_array),1);
-            % x_after_adc(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
             x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
         else
-            x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
-            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-32;
+            x_after_adc(i:sim_options.M:end) = y_array(:,i-1) * 2^-sim_options.remainder(i-1);
+            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-sim_options.remainder(i-1);
         end
     end
 
-
     % % 
-    % figure(3);
-    % subplot(2,1,1)
-    % plot([x_after_adc_int]);
-    % title('Выход адаптивного фильтра int')
-    % xlabel('Номер отсчета') 
-    % ylabel('Амплитуда') 
-    % 
-    % subplot(2,1,2)
-    % plot([x_after_adc]);
-    % title('Выход адаптивного фильтра double')
-    % xlabel('Номер отсчета') 
-    % ylabel('Амплитуда');
+    figure(3);
+    subplot(3,1,1)
+    plot([s_to_subadc(1:500), x_after_adc(1:500)]);
+    title('Выход адаптивного фильтра int')
+    xlabel('Номер отсчета') 
+    ylabel('Амплитуда') 
+    subplot(3,1,2)
+    plot([x_after_adc_int(1:500)]);
+    title('Выход адаптивного фильтра double')
+    xlabel('Номер отсчета') 
+    ylabel('Амплитуда');
     % 
     % 
     % figure(4);
