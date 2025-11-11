@@ -1,4 +1,4 @@
-function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(M, Fs, freq, SNR, Inter, StopTime, ...
+function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int, Z] = gen_oversampled_signal(M, Fs, freq, SNR, Inter, StopTime, ...
     MODEL_ERROR, time_skew_array, gain_error_array)
 
     dt = 1/Fs;                                                                          % seconds per sample
@@ -91,18 +91,12 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
         s_after_subadc_int(i:M:end) = adc_input_int(:,i); 
     end
 
+    Z = ceil(freq/(Fs/Inter/2/M));      % Nyquist zone
 
     % save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             10              8             13             24         10.929.mat'); % 70 SNR 70 MHz
-    % load ('2025             10             17             15             47          4.423.mat'); % 60 SNR 70 MHz
+    load ('2025             11             11             16              6         49.465.mat'); % 888 MHz 70 SNR
+    
 
-    % load ('2025             10             29             13             27          1.297.mat'); % 0 SNR 298 MHz
-    % load ('2025             10             28             13             31         30.067.mat'); % 0 SNR 298 MHz
-
-    % load ('2025             10             30             12
-    % 35          34.93.mat'); % 70 SNR 741 MHz 999 samples
-
-     load ('2025             11              1             15             44         59.704.mat'); % 70 SNR 741 MHz 9999 samples
 end
 
 %%

@@ -145,9 +145,9 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     hilbert_width_total_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
     hilbert_width_total_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
 
-	%% Fractional delays of ADC0 signal
+	% %% Fractional delays of ADC0 signal
     % for i = 1:sim_options.M-1
-
+    % 
     %     fractional_mult_file = ['src/width_txt/Width_multiplier_Fractional_filter_' num2str(i) '.txt'];
     %     fractional_sum_file = ['src/width_txt/Width_adder_Fractional_filter_' num2str(i) '.txt'];
     % 
@@ -276,7 +276,7 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     
     % 
     % save (sprintf(num2str(clock) + ".mat"));
-    load ('2025             11              5             11              8         52.084.mat'); % 888 MHz 70 SNR
+    load ('2025             11             11             16             10         32.248.mat'); % 888 MHz 70 SNR
 
     figure(6);
     plot([s_to_subadc(1:750), sig_adc(1:750), sig_adc_int(1:750)]);
@@ -289,15 +289,10 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
     snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
 
 
-    sim_options.remainder(1) = 33;
-    sim_options.remainder(2) = 18;
-    sim_options.remainder(3) = 33;
-
     sim_options.type_2x2_det = "int64";
-    sim_options.type_3x3_det = "double";
+    sim_options.type_3x3_det = "single";
 	sim_options.type_4x4_det = "double";
-	sim_options.type_5x5_det = "double";
-    sim_options.width_double = 80;   
+	sim_options.type_5x5_det = "double"; 
     %%
 
     snr_s = 0;
@@ -369,32 +364,32 @@ function [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, 
             x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
         else
             x_after_adc(i:sim_options.M:end) = y_array(:,i-1) * 2^-sim_options.remainder(i-1);
-            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-sim_options.remainder(i-1);
+            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-(sim_options.remainder(i-1)+14);
         end
     end
 
     % % 
     figure(3);
-    subplot(3,1,1)
+    subplot(2,1,1)
     plot([s_to_subadc(1:500), x_after_adc(1:500)]);
-    title('Выход адаптивного фильтра int')
+    title('Исходный сигнал и выход адаптивного фильтра double')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
-    subplot(3,1,2)
-    plot([x_after_adc_int(1:500)]);
-    title('Выход адаптивного фильтра double')
+    subplot(2,1,2)
+    plot([s_to_subadc(1:500), x_after_adc_int(1:500)]);
+    title('Исходный сигнал и выход адаптивного фильтра int')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда');
     % 
     % 
-    % figure(4);
-    % subplot(4,1,1);
-    % snr(s_to_subadc(1:length(s_to_subadc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,2);
-    % snr(s_after_subadc(1:length(s_after_subadc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,3);
-    % snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,4);
-    % snr(x_after_adc_int(1:length(x_after_adc_int)), sim_options.Fs/sim_options.Inter);
+    figure(4);
+    subplot(4,1,1);
+    snr(s_to_subadc(1:length(s_to_subadc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,2);
+    snr(s_after_subadc(1:length(s_after_subadc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,3);
+    snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4);
+    snr(x_after_adc_int(1:length(x_after_adc_int)), sim_options.Fs/sim_options.Inter);
 
 end

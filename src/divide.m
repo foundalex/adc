@@ -5,6 +5,6 @@ function efi_out = divide(a, b, width)
     b1 = double(b);
     c = a1/b1;
   
-    efi_out = int16(c*2^width);
+    efi_out = double(c*2^width);
 
 end

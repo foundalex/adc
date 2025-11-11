@@ -37,8 +37,6 @@ function [yric, yric_int, remainder] = single_sideband(yri, y_fractional_outInt,
                 subplot(2,1,2)
                 plot(relative_error1)
 
-
-
             elseif (num_adc == 2) % ADC3
                 yric_int = -y_fractional_outInt;
 
@@ -64,13 +62,17 @@ function [yric, yric_int, remainder] = single_sideband(yri, y_fractional_outInt,
         elseif sim_options.Z == 4
             if (num_adc == 1)
                 yric_int = -y_fractional_outInt;
+                remainder = sim_options.fractional_coeff_width-1;
             elseif (num_adc == 2)
                 yric_int = y_fractional_outInt;
+                remainder = sim_options.fractional_coeff_width-1;
             elseif (num_adc == 3)
                 yric_int = -y_fractional_outInt;
+                remainder = sim_options.fractional_coeff_width-1;
             end
         else 
             yric_int = y_fractional_outInt;
+            remainder = sim_options.fractional_coeff_width-1;
         end
 
         yric_int(del_proc+1:end);

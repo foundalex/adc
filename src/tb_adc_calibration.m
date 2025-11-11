@@ -78,10 +78,8 @@ DetM_5x5_int_width_total_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,
 %%
 
 for num = 1:sim_options.num_cycles
- 
-    sim_options.Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
-    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
+    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int, sim_options.Z] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
         sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
     [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
@@ -131,7 +129,7 @@ for num = 1:sim_options.num_cycles
 		DetM_5x5_int_abs_max, ...
 		... % разрядность сумматора определителя 5х5
 		DetM_5x5_int_width_total_max ...
-	] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc);
+	] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc_int);
 
     % Записываем значения каждого фильтра
     for i = 1:sim_options.M-1
