@@ -20,16 +20,13 @@ function [yric, yric_int, remainder] = single_sideband(yri, y_fractional_outInt,
 
 
         %% integer
-
-        yhil_imag_int_double = double(yhil_imag_int)*2^-sim_options.divide_remainder;
-        y_fractional_outInt_double = double(y_fractional_outInt)*2^-(sim_options.fractional_coeff_width-1);
-
-        
         if sim_options.Z == 2 || sim_options.Z == 3
             if (num_adc == 1) % ADC2
                 yric_int = yhil_imag_int;
                 
                 remainder = sim_options.fractional_coeff_width-1+sim_options.hilbert_coeff_width-1;
+                yhil_imag_int_double = double(yhil_imag_int)*2^-remainder;
+
                 relative_error1 = yric(del_proc+1:end)./yhil_imag_int_double(del_proc+1:end);
                 figure(7);
                 subplot(2,1,1)
@@ -41,6 +38,7 @@ function [yric, yric_int, remainder] = single_sideband(yri, y_fractional_outInt,
                 yric_int = -y_fractional_outInt;
 
                 remainder = sim_options.fractional_coeff_width-1;
+                y_fractional_outInt_double = double(y_fractional_outInt)*2^-(remainder);
                 relative_error2 = yric./-y_fractional_outInt_double;
                 figure(8);
                 subplot(2,1,1)
@@ -52,6 +50,7 @@ function [yric, yric_int, remainder] = single_sideband(yri, y_fractional_outInt,
                 yric_int = -yhil_imag_int;
 
                 remainder = sim_options.fractional_coeff_width-1+sim_options.hilbert_coeff_width-1;
+                yhil_imag_int_double = double(-yhil_imag_int)*2^-remainder;
                 relative_error3 = yric./-yhil_imag_int_double;
                 figure(9);
                 subplot(2,1,1)

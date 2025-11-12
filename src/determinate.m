@@ -49,9 +49,6 @@ function [DetM_5x5, DetM_5x5_int, Det_5x5_LU_matlab, DetM_2x2, DetM_2x2_int, Det
 a = data_in;
 a_int = data_in_int;
 
-int_size_double = "double";
-
-
 %% Находим матрицы 2x2
 s = struct;
 e = 0;
@@ -68,7 +65,6 @@ for n = 1:4
     e = e+i;
     t = t-1;
 end
-
 
 DetM_2x2 = zeros(sim_options.num_det2x2,1);
 DetM_2x2_int = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);

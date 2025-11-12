@@ -42,8 +42,17 @@ function [y_array, y_array_int, DetM_2x2_array, DetM_2x2_array_int, ...
 	... % сумматор определителя 5х5
 	DetM_5x5_int_abs_max, ...
 	... % разрядность сумматора определителя 5х5
-	DetM_5x5_int_width_total_max ...
-    ] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, remainder, sim_options)
+	DetM_5x5_int_width_total_max, ...
+    ... % умножители адаптивного фильтра
+    Adaptive_filter_mult_array_max, ...
+    ... % разрядность умножителей адаптивного фильтра
+    Adaptive_filter_mult_total_width, ...
+    ... % сумматоры адаптивного фильтра
+    Adaptive_filter_sum_array_max, ....
+    ... % разрядность сумматоров адаптивного фильтра
+    Adaptive_filter_sum_total_width ...
+    ] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, adaptive_mult_file, adaptive_sum_file, sim_options)
+
 
 bb = 0;
 vv = 0;
@@ -51,9 +60,8 @@ kk = 0;
 y_outd = 0;
 int_size_double = "double";
 
-x3 = zeros(sim_options.Size_matrix,sim_options.Size_matrix);                       % (стр.6, (20))
+x3 = zeros(sim_options.Size_matrix,sim_options.Size_matrix);                     
 x3_int = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_2x2_det); 
-
 
 DetM_2x2_multiplier_total_abs_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_2x2_det);
 Det2x2_sum_abs_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
@@ -92,6 +100,10 @@ DetM_5x5_int_abs_max = cast(0, int_size_double);
 % разрядность сумматора определителя 5х5
 DetM_5x5_int_width_total_max = cast(0, int_size_double);
 
+Adaptive_filter_mult_array_max = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
+Adaptive_filter_mult_total_width = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
+Adaptive_filter_sum_array_max = cast(zeros(sim_options.Size_matrix,1),sim_options.type_add_in_adaptive_filter);
+Adaptive_filter_sum_total_width = cast(zeros(sim_options.Size_matrix,1),sim_options.type_add_in_adaptive_filter);
 
 for j = 1:length(yri_cut(:,1))-2*sim_options.Size_matrix
 
@@ -159,6 +171,13 @@ for j = 1:length(yri_cut(:,1))-2*sim_options.Size_matrix
 		... % разрядность сумматора определителя 5х5
 		DetM_5x5_int_width_total ...
 	] = determinate(x3, x3_int, sim_options); % int
+
+    if (det_matlab(j) == 0)
+        det_matlab(j) = 1;
+    end
+    if (det_x3_int(j) == 0)
+        det_x3_int(j) = 1;
+    end
 
 	DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
 	DetM_2x2_array_int(bb+1:bb+10) = DetM_2x2_int;
@@ -357,6 +376,13 @@ for j = 1:length(yri_cut(:,1))-2*sim_options.Size_matrix
 			DetM_5x5_int_width_total ...
 		] = determinate(x3_shift, x3_shift_int, sim_options);
 
+        if (det_x3_shift(kk) == 0)
+            det_x3_shift(kk) = 1;
+        end
+        if (det_out_shift_int(kk) == 0)
+            det_out_shift_int(kk) = 1;
+        end
+
         %%
 		% if i == 1
 		%    DetM_2x2_int_double = [cast(DetM_2x2_int(1:4), int_size_double)*2^-remainder;  cast(DetM_2x2_int(5:10), int_size_double)];
@@ -406,7 +432,6 @@ for j = 1:length(yri_cut(:,1))-2*sim_options.Size_matrix
 		% 
 		%    DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1:4),int_size_single)*2^-remainder; cast(DetM_4x4_int_sum_array(5),int_size_single)];
 		% end
-
 
 		DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
 		DetM_2x2_array_int(bb+1:bb+10) = DetM_2x2_int;
@@ -538,14 +563,11 @@ for j = 1:length(yri_cut(:,1))-2*sim_options.Size_matrix
         end
 
 		%% divide determinant
-		% www1(:,i) = Det_5x5_LU_matlab_array(tt) ./ Det_5x5_LU_matlab_array(tt-i); % double		
-		% www1_int(:,i) = divide(Det_5x5_LU_matlab_array(tt), Det_5x5_LU_matlab_array(tt-(tt-5)), 14); % int
-        % w1 = lsqminnorm(x3_shift, );
         www1(:,i) = det_x3_shift(kk) ./ det_matlab(j); % double
 		www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int(j), 14); % int
     end
 
-	%% filter
+	%% adaptive filter
     for k = 1:sim_options.Size_matrix
         if j == 1
             y_outd = y_outd + www1(k) * adc_input(k); % (стр 5, (13))
@@ -561,15 +583,39 @@ for j = 1:length(yri_cut(:,1))-2*sim_options.Size_matrix
             end
         end
     end 
+    
+	[y_out, y_out_int, y_int_abs, y_int_total_width, sum_array_out, sum_int_width_total] ...
+    = adaptive_filter(dat_in_filt_double, www1, dat_in_filt, www1_int, adaptive_mult_file, adaptive_sum_file, sim_options);
 
-	[y_out, y_out_int] = filter_transversal(dat_in_filt_double, www1, dat_in_filt, www1_int);
+	%% определяем макс. значения
+	for n = 1:sim_options.Size_matrix
+		% определяем максимальное значение на каждом умножителе
+		if Adaptive_filter_mult_array_max(n) < y_int_abs(n) 
+			Adaptive_filter_mult_array_max(n) = y_int_abs(n);
+        end
+		% определяем максимальную разрядность умножителей
+		if Adaptive_filter_mult_total_width(n) < y_int_total_width(n) 
+			Adaptive_filter_mult_total_width(n) = y_int_total_width(n);
+        end
+		% определяем максимальное значение сумматоров
+		if Adaptive_filter_sum_array_max(n) < sum_array_out(n) 
+			Adaptive_filter_sum_array_max(n) = sum_array_out(n);
+        end
+        % определяем максимальную разрядность сумматоров
+		if Adaptive_filter_sum_total_width(n) < sum_int_width_total(n) 
+			Adaptive_filter_sum_total_width(n) = sum_int_width_total(n);
+        end
+	end 
 
-    % end
 	y_array(j) = y_outd;
 	y_array_int(j) = y_out_int;
 
+    if (isnan(y_outd) == 1)
+        e = 1;
+    end
+
 end
-	
+
     %% 2x2
     relativeError_DetM_2x2_Myfunc_double_vs_Myfunc_int = DetM_2x2_array./double(DetM_2x2_array_int);
 	relativeError_DetM_2x2_Myfunc_double_vs_Matlab_LU = Det_2x2_LU_matlab_array./double(DetM_2x2_array_int);
@@ -602,7 +648,6 @@ end
     ylabel('Величина ошибки') 
     xlabel('Номер отсчета') 
 	
-	
 	%% 4x4
 	relativeError_DetM_4x4_Myfunc_double_vs_Myfunc_int = DetM_4x4_array_dd./double(DetM_4x4_array_int);
 	relativeError_DetM_4x4_Myfunc_double_vs_Matlab_LU = Det_4x4_LU_matlab_array./double(DetM_4x4_array_int);
@@ -617,7 +662,6 @@ end
     title('Относительная ошибка между определителями 4x4, найденных с помощью прямого нахождения Int(пока double) vs Double')
     ylabel('Величина ошибки') 
     xlabel('Номер отсчета') 
-	
 
     %% 5x5
 	% det_out_shift_d = det_out_shift_int;

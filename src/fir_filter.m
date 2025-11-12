@@ -22,7 +22,6 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
         width_sum = readmatrix(width_sum_txt);
     end
 
-
     %% Main cycle
     for n = 1:length(x)
 
@@ -38,7 +37,7 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
             end
         
             if (width_total_mult(i,n) > width+1)
-                [mult_n(i,n), mult_overflow(i,n), mult_abs(i,n), width_total_mult(i,n)] = mult(b(i), buffer(i), sim_options.int_size, width);
+                % [mult_n(i,n), mult_overflow(i,n), mult_abs(i,n), width_total_mult(i,n)] = mult(b(i), buffer(i), sim_options.int_size, width);
                 disp('Mult width overflow');
                 disp(width);
                 disp({width_total_mult(i,n), i, n});
@@ -55,7 +54,7 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
                 end
                 mult_n(i,n) = c;
             else
-                if mult_max(i) < mult_abs(i,n) % определяем максимальное значение на кажом умножителе
+                if mult_max(i) < mult_abs(i,n) % определяем максимальное значение на каждом умножителе
                     mult_max(i) = mult_abs(i,n);
                 end
 

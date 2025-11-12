@@ -21,23 +21,26 @@ width_mult = int8(zeros(sim_options.N,sim_options.M-1));
 width_sum = int8(zeros(sim_options.N-1,sim_options.M-1));
 
 fractional_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-fractional_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
+fractional_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 
 fractional_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-fractional_total_width_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
+fractional_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 
 %%
 width_mult_h = int8(zeros(sim_options.N, sim_options.M-1));
 width_sum_h = int8(zeros(sim_options.N-1, sim_options.M-1));
 
 hilbert_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-hilbert_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
+hilbert_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 
 hilbert_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-hilbert_total_width_sum_max = cast(zeros(sim_options.N-1,sim_options.M-1), sim_options.int_size);
+hilbert_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 
 %%
-num_mult = string((1:sim_options.num_det2x2*3)');
+num_filter = string((1:sim_options.N)');
+num_determinante = string((1:sim_options.num_det2x2*3)');
+num_adaptive = string((1:sim_options.Size_matrix)');
+
 DetM_2x2_multiplier_total_abs_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.int_size);
 Det2x2_sum_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.int_size);
 Mult_DetM_3x3_array_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
@@ -75,14 +78,20 @@ DetM_5x5_int_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_op
 % разрядность сумматора определителя 5х5
 DetM_5x5_int_width_total_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
 
-%%
+
+% Адаптивный фильтр
+Adaptive_filter_mult_array_max_in_cycle 	        = cast(zeros(sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
+Adaptive_filter_mult_total_width_in_cycle 	        = cast(zeros(sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
+Adaptive_filter_sum_array_max_in_cycle 	            = cast(zeros(sim_options.Size_matrix,sim_options.M-1), sim_options.type_add_in_adaptive_filter);
+Adaptive_filter_sum_total_width_in_cycle 	        = cast(zeros(sim_options.Size_matrix,sim_options.M-1), sim_options.type_add_in_adaptive_filter);
+
 
 for num = 1:sim_options.num_cycles
 
     [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int, sim_options.Z] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
         sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
-    [x_after_adc, x_after_adc_int, snr_s, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
+    [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
         hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum, ...
         ... % Determinant
 		... % умножители определителя 2x2 
@@ -96,7 +105,7 @@ for num = 1:sim_options.num_cycles
 		... % пресумматоры определителя 3х3
 		DetM_3x3_int_pre_sum_array_max, ...
 		... % разрядность пресумматоров определителя 3x3
-		DetM_3x3_int_pre_sum_width_total_max_in_cycle, ...
+		DetM_3x3_int_pre_sum_width_total_max, ...
 		... % сумматоры определителя 3х3
 		DetM_3x3_int_sum_array_max, ...
 		... % разрядность сумматоров определителя 3x3
@@ -128,7 +137,15 @@ for num = 1:sim_options.num_cycles
 		... % сумматор определителя 5х5
 		DetM_5x5_int_abs_max, ...
 		... % разрядность сумматора определителя 5х5
-		DetM_5x5_int_width_total_max ...
+		DetM_5x5_int_width_total_max, ...
+        ... % умножители адаптивного фильтра
+        Adaptive_filter_mult_array_max, ...
+        ... % разрядность умножителей адаптивного фильтра
+        Adaptive_filter_mult_total_width, ...
+        ... % сумматоры адаптивного фильтра
+        Adaptive_filter_sum_array_max, ....
+        ... % разрядность сумматоров адаптивного фильтра
+        Adaptive_filter_sum_total_width ...
 	] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc_int);
 
     % Записываем значения каждого фильтра
@@ -139,7 +156,6 @@ for num = 1:sim_options.num_cycles
             if (fractional_mult_max(j,i) < fractional_mult(j,i))
                 fractional_mult_max(j,i) = fractional_mult(j,i); 
             end
-
             % выбираем максимальное значение разрядности умножителя фильтра
             % дробной задержки
             if (fractional_total_width_mult_max(j,i) < fractional_width_total_mult(j,i))
@@ -151,13 +167,11 @@ for num = 1:sim_options.num_cycles
             if (hilbert_mult_max(j,i) < hilbert_width_mult(j,i))
                 hilbert_mult_max(j,i) = hilbert_width_mult(j,i); 
             end
-
             % выбираем максимальное значение разрядности умножителя фильтра
             % Гилберта
             if (hilbert_total_width_mult_max(j,i) < hilbert_width_total_mult(j,i))
                 hilbert_total_width_mult_max(j,i) = hilbert_width_total_mult(j,i); 
             end
-
         end
 
         for j = 1:sim_options.N-1
@@ -166,62 +180,67 @@ for num = 1:sim_options.num_cycles
             if (fractional_sum_max(j,i) < fractional_sum(j,i))
                 fractional_sum_max(j,i) = fractional_sum(j,i); 
             end
-
             % выбираем максимальное значение разрядности сумматоров
             % фильтра дробной задержки
             if (fractional_total_width_sum_max(j,i) < fractional_width_total_sum(j,i))
                 fractional_total_width_sum_max(j,i) = fractional_width_total_sum(j,i); 
             end
-
             %%
             % выбираем максимальное значение сигнала сумматоров
             % фильтра Гилберта
             if (hilbert_sum_max(j,i) < hilbert_width_sum(j,i))
                 hilbert_sum_max(j,i) = hilbert_width_sum(j,i); 
             end
-
             % выбираем максимальное значение разрядности сумматоров
             % фильтра Гилберта
             if (hilbert_total_width_sum_max(j,i) < hilbert_width_total_sum(j,i))
                 hilbert_total_width_sum_max(j,i) = hilbert_width_total_sum(j,i); 
             end
         end
-
         %% Determinante 2x2
         for k = 1:sim_options.num_det2x2*2
-            % Поиск максимального значения первых 10 умножителей1 в определителе
+            % Поиск максимального значения умножителей в определителе 2х2
             % 2х2
             if (DetM_2x2_multiplier_total_abs_max_in_cycle(k,i) < DetM_2x2_multiplier_total_abs_max(k,i))
                 DetM_2x2_multiplier_total_abs_max_in_cycle(k,i) = DetM_2x2_multiplier_total_abs_max(k,i);
             end
         end
 		for k = 1:sim_options.num_det2x2
-            % Поиск максимального значения первых 10 сумматоров в определителе
+            % Поиск максимального значения сумматоров в определителе 2х2
             % 2х2
             if (Det2x2_sum_abs_max_in_cycle(k,i) < Det2x2_sum_abs_max(k,i))
                 Det2x2_sum_abs_max_in_cycle(k,i) = Det2x2_sum_abs_max(k,i); 
             end
         end
-
 		%% Определитель 3х3 умножители
         for k = 1:sim_options.num_det2x2*3
             if (Mult_DetM_3x3_array_max_in_cycle(k,i) < Mult_DetM_3x3_array_max(k,i))
                 Mult_DetM_3x3_array_max_in_cycle(k,i) = Mult_DetM_3x3_array_max(k,i); 
             end
-        end
-		for k = 1:sim_options.num_det2x2
-            if (DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) < DetM_3x3_int_pre_sum_array_max(k,i))
-                DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) = DetM_3x3_int_pre_sum_array_max(k,i); 
+            if (Mult_DetM_3x3_array_mult_total_width_max_in_cycle(k,i) < Mult_DetM_3x3_array_mult_total_width_max(k,i))
+                Mult_DetM_3x3_array_mult_total_width_max_in_cycle(k,i) = Mult_DetM_3x3_array_mult_total_width_max(k,i); 
             end
         end
 		for k = 1:sim_options.num_det2x2
+            if (DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) < DetM_3x3_int_pre_sum_array_max(k,i))
+                DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) = DetM_3x3_int_pre_sum_array_max(k,i); 
+            end
+            if (DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) < DetM_3x3_int_pre_sum_width_total_max(k,i))
+                DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) = DetM_3x3_int_pre_sum_width_total_max(k,i); 
+            end
             if (DetM_3x3_int_sum_array_max_in_cycle(k,i) < DetM_3x3_int_sum_array_max(k,i))
                 DetM_3x3_int_sum_array_max_in_cycle(k,i) = DetM_3x3_int_sum_array_max(k,i); 
+            end
+            if (DetM_3x3_int_sum_width_total_max_in_cycle(k,i) < DetM_3x3_int_sum_width_total_max(k,i))
+                DetM_3x3_int_sum_width_total_max_in_cycle(k,i) = DetM_3x3_int_sum_width_total_max(k,i); 
             end
         end
 		for k = 1:sim_options.num_det2x2*2
             if (DetM_4x4_int_mult_array_max_in_cycle(k,i) < DetM_4x4_int_mult_array_max(k,i))
                 DetM_4x4_int_mult_array_max_in_cycle(k,i) = DetM_4x4_int_mult_array_max(k,i); 
+            end
+            if (DetM_4x4_int_mult_width_total_max_in_cycle(k,i) < DetM_4x4_int_mult_width_total_max(k,i))
+                DetM_4x4_int_mult_width_total_max_in_cycle(k,i) = DetM_4x4_int_mult_width_total_max(k,i); 
             end
         end
 		for k = 1:sim_options.num_det2x2
@@ -229,12 +248,10 @@ for num = 1:sim_options.num_cycles
                 DetM_4x4_int_pre_sum_array_max_in_cycle(k,i) = DetM_4x4_int_pre_sum_array_max(k,i); 
             end
         end
-		for k = 1:5
+		for k = 1:sim_options.Size_matrix
             if (DetM_4x4_int_sum_array_max_in_cycle(k,i) < DetM_4x4_int_sum_array_max(k,i))
                 DetM_4x4_int_sum_array_max_in_cycle(k,i) = DetM_4x4_int_sum_array_max(k,i); 
             end
-        end
-		for k = 1:5
             if (DetM_5x5_int_mult_array_max_in_cycle(k,i) < DetM_5x5_int_mult_array_max(k,i))
                 DetM_5x5_int_mult_array_max_in_cycle(k,i) = DetM_5x5_int_mult_array_max(k,i); 
             end
@@ -250,58 +267,56 @@ for num = 1:sim_options.num_cycles
 		if (DetM_5x5_int_abs_max_in_cycle(1,i) < DetM_5x5_int_abs_max(i))
             DetM_5x5_int_abs_max_in_cycle(1,i) = DetM_5x5_int_abs_max(i); 
         end
+        %% Адаптивный фильтр
+		for k = 1:sim_options.Size_matrix
+            if (Adaptive_filter_mult_array_max_in_cycle(k,i) < Adaptive_filter_mult_array_max(k,i))
+                Adaptive_filter_mult_array_max_in_cycle(k,i) = Adaptive_filter_mult_array_max(k,i); 
+            end
+            if (Adaptive_filter_mult_total_width_in_cycle(k,i) < Adaptive_filter_mult_total_width(k,i))
+                Adaptive_filter_mult_total_width_in_cycle(k,i) = Adaptive_filter_mult_total_width(k,i); 
+            end
+            if (Adaptive_filter_sum_array_max_in_cycle(k,i) < Adaptive_filter_sum_array_max(k,i))
+                Adaptive_filter_sum_array_max_in_cycle(k,i) = Adaptive_filter_sum_array_max(k,i); 
+            end
+            if (Adaptive_filter_sum_total_width_in_cycle(k,i) < Adaptive_filter_sum_total_width(k,i))
+                Adaptive_filter_sum_total_width_in_cycle(k,i) = Adaptive_filter_sum_total_width(k,i); 
+            end
+        end
     end
 
-
-
-    %% Measurements1
-    % figure(5);
-    % subplot(2,1,1)
-    % plot([x_after_adc(1:500)])
-    % title('Исходный сигнал до искажения и выход адаптивного фильтра (double)')
-    % xlabel('Номер отсчета') 
-    % ylabel('Амплитуда') 
-    % legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
-    % 
-    % subplot(2,1,2)
-    % plot([s_to_subadc_int(1:length(x_after_adc_int)), x_after_adc_int]); %, error_out(:,2), error_out(:,3)]);
-    % title('Исходный сигнал до искажения и выход адаптивного фильтра (int)')
-    % xlabel('Номер отсчета') 
-    % ylabel('Отношение') 
-    % legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра'},'Location','northeast')
-    %%
-    % figure(6);
-    % subplot(4,1,1);
-    % sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,2);
-    % sfdr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,3);
-    % sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,4);
-    % sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % % 
-    % figure(7);
-    % subplot(4,1,1);
-    % snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,2);
-    % snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,3);
-    % snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % subplot(4,1,4);
-    % snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    % % 
+    %% SFDR
+    figure(8);
+    subplot(4,1,1);
+    sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,2);
+    sfdr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,3);
+    sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4);
+    sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    %% SNR
+    figure(9);
+    subplot(4,1,1);
+    snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,2);
+    snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,3);
+    snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4);
+    snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    %% 
     % snr_in_double(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
-    % snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
-    % snr_output_double(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    % snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-    % 
+    snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    snr_output_double(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
+
     % sfdr_in_double(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
-    % sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
-    % sfdr_output_double(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    % sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-    % 
-    % norm_freq(num) = freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
-    % num_array(:,num) = num;
+    sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    sfdr_output_double(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
+
+    norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
+    num_array(:,num) = num;
 
     % freq
     sim_options.freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
@@ -316,31 +331,56 @@ if sim_options.enable_mask == false
             width_mult(j,i) = define_of_width_int(fractional_mult_max(j,i), sim_options.int_size, sim_options.width_fractional);
             width_mult_h(j,i) = define_of_width_int(hilbert_mult_max(j,i), sim_options.int_size, sim_options.width_hilbert);
         end
-
-        for j = 1:length(fractional_sum_max(:,i))
+        for j = 1:length(fractional_sum_max(:,i))-1
             width_sum(j,i) = define_of_width_int(fractional_sum_max(j,i), sim_options.int_size, sim_options.width_fractional);
             width_sum_h(j,i) = define_of_width_int(hilbert_sum_max(j,i), sim_options.int_size, sim_options.width_hilbert);
         end
         %% Запись данных для фильтра дробной задержки
         % запись макс. значений сигнала
-        writematrix(fractional_mult_max(:,i), ['src/width_txt/fractional_filter/Max_value_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        writematrix(fractional_sum_max(:,i), ['src/width_txt/fractional_filter/Max_value_adder_Fractional_filter_' num2str(i) '.txt']);
+        Multipliers_fractional = fractional_mult_max(:,i);
+        Adders_fractional = fractional_sum_max(:,i);
+        % формируем таблицу максимальных значений фильтра дробной задержки
+        T1 = table(Multipliers_fractional, Adders_fractional, 'RowNames', num_filter);
+        writetable(T1,['src/width_txt/Максимальные_значения_фильтра_дробной_задержки_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true);  
+
+        Multipliers_fractional_width = fractional_total_width_mult_max(:,i);
+        Adders_fractional_width = fractional_total_width_sum_max(:,i);
+ 
+        % формируем таблицу максимальных разрядностей фильтра дробной задержки
+        T2 = table(Multipliers_fractional_width, Adders_fractional_width, 'RowNames', num_filter);
+        writetable(T2,['src/width_txt/Разрядность_элементов_фильтра_дробной_задержки_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
+        
+        % writematrix(fractional_mult_max(:,i), ['src/width_txt/fractional_filter/Max_value_multiplier_Fractional_filter_' num2str(i) '.txt']);
+        % writematrix(fractional_sum_max(:,i), ['src/width_txt/fractional_filter/Max_value_adder_Fractional_filter_' num2str(i) '.txt']);
         % запись разрядности макс. значений сигнала
-        writematrix(width_mult(:,i), ['src/width_txt/fractional_filter/Width_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        writematrix(width_sum(:,i), ['src/width_txt/fractional_filter/Width_adder_Fractional_filter_' num2str(i) '.txt']);
+        % writematrix(width_mult(:,i), ['src/width_txt/fractional_filter/Width_multiplier_Fractional_filter_' num2str(i) '.txt']);
+        % writematrix(width_sum(:,i), ['src/width_txt/fractional_filter/Width_adder_Fractional_filter_' num2str(i) '.txt']);
         % запись суммарной разрядности сумматоров и умножителей
-        writematrix(fractional_total_width_mult_max(:,i), ['src/width_txt/fractional_filter/Total_width_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        writematrix(fractional_total_width_sum_max(:,i), ['src/width_txt/fractional_filter/Total_width_adder_Fractional_filter_' num2str(i) '.txt']);
+        % writematrix(fractional_total_width_mult_max(:,i), ['src/width_txt/fractional_filter/Total_width_multiplier_Fractional_filter_' num2str(i) '.txt']);
+        % writematrix(fractional_total_width_sum_max(:,i), ['src/width_txt/fractional_filter/Total_width_adder_Fractional_filter_' num2str(i) '.txt']);
         %% Запись данных для фильтра Гилберта
         % запись макс. значений сигнала
-        writematrix(hilbert_mult_max(:,i), ['src/width_txt/hilbert_filter/Max_value_multiplier_Hilbert_filter_' num2str(i) '.txt']);
-        writematrix(hilbert_sum_max(:,i), ['src/width_txt/hilbert_filter/Max_value_adder_Hilbert_filter_' num2str(i) '.txt']);
-        % запись разрядности макс. значений сигнала
-        writematrix(width_mult_h(:,i), ['src/width_txt/hilbert_filter/Width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
-        writematrix(width_sum_h(:,i), ['src/width_txt/hilbert_filter/Width_adder_Hilbert_filter_' num2str(i) '.txt']);
-        % запись суммарной разрядности сумматоров и умножителей
-        writematrix(hilbert_total_width_mult_max(:,i), ['src/width_txt/hilbert_filter/Total_width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
-        writematrix(hilbert_total_width_sum_max(:,i), ['src/width_txt/hilbert_filter/Total_width_adder_Hilbert_filter_' num2str(i) '.txt']);
+        Multipliers_hilbert = hilbert_mult_max(:,i);
+        Adders_hilbert= hilbert_sum_max(:,i);
+        % формируем таблицу фильтра дробной задержки
+        T3 = table(Multipliers_hilbert, Adders_hilbert, 'RowNames', num_filter);
+        writetable(T3,['src/width_txt/Максимальные_значения_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true);  
+
+        Multipliers_hilbert_width = hilbert_total_width_mult_max(:,i);
+        Adders_hilbert_width = hilbert_total_width_sum_max(:,i);
+ 
+        % формируем таблицу максимальных разрядностей фильтра дробной задержки
+        T4 = table(Multipliers_hilbert_width, Adders_hilbert_width, 'RowNames', num_filter);
+        writetable(T4,['src/width_txt/Разрядность_элементов_фильтра_Гилберта_задержки_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
+
+        % writematrix(hilbert_mult_max(:,i), ['src/width_txt/hilbert_filter/Max_value_multiplier_Hilbert_filter_' num2str(i) '.txt']);
+        % writematrix(hilbert_sum_max(:,i), ['src/width_txt/hilbert_filter/Max_value_adder_Hilbert_filter_' num2str(i) '.txt']);
+        % % запись разрядности макс. значений сигнала
+        % writematrix(width_mult_h(:,i), ['src/width_txt/hilbert_filter/Width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
+        % writematrix(width_sum_h(:,i), ['src/width_txt/hilbert_filter/Width_adder_Hilbert_filter_' num2str(i) '.txt']);
+        % % запись суммарной разрядности сумматоров и умножителей
+        % writematrix(hilbert_total_width_mult_max(:,i), ['src/width_txt/hilbert_filter/Total_width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
+        % writematrix(hilbert_total_width_sum_max(:,i), ['src/width_txt/hilbert_filter/Total_width_adder_Hilbert_filter_' num2str(i) '.txt']);
         %% Запись данных для определителя
         Multipliers_2x2 = DetM_2x2_multiplier_total_abs_max_in_cycle(:,i);
         Adders_2x2 = Det2x2_sum_abs_max_in_cycle(:,i);
@@ -355,33 +395,38 @@ if sim_options.enable_mask == false
 		Pre_sum2_5x5 = DetM_5x5_int_sum3_abs_max_in_cycle(:,i);
 		Det_5x5 = DetM_5x5_int_abs_max_in_cycle(:,i);
         % формируем таблицу определителя
-        T = table(Multipliers_2x2, Adders_2x2, Multipliers_3x3, Pre_sum_3x3, Sum_3x3, Multipliers_4x4, Pre_sum_4x4, Sum4x4, Mult5x5, Pre_sum1_5x5, Pre_sum2_5x5, Det_5x5, 'RowNames', num_mult);
-        writetable(T,['src/width_txt/Max_values_Det_ADC_' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        T5 = table(Multipliers_2x2, Adders_2x2, Multipliers_3x3, Pre_sum_3x3, Sum_3x3, Multipliers_4x4, Pre_sum_4x4, Sum4x4, Mult5x5, Pre_sum1_5x5, Pre_sum2_5x5, Det_5x5, 'RowNames', num_determinante);
+        writetable(T5,['src/width_txt/Максимальные_значения_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        %% Запись данных для адаптивного фильтра
+        Multipliers_adaptive = Adaptive_filter_mult_array_max_in_cycle(:,i);
+        Sum_adaptive = Adaptive_filter_sum_array_max_in_cycle(:,i);
+        % формируем таблицу адаптивного фильтра
+        T6 = table(Multipliers_adaptive, Sum_adaptive, 'RowNames', num_adaptive);
+        writetable(T6,['src/width_txt/Максимальные_значения_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
+
+        Multipliers_adaptive_total_width = Adaptive_filter_mult_total_width_in_cycle(:,i);
+        Sum_adaptive_total_width = Adaptive_filter_sum_total_width_in_cycle(:,i);
+        % формируем таблицу адаптивного фильтра
+        T7 = table(Multipliers_adaptive_total_width, Sum_adaptive_total_width, 'RowNames', num_adaptive);
+        writetable(T7,['src/width_txt/Разрядность_элементов_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
+
     end
 end
 
-    % figure(8);
-    % subplot(2,1,1)
-    % plot(norm_freq, snr_in_double, '-o', norm_freq, snr_in_int, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
-    % title('SNR')
-    % xlabel('Нормированная частота') 
-    % ylabel('SNR (dB)') 
-    % legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+    figure(10);
+    subplot(2,1,1)
+    plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
+    title('SNR')
+    xlabel('Нормированная частота') 
+    ylabel('SNR (dB)') 
+    legend({'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
     % 
-    % subplot(2,1,2)
-    % plot(norm_freq, sfdr_in_double, '-o', norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
-    % title('SFDR (dB)')
-    % xlabel('Нормированная частота') 
-    % ylabel('SFDR (dB)') 
-    % legend({'Входной сигнал c ошибками double', 'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
-
-    % figure(9);
-    % plot(norm_freq, snr_double, '-o', norm_freq, snr_16, '-o', norm_freq, snr_19, '-o', norm_freq, snr_21, '-o');
-    % title('Зависимость разрядности коэффициентов на выходной итоговый сигнал')
-    % xlabel('Нормированная частота') 
-    % ylabel('SNR (dB)') 
-    % legend({'double', '16 бит', '19 бит', '21 бит'}, 'Location','northwest');
-
+    subplot(2,1,2)
+    plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
+    title('SFDR (dB)')
+    xlabel('Нормированная частота') 
+    ylabel('SFDR (dB)') 
+    legend({'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
     %% Measurements2
     % figure(7);
@@ -397,7 +442,7 @@ end
     % xlabel({'Нормированная частота fнорм = f/(Fs/M)','Fs - частота дискретизации всего TI-ADC, М - количество каналов'}) 
     % ylabel('SFDR (dB)') 
     % legend('до калибровки без искажений', 'до калибровки с искажениями','после калибровки')
-
+    % 
     % x4 = xline(0.42, '--', 'Интервал из статьи 1-ой зоны Найквиста')
     % x4.LabelHorizontalAlignment = 'center'
     % x4.LabelVerticalAlignment = 'middle';
