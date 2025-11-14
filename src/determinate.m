@@ -514,16 +514,67 @@ Det_3x3_LU_matlab(10) = abs(det([a(3:end,1), a(3:end,2), a(3:end,3)]));
         disp({DetM_3x3_n_11_int});
     end
 	%%
-DetM_3x3_array(1) = abs(DetM_3x3_n_11);
-DetM_3x3_array(2) = abs(DetM_3x3_n_12);
-DetM_3x3_array(3) = abs(DetM_3x3_n_13);
-DetM_3x3_array(4) = abs(DetM_3x3_n_14);
-DetM_3x3_array(5) = abs(DetM_3x3_n_22);
-DetM_3x3_array(6) = abs(DetM_3x3_n_23);
-DetM_3x3_array(7) = abs(DetM_3x3_n_24);
-DetM_3x3_array(8) = abs(DetM_3x3_n_33);
-DetM_3x3_array(9) = abs(DetM_3x3_n_34);
-DetM_3x3_array(10) = abs(DetM_3x3_n_44);
+    if DetM_3x3_n_11 < 0
+        DetM_3x3_array(1) = DetM_3x3_n_11 * -1;
+    else
+        DetM_3x3_array(1) = DetM_3x3_n_11;
+    end
+    if DetM_3x3_n_12 < 0
+        DetM_3x3_array(2) = DetM_3x3_n_12 * -1;
+    else
+        DetM_3x3_array(2) = DetM_3x3_n_12;
+    end
+    if DetM_3x3_n_13 < 0
+        DetM_3x3_array(3) = DetM_3x3_n_13 * -1;
+    else
+        DetM_3x3_array(3) = DetM_3x3_n_13;
+    end
+    if DetM_3x3_n_14 < 0
+        DetM_3x3_array(4) = DetM_3x3_n_14 * -1;
+    else
+        DetM_3x3_array(4) = DetM_3x3_n_14;
+    end
+    if DetM_3x3_n_22 < 0
+        DetM_3x3_array(5) = DetM_3x3_n_22 * -1;
+    else
+        DetM_3x3_array(5) = DetM_3x3_n_22;
+    end
+    if DetM_3x3_n_23 < 0
+        DetM_3x3_array(6) = DetM_3x3_n_23 * -1;
+    else
+        DetM_3x3_array(6) = DetM_3x3_n_23;
+    end
+    if DetM_3x3_n_24 < 0
+        DetM_3x3_array(7) = DetM_3x3_n_24 * -1;
+    else
+        DetM_3x3_array(7) = DetM_3x3_n_24;
+    end
+    if DetM_3x3_n_33 < 0
+        DetM_3x3_array(8) = DetM_3x3_n_33 * -1;
+    else
+        DetM_3x3_array(8) = DetM_3x3_n_33;
+    end
+    if DetM_3x3_n_34 < 0
+        DetM_3x3_array(9) = DetM_3x3_n_34 * -1;
+    else
+        DetM_3x3_array(9) = DetM_3x3_n_34;
+    end
+    if DetM_3x3_n_44 < 0
+        DetM_3x3_array(10) = DetM_3x3_n_44 * -1;
+    else
+        DetM_3x3_array(10) = DetM_3x3_n_44;
+    end
+
+% DetM_3x3_array(1) = abs(DetM_3x3_n_11);
+% DetM_3x3_array(2) = abs(DetM_3x3_n_12);
+% DetM_3x3_array(3) = abs(DetM_3x3_n_13);
+% DetM_3x3_array(4) = abs(DetM_3x3_n_14);
+% DetM_3x3_array(5) = abs(DetM_3x3_n_22);
+% DetM_3x3_array(6) = abs(DetM_3x3_n_23);
+% DetM_3x3_array(7) = abs(DetM_3x3_n_24);
+% DetM_3x3_array(8) = abs(DetM_3x3_n_33);
+% DetM_3x3_array(9) = abs(DetM_3x3_n_34);
+% DetM_3x3_array(10) = abs(DetM_3x3_n_44);
 
 DetM_3x3_int_pre_sum_array(1) = DetM_3x3_n_11_int_sum1;
 DetM_3x3_int_pre_sum_array(2) = DetM_3x3_n_12_int_sum1;

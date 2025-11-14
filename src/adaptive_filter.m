@@ -14,6 +14,7 @@ function [data_outd, data_out, y_int_abs, y_int_total_width, sum_array_out, sum_
         width_sum = readmatrix(adaptive_sum_file);
     end
 
+    sum_array_out = zeros(5,1);
     for i = 1:length(coeff)
         [y_int(i), y_int_overflow(i), y_int_abs(i), y_int_total_width(i)] = mult(input_data(i), coeff(i), sim_options.type_mult_in_adaptive_filter, sim_options.width_double);
 		[sum_int(i+1), sum_int_overflow(i), sum_int_abs(i), sum_int_width_total(i)] = adder(sum_int(i), y_int(i), sim_options.type_add_in_adaptive_filter, sim_options.width_double);
@@ -61,7 +62,15 @@ function [data_outd, data_out, y_int_abs, y_int_total_width, sum_array_out, sum_
     end
 
     sum_array_out = sum_int_abs(2:6);
-    data_out = sum_int(6);
+    data_out = sum_int(2:6);
+    %%
+    mult1d = input_data(1) * (coeff(1));
+    mult2d = input_data(2) * (coeff(2)); 
+    mult3d = input_data(3) * (coeff(3)); 
+    mult4d = input_data(4) * (coeff(4)); 
+    mult5d = input_data(5) * (coeff(5)); 
+
+    data_out = mult1d + mult2d + mult3d + mult4d + mult5d;
 
     %% double
 

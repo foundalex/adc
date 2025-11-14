@@ -91,7 +91,7 @@ for num = 1:sim_options.num_cycles
     [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int, sim_options.Z] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
         sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
-    [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
+    [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
         hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum, ...
         ... % Determinant
 		... % умножители определителя 2x2 
@@ -286,33 +286,38 @@ for num = 1:sim_options.num_cycles
 
     %% SFDR
     figure(8);
-    subplot(4,1,1);
-    sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,2);
-    sfdr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,3);
+    subplot(5,1,1);
+    sfdr(s_to_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(5,1,2);
+    sfdr(s_after_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(5,1,3);
     sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,4);
+    subplot(5,1,4);
+    sfdr(x_after_adc_double(1:length(x_after_adc_double)), sim_options.Fs/sim_options.Inter);
+    subplot(5,1,5);
     sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     %% SNR
     figure(9);
-    subplot(4,1,1);
-    snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,2);
-    snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,3);
+    subplot(5,1,1);
+    snr(s_to_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(5,1,2);
+    snr(s_after_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(5,1,3);
     snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
-    subplot(4,1,4);
+    subplot(5,1,4);
+    snr(x_after_adc_double(100:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    subplot(5,1,5);
     snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     %% 
-    % snr_in_double(num) = snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
     snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
-    snr_output_double(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    snr_output_lu(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    snr_output_double(num) = snr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
     snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
 
-    % sfdr_in_double(num) = sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    
     sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
-    sfdr_output_double(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    sfdr_output_lu(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    sfdr_output_double(num) = sfdr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
     sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
 
     norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
@@ -415,18 +420,18 @@ end
 
     figure(10);
     subplot(2,1,1)
-    plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
+    plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_lu, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
     title('SNR')
     xlabel('Нормированная частота') 
     ylabel('SNR (dB)') 
-    legend({'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+    legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
     % 
     subplot(2,1,2)
-    plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
+    plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_lu, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
     title('SFDR (dB)')
     xlabel('Нормированная частота') 
     ylabel('SFDR (dB)') 
-    legend({'Входной сигнал с ошибками int', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+    legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
     %% Measurements2
     % figure(7);

@@ -5,7 +5,7 @@
 % 3) Айфичер Э, Джервис Б, Цифровая обработка сигналов. Практический подход
 % 4) Behrouz Farhang-Boroujeny, Adaptive Filters Theory and Applications 
 
-function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...  
+function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...  
     hilbert_mult, hilbert_sum, hilbert_width_total_mult, hilbert_width_total_sum, ...
     ... % Determinant
 	... % умножители определителя 2x2 
@@ -93,15 +93,22 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
     % xlabel('Номер коэффициента') 
     % ylabel('Необходимое количество бит') 
 
-    % [y, f] = freqz(hri_w(:,1), 1,1024, 'whole', 1000000000);
-    % for k = 1:sim_options.M-1
-    %     hrim_fi_test = fi(hri_w(:,k), 1,fractional_width(1),fractional_width(1)-1);
-    %     hrim_int_test = int32(hrim_fi_test * 2^(fractional_width(1)-1));
-    %     [y1(:,k), f1(:,k)] = freqz(double(hrim_int_test)*2^-(fractional_width(1)-1),1,1024, 'whole', 1000000000);
+
+
+    % for i = 1:sim_options.M-1
+    %     [y3(:,i), f3(:,i)] = freqz(hri_w(:,i), 1,1024, 'whole', 1000000000);
+    %     [y4(:,i), f4(:,i)] = freqz(double(coeff_frac_int(:,i))*2^-(sim_options.fractional_coeff_width-1),1,1024, 'whole', 1000000000);
     % end
     % 
     % figure(2);
-    % plot(f, abs(y), f, abs(y1(:,1)), f, abs(y1(:,2)), f, abs(y1(:,3)));
+    % subplot(3,1,1)
+    % plot(f3(:,1), abs(y3(:,1)), f3(:,1), abs(y4(:,1)));
+    % subplot(3,1,2)
+    % plot(f3(:,2), abs(y3(:,2)), f3(:,2), abs(y4(:,2)));
+    % subplot(3,1,3)
+    % plot(f3(:,3), abs(y3(:,3)), f3(:,3), abs(y4(:,3)));
+
+
     % title('Влияние разрядностей коэффициентов на АЧХ фильтра дробной задержки')
     % xlabel('Частота') 
     % ylabel('Коэффициент передачи') 
@@ -117,22 +124,12 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
     % Negative Symmetric coefficients
     hilbert_coeff_int = cast(hh_m*2^(sim_options.hilbert_coeff_width-1), sim_options.int_size);
     writematrix(hilbert_coeff_int, ['src/width_txt/Коэффициенты_фильтра_Гилберта.txt']);
-    % [y, f] = freqz(double(hilbert_coeff_int)*2^-(hilbert_width-1), 1,1024, 'whole', 1000000000);
-    % figure(2);
-    % plot(f, abs(y));
-    % 
-    % figure(3)
-    % subplot(2,1,1)
-    % plot(double(hh_m_int))
-    % title('Импульсная характеристика фильтра Гилберта')
-    % xlabel('Номер отсчета') 
-    % ylabel('Амплитуда') 
-    % subplot(2,1,2)
-    % plot(width)
-    % title('Разрядность коэффициентов')
-    % xlabel('Номер коэффициента') 
-    % ylabel('Необходимое количество бит') 
 
+    % [y, f] = freqz(double(hilbert_coeff_int)*2^-(sim_options.hilbert_coeff_width-1), 1,1024, 'whole', 1000000000);
+    % [y1, f1] = freqz(hh_m, 1,1024, 'whole', 1000000000);
+    % figure(3);
+    % plot(f, abs(y), f, abs(y1));
+    
     %% zones Nyquist
     nn1 = nn' + delay_adc;
     a1 = 2*pi*nn1*Nbp;
@@ -140,8 +137,8 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
     sini = sin(a1);
 
     %%
-    yri_cut = zeros(length(adc_input(:,1)),sim_options.M);
-    yri_cut_int = cast(zeros(length(adc_input(:,1)),sim_options.M), sim_options.int_size);
+    yri_cut = zeros(length(adc_input(1:end-del_proc,1)),sim_options.M);
+    yri_cut_int = cast(zeros(length(adc_input(1:end-del_proc,1)),sim_options.M), sim_options.int_size);
 
     fractional_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
     fractional_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
@@ -211,7 +208,6 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
         snr(yri, 1000000000);
         subplot(4,1,3);
         snr(y_fractional_outInt_double, 1000000000);
-
         subplot(4,1,4);
         plot(relative_error_fractional);
         title('Относительная ошибка выходного сигнала фильтра дробной задержки между double и integer')
@@ -238,9 +234,6 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
         x4.LabelVerticalAlignment = 'middle';
 
     end
-    % 
-    yri_cut = zeros(length(adc_input(1:end-del_proc,1)),sim_options.M);
-    yri_cut_int = cast(zeros(length(adc_input(1:end-del_proc,1)),sim_options.M), sim_options.int_size);
 
     for i = 1:sim_options.M
         if i == 1
@@ -255,7 +248,6 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
     yri_cut(end-del_proc:end,:) = [];
     yri_cut_int(end-del_proc:end,:) = [];
 
-    % load ('2025             11             12             15             55          9.167.mat'); % 888 MHz 70 SNR
     %% test signal
     sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);
     sig_adc_int = zeros(sim_options.M*length(yri_cut_int(:,1)),1);
@@ -269,38 +261,38 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
     end
 
     % save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             11             12             16             41          38.56.mat'); % 888 MHz 70 SNR
+    % load ('2025             11             13             12             40         31.135.mat'); % 500 MHz 70 SNR
+
+    % load ('2025             11             13             23             12         14.472.mat'); % 
+    %% unique
+    % load ('2025             11             13             17              3           49.5.mat'); % 50 MHz 70 SNR
 
     figure(15);
-    plot([s_to_subadc_int(1:750), sig_adc(1:750), sig_adc_int(1:750)]);
+    plot([sig_adc(1:750), sig_adc_int(1:750)]);
 
     figure(16);
     subplot(3,1,1)
-    snr(s_to_subadc_int, sim_options.Fs/sim_options.Inter);
+    snr(s_to_subadc_int, sim_options.Fs/sim_options.Inter/sim_options.M);
     subplot(3,1,2);
-    snr(sig_adc, sim_options.Fs/sim_options.Inter);
+    snr(sig_adc, sim_options.Fs/sim_options.Inter/sim_options.M);
     subplot(3,1,3);
-    snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
+    snr(sig_adc_int, sim_options.Fs/sim_options.Inter/sim_options.M);
 
-
-    sim_options.type_2x2_det = "int64";
+    sim_options.type_2x2_det = "double";
     sim_options.type_3x3_det = "double";
 	sim_options.type_4x4_det = "double";
 	sim_options.type_5x5_det = "double"; 
 
     sim_options.type_mult_in_adaptive_filter = "double";
     sim_options.type_add_in_adaptive_filter = "double";
-
-% load ('2025             11             12             19             44         32.476.mat'); 
     
-
     %% Calibration algorithm 2 (Least Mean Squares)
     for i = 1:sim_options.M-1
 
         adaptive_mult_file = ['src/width_txt/Width_mult_Adaptive_filter_' num2str(i) '.txt'];
         adaptive_sum_file = ['src/width_txt/Width_adder_Adaptive_filter_' num2str(i) '.txt'];
 
-        [y_array(:,i), y_array_int(:,i), DetM_2x2_array(:,i), DetM_2x2_array_int(:,i), ...
+        [y_array(:,i), y_array_double(:,i), y_array_int(:,i), DetM_2x2_array(:,i), DetM_2x2_array_int(:,i), ...
 			... % умножители определителя 2x2 
 			DetM_2x2_multiplier_total_abs_max(:,i), ...
 			... % сумматоры определителя 2x2 
@@ -353,7 +345,7 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
             Adaptive_filter_sum_array_max(:,i), ....
             ... % разрядность сумматоров адаптивного фильтра
             Adaptive_filter_sum_total_width(:,i) ...
-        ] = least_mean_squares(double(adc_input(:,i+1)), adc_input(:,i+1), yri_cut(:,i+1), yri_cut_int(:,i+1), adaptive_mult_file, adaptive_sum_file, sim_options);
+        ] = least_mean_squares(double(adc_input(:,i+1)), adc_input(:,i+1), yri_cut(:,i+1), yri_cut_int(:,i+1), adaptive_mult_file, adaptive_sum_file, sim_options.remainder(i), sim_options);
     end
 
     % save (sprintf(num2str(clock) + ".mat"));
@@ -361,26 +353,35 @@ function [x_after_adc, x_after_adc_int, fractional_mult, fractional_sum, fractio
 
     %% create main signal after LS algorithm (switch after sub-adc)
     x_after_adc = zeros(length(y_array)*sim_options.M,1);
+    x_after_adc_double = zeros(length(y_array_double)*sim_options.M,1);
     x_after_adc_int = zeros(length(y_array_int)*sim_options.M,1);
-    % % 
+    
     for i = 1:sim_options.M
         if i == 1
             x_after_adc(i:sim_options.M:end) = yri_cut(1:length(y_array),1);
-            x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array),1));
+            x_after_adc_double(i:sim_options.M:end) = yri_cut(1:length(y_array_double),1);
+            x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array_int),1));
         else
             x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
+            x_after_adc_double(i:sim_options.M:end) = y_array_double(:,i-1);% * 2^-(sim_options.remainder(i-1));
             x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-(sim_options.remainder(i-1));
         end
     end
 
     figure(7);
-    subplot(2,1,1)
+    subplot(3,1,1)
     plot([s_to_subadc_int(1:500), x_after_adc(1:500)]);
-    title('Исходный сигнал и выход адаптивного фильтра double')
+    title('Исходный сигнал и выход алгоритма LU')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
     legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра double'},'Location','northeast')
-    subplot(2,1,2)
+    subplot(3,1,2)
+    plot([s_to_subadc_int(1:3600), x_after_adc_double(1:500)]);
+    title('Исходный сигнал и выход адаптивного фильтра double')
+    xlabel('Номер отсчета') 
+    ylabel('Амплитуда') 
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра '},'Location','northeast')
+    subplot(3,1,3)
     plot([s_to_subadc_int(1:500), x_after_adc_int(1:500)]);
     title('Исходный сигнал и выход адаптивного фильтра int')
     xlabel('Номер отсчета') 
