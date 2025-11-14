@@ -94,9 +94,10 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
     Z = ceil(freq/(Fs/Inter/2/M));      % Nyquist zone
 
     % save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             11             11             16              6         49.465.mat'); % 888 MHz 70 SNR
-    
+    % load ('2025             11             14             12              8          2.906.mat'); % 50 MHz 70 SNR
+    load ('2025             11             14             15             37         54.195.mat'); % 777 MHz 70 SNR
 
+   
 end
 
 %%

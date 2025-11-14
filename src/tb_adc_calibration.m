@@ -41,43 +41,42 @@ num_filter = string((1:sim_options.N)');
 num_determinante = string((1:sim_options.num_det2x2*3)');
 num_adaptive = string((1:sim_options.Size_matrix)');
 
-DetM_2x2_multiplier_total_abs_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.int_size);
-Det2x2_sum_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.int_size);
-Mult_DetM_3x3_array_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
-Mult_DetM_3x3_array_mult_total_width_max_in_cycle 	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
-DetM_3x3_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
-DetM_3x3_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
-DetM_3x3_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
-DetM_3x3_int_sum_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_2x2_multiplier_total_abs_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
+Det2x2_sum_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
+Mult_DetM_3x3_array_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+Mult_DetM_3x3_array_mult_total_width_max_in_cycle 	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+DetM_3x3_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+DetM_3x3_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+DetM_3x3_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+DetM_3x3_int_sum_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
 % умножители определителя 4х4
-DetM_4x4_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_4x4_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
 % разрядность умножителей определителя 4х4
-DetM_4x4_int_mult_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_4x4_int_mult_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
 % пресумматоры определителя 4х4
-DetM_4x4_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_4x4_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
 % разрядность пресумматоров определителя 4х4
-DetM_4x4_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_4x4_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
 % сумматоры определителя 4х4
-DetM_4x4_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_4x4_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
 % разрядность сумматоров определителя 4х4
-DetM_4x4_int_sum_array_width_total_max_in_cycle		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_4x4_int_sum_array_width_total_max_in_cycle		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
 % умножители определителя 5х5
-DetM_5x5_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_5x5_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
 % разрядность умножителей 5x5
-DetM_5x5_int_mult_array_width_total_max_in_cycle	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_5x5_int_mult_array_width_total_max_in_cycle	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 % пресумматоры1 определителя 5х5
-DetM_5x5_int_pre_sum1_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_5x5_int_pre_sum1_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 % разрядность пресумматоров1 определителя 5х5
-DetM_5x5_int_pre_sum1_array_width_total_max_in_cycle = cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_5x5_int_pre_sum1_array_width_total_max_in_cycle = cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 % пресумматор2 определителя 5х5
-DetM_5x5_int_sum3_abs_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_5x5_int_sum3_abs_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 % разрядность пресумматора2 определителя 5х5
-DetM_5x5_int_sum3_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_5x5_int_sum3_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 % сумматор определителя 5х5
-DetM_5x5_int_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
+DetM_5x5_int_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 % разрядность сумматора определителя 5х5
-DetM_5x5_int_width_total_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), "double");
-
+DetM_5x5_int_width_total_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 
 % Адаптивный фильтр
 Adaptive_filter_mult_array_max_in_cycle 	        = cast(zeros(sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
@@ -222,6 +221,9 @@ for num = 1:sim_options.num_cycles
             end
         end
 		for k = 1:sim_options.num_det2x2
+            if (DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) < DetM_3x3_int_pre_sum_array_max(k,i))
+                DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) = DetM_3x3_int_pre_sum_array_max(k,i); 
+            end
             if (DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) < DetM_3x3_int_pre_sum_array_max(k,i))
                 DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) = DetM_3x3_int_pre_sum_array_max(k,i); 
             end
