@@ -52,6 +52,10 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
 	DetM_5x5_int_abs_max, ...
 	... % разрядность сумматора определителя 5х5
 	DetM_5x5_int_width_total_max, ...
+    ... % начальный определитель
+    Det_x3_int_max, ...
+    ... % выход делителя
+    Divide_max, ...
     ... % умножители адаптивного фильтра
     Adaptive_filter_mult_array_max, ...
     ... % разрядность умножителей адаптивного фильтра
@@ -78,9 +82,11 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     hri_w = hri_m .* w_blackman_fractional; 
   
     coeff_frac_int = cast((hri_w*2^(sim_options.fractional_coeff_width-1)), sim_options.int_size);
-    for i = 1:sim_options.M-1
-        writematrix(coeff_frac_int(:,i), ['src/width_txt/Коэффициенты_фильтров_дробной_задержки_АЦП' num2str(i), '.txt']);
-    end
+    % запись коэффициентов фильтра дробной задержки в файл
+    % for i = 1:sim_options.M-1
+    %     writematrix(coeff_frac_int(:,i), ['src/width_txt/Коэффициенты_фильтров_дробной_задержки_АЦП' num2str(i), '.txt']);
+    % end
+
     % figure(3)
     % subplot(2,1,1)
     % plot(double(coeff_frac_int))
@@ -121,7 +127,8 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
 
     % Negative Symmetric coefficients
     hilbert_coeff_int = cast(hh_m*2^(sim_options.hilbert_coeff_width-1), sim_options.int_size);
-    writematrix(hilbert_coeff_int, ['src/width_txt/Коэффициенты_фильтра_Гилберта.txt']);
+    % запись коэффициентов фильтра Гилберта в файл
+    % writematrix(hilbert_coeff_int, ['src/width_txt/Коэффициенты_фильтра_Гилберта.txt']);
 
     % [y, f] = freqz(double(hilbert_coeff_int)*2^-(sim_options.hilbert_coeff_width-1), 1,1024, 'whole', 1000000000);
     % [y1, f1] = freqz(hh_m, 1,1024, 'whole', 1000000000);
@@ -148,7 +155,7 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     hilbert_width_total_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
     hilbert_width_total_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
 
-    a = 0;
+    a = 13;
     sim_options.divide_fir_fractional(1) = a;
     sim_options.divide_fir_fractional(2) = a;
     sim_options.divide_fir_fractional(3) = a;
@@ -297,6 +304,8 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
    sim_options.type_3x3_det =      "int64";                ... % тип данных для матрицы 3х3
    sim_options.type_4x4_det =      "int64";                ...    
    sim_options.type_5x5_det =      "int64";                ...
+   sim_options.type_divide_out =  "double";
+   sim_options.divide_factor = 14;
     %% Calibration algorithm 2 (Least Mean Squares)
     for i = 1:sim_options.M-1
 
@@ -348,6 +357,10 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
 			DetM_5x5_int_abs_max(:,i), ...
 			... % разрядность сумматора определителя 5х5
 			DetM_5x5_int_width_total_max(:,i), ...
+            ... % начальный определитель
+            Det_x3_int_max(:,i), ...
+            ... % выход делителя
+            Divide_max(:,i), ...
             ... % умножители адаптивного фильтра
             Adaptive_filter_mult_array_max(:,i), ...
             ... % разрядность умножителей адаптивного фильтра

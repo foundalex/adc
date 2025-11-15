@@ -43,6 +43,10 @@ function [y_array, y_array_double, y_array_int, DetM_2x2_array, DetM_2x2_array_i
 	DetM_5x5_int_abs_max, ...
 	... % разрядность сумматора определителя 5х5
 	DetM_5x5_int_width_total_max, ...
+    ... % начальный определитель
+    Det_x3_int_max, ...
+    ... % выход делителя
+    Divide_max, ...
     ... % умножители адаптивного фильтра
     Adaptive_filter_mult_array_max, ...
     ... % разрядность умножителей адаптивного фильтра
@@ -52,7 +56,6 @@ function [y_array, y_array_double, y_array_int, DetM_2x2_array, DetM_2x2_array_i
     ... % разрядность сумматоров адаптивного фильтра
     Adaptive_filter_sum_total_width ...
     ] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, adaptive_mult_file, adaptive_sum_file, remainder, sim_options)
-
 
 bb = 0;
 vv = 0;
@@ -100,6 +103,17 @@ DetM_5x5_int_sum3_width_total_max = cast(0, sim_options.type_5x5_det);
 DetM_5x5_int_abs_max = cast(0, sim_options.type_5x5_det);
 % разрядность сумматора определителя 5х5
 DetM_5x5_int_width_total_max = cast(0, sim_options.type_5x5_det);
+% начальный определитель
+Det_x3_int_max = cast(0, sim_options.type_5x5_det);
+% выход делителя
+Divide_max = cast(0, sim_options.type_divide_out);
+
+www1 = zeros(sim_options.Size_matrix,1);
+www1_double = zeros(sim_options.Size_matrix,1);
+www1_double_abs = zeros(sim_options.Size_matrix,1);
+www1_int = cast(zeros(sim_options.Size_matrix,1), sim_options.type_divide_out);
+www1_int_abs = cast(zeros(sim_options.Size_matrix,1), sim_options.type_divide_out);
+
 
 Adaptive_filter_mult_array_max = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
 Adaptive_filter_mult_total_width = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
@@ -305,7 +319,11 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 	% разрядность сумматора определителя 5х5
 	if  DetM_5x5_int_width_total_max < DetM_5x5_int_width_total 
 		DetM_5x5_int_width_total_max = DetM_5x5_int_width_total;
-	end
+    end
+    % начальный определитель
+    if Det_x3_int_max < DetM_5x5_int_abs
+        Det_x3_int_max = DetM_5x5_int_abs;
+    end
 	%%
                 
 	for i = 1:sim_options.Size_matrix
@@ -450,7 +468,6 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 				DetM_2x2_multiplier_total_abs_max(n) = DetM_2x2_multiplier_total_abs(n);
 			end
 		end 
-
 		for n = 1:sim_options.num_det2x2
 			% определяем максимальное значение на каждом из 10 сумматоров
 			if Det2x2_sum_abs_max(n) < Det2x2_sum_abs(n) 
@@ -463,12 +480,10 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 			if Mult_DetM_3x3_array_max(n) < Mult_DetM_3x3_array(n) 
 				Mult_DetM_3x3_array_max(n) = Mult_DetM_3x3_array(n);
 			end		
-			
 			% определяем макс. разрядность на каждом из 30 умножителей
 			if Mult_DetM_3x3_array_mult_total_width_max(n) < Mult_DetM_3x3_array_mult_total_width(n) 
 				Mult_DetM_3x3_array_mult_total_width_max(n) = Mult_DetM_3x3_array_mult_total_width(n);
-			end
-		
+            end
 		end
 		for n = 1:sim_options.num_det2x2
 			% определяем максимальное значение на каждом из 10 пресумматорах
@@ -558,28 +573,21 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
         end
 
 		%% divide determinant
-        www1(:,i) = det_x3_shift(kk) ./ det_matlab(j); 
-        www1_double(:,i) = divide(det_out_shift(kk), det_x3(j), 14);
-		www1_int(:,i) = divide(det_out_shift_int(kk), det_x3_int(j), 14); % int
+        www1(i,:) = det_x3_shift(kk) ./ det_matlab(j); 
+        % double
+        [www1_double(i,:), overflow_divide_double(i,:), www1_double_abs(i,:), width_total_double(i,:)] = ...
+            divide(det_out_shift(kk), det_x3(j), sim_options.type_divide_out, sim_options.width_double, sim_options.divide_factor);
+        % int
+		[www1_int(i,:), overflow_divide_int(i,:), www1_int_abs(i,:), width_total_int(i,:)] = ...
+            divide(det_out_shift_int(kk), det_x3_int(j), sim_options.type_divide_out, sim_options.width_double, sim_options.divide_factor); % int
+
+        % находим макс.значение выхода делителя
+        if Divide_max < (www1_int_abs(i,:)) 
+            Divide_max = www1_int_abs(i,:);
+        end
     end
 
 	%% adaptive filter
-    % for k = 1:sim_options.Size_matrix
-    %     if j == 1
-    %         y_outd = y_outd + www1(k) * adc_input(k); % (стр 5, (13))
-    %         dat_in_filt_double(k) = adc_input(k);
-    %         dat_in_filt(k) = cast(adc_input_int(k),"double");
-    %     else
-    %         y_outd = 0;
-	% 	    % filter input signal. Mult input words on coeff
-	% 	    for k = 1:sim_options.Size_matrix
-	% 		    y_outd = y_outd + www1(k) * adc_input(j-1+k); % (стр 5, (13))
-	% 		    dat_in_filt_double(k) = adc_input(j-1+k);
-	% 		    dat_in_filt(k) = cast(adc_input_int(j-1+k), "double");
-    %         end
-    %     end
-    % end 
-    
     y_outd = w1(1).*x3(:,1)+w1(2).*x3(:,2)+w1(3).*x3(:,3)+w1(4).*x3(:,4)+w1(5).*x3(:,5);
 
 	[y_out, y_out_int, y_int_abs, y_int_total_width, sum_array_out, sum_int_width_total] ...
@@ -606,7 +614,6 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 	end 
 
 	y_array(nn+1:nn+sim_options.Size_matrix,:) = y_outd;
-    % y_array_double(j) = y_out;
     y_array_double(nn+1:nn+sim_options.Size_matrix,:) = y_out;
 	y_array_int(nn+1:nn+sim_options.Size_matrix,:) = y_out_int;
     nn = nn + sim_options.Size_matrix;

@@ -40,6 +40,7 @@ hilbert_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_opt
 num_filter = string((1:sim_options.N)');
 num_determinante = string((1:sim_options.num_det2x2*3)');
 num_adaptive = string((1:sim_options.Size_matrix)');
+num_divide = string((1:1)');
 
 DetM_2x2_multiplier_total_abs_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
 Det2x2_sum_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
@@ -77,6 +78,10 @@ DetM_5x5_int_sum3_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x
 DetM_5x5_int_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 % разрядность сумматора определителя 5х5
 DetM_5x5_int_width_total_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% начальный определитель
+Det_x3_int_max_in_cycle                             = cast(zeros(1,sim_options.M-1), sim_options.type_5x5_det);
+% выход делителя
+Divide_max_in_cycle                                 = cast(zeros(1,sim_options.M-1), sim_options.type_divide_out);
 
 % Адаптивный фильтр
 Adaptive_filter_mult_array_max_in_cycle 	        = cast(zeros(sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
@@ -137,6 +142,10 @@ for num = 1:sim_options.num_cycles
 		DetM_5x5_int_abs_max, ...
 		... % разрядность сумматора определителя 5х5
 		DetM_5x5_int_width_total_max, ...
+        ... % начальный определитель
+        Det_x3_int_max, ...
+        ... % выход делителя
+        Divide_max, ...
         ... % умножители адаптивного фильтра
         Adaptive_filter_mult_array_max, ...
         ... % разрядность умножителей адаптивного фильтра
@@ -146,6 +155,8 @@ for num = 1:sim_options.num_cycles
         ... % разрядность сумматоров адаптивного фильтра
         Adaptive_filter_sum_total_width ...
 	] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc_int);
+
+    % load ('2025             11             15             12             47         42.094.mat'); % 
 
     % Записываем значения каждого фильтра
     for i = 1:sim_options.M-1
@@ -269,6 +280,15 @@ for num = 1:sim_options.num_cycles
 		if (DetM_5x5_int_abs_max_in_cycle(1,i) < DetM_5x5_int_abs_max(i))
             DetM_5x5_int_abs_max_in_cycle(1,i) = DetM_5x5_int_abs_max(i); 
         end
+
+		if (Det_x3_int_max_in_cycle(1,i) < Det_x3_int_max(i))
+            Det_x3_int_max_in_cycle(1,i) = Det_x3_int_max(i); 
+        end
+        %% Делитель
+        % выход делителя
+		if (Divide_max_in_cycle(1,i) < Divide_max(i))
+            Divide_max_in_cycle(1,i) = Divide_max(i); 
+        end
         %% Адаптивный фильтр
 		for k = 1:sim_options.Size_matrix
             if (Adaptive_filter_mult_array_max_in_cycle(k,i) < Adaptive_filter_mult_array_max(k,i))
@@ -316,7 +336,6 @@ for num = 1:sim_options.num_cycles
     snr_output_double(num) = snr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
     snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
 
-    
     sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
     sfdr_output_lu(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
     sfdr_output_double(num) = sfdr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
@@ -378,7 +397,7 @@ if sim_options.enable_mask == false
  
         % формируем таблицу максимальных разрядностей фильтра дробной задержки
         T4 = table(Multipliers_hilbert_width, Adders_hilbert_width, 'RowNames', num_filter);
-        writetable(T4,['src/width_txt/Разрядность_элементов_фильтра_Гилберта_задержки_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
+        writetable(T4,['src/width_txt/Разрядность_элементов_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
 
         % writematrix(hilbert_mult_max(:,i), ['src/width_txt/hilbert_filter/Max_value_multiplier_Hilbert_filter_' num2str(i) '.txt']);
         % writematrix(hilbert_sum_max(:,i), ['src/width_txt/hilbert_filter/Max_value_adder_Hilbert_filter_' num2str(i) '.txt']);
@@ -404,18 +423,26 @@ if sim_options.enable_mask == false
         % формируем таблицу определителя
         T5 = table(Multipliers_2x2, Adders_2x2, Multipliers_3x3, Pre_sum_3x3, Sum_3x3, Multipliers_4x4, Pre_sum_4x4, Sum4x4, Mult5x5, Pre_sum1_5x5, Pre_sum2_5x5, Det_5x5, 'RowNames', num_determinante);
         writetable(T5,['src/width_txt/Максимальные_значения_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        %% Запись данных для делителя
+        Dividend = Det_5x5(1,1);
+        Divisor = Det_x3_int_max_in_cycle(:,i);
+        Quotient = Divide_max_in_cycle(:,i);
+        % формируем таблицу делителя
+        T6 = table(Dividend, Divisor, Quotient, 'RowNames', num_divide);
+        writetable(T6,['src/width_txt/Максимальные_значения_делителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        
         %% Запись данных для адаптивного фильтра
         Multipliers_adaptive = Adaptive_filter_mult_array_max_in_cycle(:,i);
         Sum_adaptive = Adaptive_filter_sum_array_max_in_cycle(:,i);
         % формируем таблицу адаптивного фильтра
-        T6 = table(Multipliers_adaptive, Sum_adaptive, 'RowNames', num_adaptive);
-        writetable(T6,['src/width_txt/Максимальные_значения_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
+        T7 = table(Multipliers_adaptive, Sum_adaptive, 'RowNames', num_adaptive);
+        writetable(T7,['src/width_txt/Максимальные_значения_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
 
         Multipliers_adaptive_total_width = Adaptive_filter_mult_total_width_in_cycle(:,i);
         Sum_adaptive_total_width = Adaptive_filter_sum_total_width_in_cycle(:,i);
         % формируем таблицу адаптивного фильтра
-        T7 = table(Multipliers_adaptive_total_width, Sum_adaptive_total_width, 'RowNames', num_adaptive);
-        writetable(T7,['src/width_txt/Разрядность_элементов_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
+        T8 = table(Multipliers_adaptive_total_width, Sum_adaptive_total_width, 'RowNames', num_adaptive);
+        writetable(T8,['src/width_txt/Разрядность_элементов_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
 
     end
 end

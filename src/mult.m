@@ -1,4 +1,5 @@
 function [y, overflow, y_abs, width_total] = mult(a, b, int_size, width)
+   
     % проверка выходной разрядности
     width_a = define_of_width_int(a, int_size, width);
     width_b = define_of_width_int(b, int_size, width);

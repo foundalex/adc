@@ -101,14 +101,13 @@ DetM_5x5_int_pre_sum1_array_width_total = cast(zeros(2,1), sim_options.type_5x5_
 %% Находим определители матриц 2x2
 for i = 1:sim_options.num_det2x2
 
-    
     ee = det(s.a{i});
     if (ee < 0)
         Det_2x2_LU_matlab(i) = ee * -1;
     else
         Det_2x2_LU_matlab(i) = ee;
     end
-%%
+    %%
 
     [DetM_2x2(i), DetM_2x2_int(i), Det2x2_mult1_abs(i), Det2x2_mult2_abs(i), Det2x2_sum_abs(i), mult1_overflow(i), mult2_overflow(i), width_total_mult1(i), ...
      width_total_mult2(i), sum_overflow(i), width_total_sum(i)]  = det_2x2(s.a{i}, s.a_int{i}, sim_options.type_2x2_det, sim_options.width_fractional); 
