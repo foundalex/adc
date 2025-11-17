@@ -6,7 +6,7 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
                                                                                         % step frequency input signal
     % Create main signal with noise in double
     s = (cos(2*pi*freq*t));
-    
+
     % add noise
     s = awgn(s, SNR, "measured");
 
@@ -14,8 +14,7 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
     s_fi = fi(s,1,12,11);
     s_int = int16(round(s_fi*2^11));
 
-    % s_int = int16(floor(s*2^11));
-
+    % load('matlab.mat');
 
     % oversampled signal transfer to sub-adc
     offset = 0;
@@ -33,7 +32,6 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
     
     % adc_input(:,1) = awgn(adc_input(:,1),sim_options.SNR, "measured");
     % adc_input(:,2) = awgn(adc_input(:,2), 0 , "measured");
-
 
     adc_input_int(length(sig_int):end,:) = [];
 
@@ -95,8 +93,9 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
 
     % save (sprintf(num2str(clock) + ".mat"));
     % load ('2025             11             14             12              8          2.906.mat'); % 50 MHz 70 SNR
-    load ('2025             11             14             15             37         54.195.mat'); % 777 MHz 70 SNR
+    load ('2025             11             17             13             42         26.933.mat');
 
+    figure(30); plot([s_to_subadc_int(1:200)]);
    
 end
 

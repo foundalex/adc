@@ -14,10 +14,11 @@ function [data_outd, data_out, y_int_abs, y_int_total_width, sum_array_out, sum_
         width_sum = readmatrix(adaptive_sum_file);
     end
 
+
     %% умножители
     for i = 1:sim_options.Size_matrix
         for j = 1:sim_options.Size_matrix
-            [y_int(j,i), y_int_overflow(j,i), y_int_abs(j,i), y_int_total_width(j,i)] = mult(input_data(j,i), coeff(i), sim_options.type_mult_in_adaptive_filter, sim_options.width_double);   
+            [y_int(j,i), y_int_overflow(j,i), y_int_abs(j,i), y_int_total_width(j,i)] = mult(input_data(j,i), coeff(i), sim_options.type_mult_in_adaptive_filter, sim_options.width_hilbert);   
            
             %% Проверка переполнения умножителей
             if (y_int_overflow(i) == 1)
@@ -47,7 +48,7 @@ function [data_outd, data_out, y_int_abs, y_int_total_width, sum_array_out, sum_
     %% сумматоры
     for i = 1:sim_options.Size_matrix
         for j = 1:sim_options.Size_matrix
-            [data_out(i), sum_int_overflow(i), sum_array_out(i), sum_int_width_total(i)] = adder(data_out(i), y_int(i,j), sim_options.type_add_in_adaptive_filter, sim_options.width_double);
+            [data_out(i), sum_int_overflow(i), sum_array_out(i), sum_int_width_total(i)] = adder(data_out(i), y_int(i,j), sim_options.type_add_in_adaptive_filter, sim_options.width_hilbert);
 
             %% Проверка переполнения сумматоров
             if (sum_int_overflow(i) == 1)

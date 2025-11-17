@@ -20,7 +20,7 @@ function [yric, yric_int, remainder] = single_sideband(yri, y_fractional_outInt,
                 remainder = sim_options.remaind_fir_hilbert(1);
                 yhil_imag_int_double = double(ymi_HilbertInt)*2^-remainder;
 
-                relative_error1 = yric./yhil_imag_int_double;
+                relative_error1 = yric ./ yhil_imag_int_double;
                 figure(7);
                 subplot(2,1,1)
                 plot([yric, yhil_imag_int_double]);

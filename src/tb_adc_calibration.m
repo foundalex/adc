@@ -329,7 +329,7 @@ for num = 1:sim_options.num_cycles
     subplot(5,1,4);
     snr(x_after_adc_double(100:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,5);
-    snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    snr(x_after_adc_int(100:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     %% 
     snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
     snr_output_lu(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);

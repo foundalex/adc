@@ -114,7 +114,6 @@ www1_double_abs = zeros(sim_options.Size_matrix,1);
 www1_int = cast(zeros(sim_options.Size_matrix,1), sim_options.type_divide_out);
 www1_int_abs = cast(zeros(sim_options.Size_matrix,1), sim_options.type_divide_out);
 
-
 Adaptive_filter_mult_array_max = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
 Adaptive_filter_mult_total_width = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
 Adaptive_filter_sum_array_max = cast(zeros(sim_options.Size_matrix,1),sim_options.type_add_in_adaptive_filter);
@@ -186,13 +185,15 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 
     if (det_matlab(j) == 0)
         det_matlab(j) = 1;
-        disp('Determinant equal 0');
-    elseif (det_x3_int(j) == 0)
+        disp('Determinant LU x3 equal 0');
+    end
+    if (det_x3_int(j) == 0)
         det_x3_int(j) = 1;
-        disp('Determinant equal 0');
-    elseif (det_x3(j) == 0)
+        disp('Determinant int x3 equal 0');
+    end
+    if (det_x3(j) == 0)
         det_x3(j) = 1;
-        disp('Determinant equal 0');
+        disp('Determinant double x3 equal 0');
     end
 
 	DetM_2x2_array(bb+1:bb+10) = abs(DetM_2x2);
@@ -324,10 +325,9 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
     if Det_x3_int_max < DetM_5x5_int_abs
         Det_x3_int_max = DetM_5x5_int_abs;
     end
-	%%
-                
-	for i = 1:sim_options.Size_matrix
+	%% 
 
+	for i = 1:sim_options.Size_matrix
 		kk = kk + 1;
 
 		x3_shift = x3;
@@ -337,7 +337,6 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 		x3_shift_int(1:sim_options.Size_matrix,i) = yri_cut_int(j:j+sim_options.Size_matrix-1); 
 
 		w1 = lsqminnorm(x3, yri_cut(j:sim_options.Size_matrix+j-1));
-
 		%% determinant
 		det_x3_shift(kk) = det(x3_shift);
 		[det_out_shift(kk), det_out_shift_int(kk), Det_5x5_LU_matlab_array(j), DetM_2x2, DetM_2x2_int, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, ...
@@ -389,11 +388,18 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 
         if (det_x3_shift(kk) == 0)
             det_x3_shift(kk) = 1;
-        elseif (det_out_shift_int(kk) == 0)
-            det_out_shift_int(kk) = 1;
-        elseif (det_out_shift(kk) == 0)
-            det_out_shift(kk) = 1;
+            disp('Determinant LU x3_shift equal 0');
         end
+        if (det_out_shift_int(kk) == 0)
+            det_out_shift_int(kk) = 1;
+            disp('Determinant int x3_shift equal 0');
+        end
+        if (det_out_shift(kk) == 0)
+            det_out_shift(kk) = 1;
+            disp('Determinant double x3_shift equal 0');
+        end
+
+        det_out_shift_int(kk) = bitshift(det_out_shift_int(kk),-remainder); % сдвигаем данные
 
         %%
 		if i == 1
@@ -403,7 +409,6 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1:4),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(5:10),sim_options.type_3x3_det)*2^-remainder];
 
 		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(2:5),sim_options.type_4x4_det)*2^-remainder];
-
 		elseif i == 2
 		   DetM_2x2_int_double = [cast(DetM_2x2_int(1),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(2:4),sim_options.type_2x2_det); cast(DetM_2x2_int(5:7),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(8:10),sim_options.type_2x2_det)];
 		   DetM_2x2_double = [(DetM_2x2(1))*2^-remainder; (DetM_2x2(2:4)); (DetM_2x2(5:7))*2^-remainder; (DetM_2x2(8:10))];
@@ -576,10 +581,10 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
         www1(i,:) = det_x3_shift(kk) ./ det_matlab(j); 
         % double
         [www1_double(i,:), overflow_divide_double(i,:), www1_double_abs(i,:), width_total_double(i,:)] = ...
-            divide(det_out_shift(kk), det_x3(j), sim_options.type_divide_out, sim_options.width_double, sim_options.divide_factor);
+            divide(det_out_shift(kk), det_x3(j), "double", "double", 64, 32, "double", sim_options.divide_factor);
         % int
 		[www1_int(i,:), overflow_divide_int(i,:), www1_int_abs(i,:), width_total_int(i,:)] = ...
-            divide(det_out_shift_int(kk), det_x3_int(j), sim_options.type_divide_out, sim_options.width_double, sim_options.divide_factor); % int
+            divide(det_out_shift_int(kk), int32(det_x3_int(j)), sim_options.type_5x5_det, sim_options.type_2x2_det, 64, 32, sim_options.type_divide_out, sim_options.divide_factor); % int
 
         % находим макс.значение выхода делителя
         if Divide_max < (www1_int_abs(i,:)) 
@@ -590,11 +595,16 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 	%% adaptive filter
     y_outd = w1(1).*x3(:,1)+w1(2).*x3(:,2)+w1(3).*x3(:,3)+w1(4).*x3(:,4)+w1(5).*x3(:,5);
 
-	[y_out, y_out_int, y_int_abs, y_int_total_width, sum_array_out, sum_int_width_total] ...
-    = adaptive_filter(x3, www1_double, x3_int, www1_int, adaptive_mult_file, adaptive_sum_file, sim_options);
+    x3_int_c = cast(x3_int, sim_options.type_mult_in_adaptive_filter);
+    www1_int_c = cast(www1_int, sim_options.type_mult_in_adaptive_filter);
+
+    [y_out, y_out_int, y_int_abs, y_int_total_width, sum_array_out, sum_int_width_total] ...
+    = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, adaptive_mult_file, adaptive_sum_file, sim_options);
+
+    y_out_int = bitshift(y_out_int, -sim_options.divide_factor); % сдвигаем данные
 
 	%% определяем макс. значения
-	 for n = 1:sim_options.Size_matrix
+	for n = 1:sim_options.Size_matrix
 		% определяем максимальное значение на каждом умножителе
 		if Adaptive_filter_mult_array_max(n) < y_int_abs(n) 
 			Adaptive_filter_mult_array_max(n) = y_int_abs(n);
@@ -655,6 +665,7 @@ end
 	%% 4x4
 	relativeError_DetM_4x4_Myfunc_double_vs_Myfunc_int = DetM_4x4_array_dd./double(DetM_4x4_array_int);
 	relativeError_DetM_4x4_Myfunc_double_vs_Matlab_LU = Det_4x4_LU_matlab_array./double(DetM_4x4_array_int);
+
     figure(20)
 	subplot(2,1,1)
     plot(relativeError_DetM_4x4_Myfunc_double_vs_Matlab_LU, '-o');
@@ -671,6 +682,7 @@ end
 	% det_out_shift_d = det_out_shift_int;
 	% relativeError_DetM_5x5_LU_vs_Myfunc = det_x3_shift./det_out_shift_d;
     % relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int = det_out_shift./det_out_shift_d;
+
 	% figure(21)
     % subplot(2,1,1)
 	% plot(relativeError_DetM_5x5_LU_vs_Myfunc, '-o');
@@ -694,13 +706,11 @@ end
     % title('Значения определителей в single')
     % ylabel('Значение определителя') 
     % xlabel('Номер определителя') 
-    figure(29); plot([y_array_double]);
-    % for t = 1:916
-    %     if (y_array_int(t) == 1 || y_array_int(t) == 0 || y_array_int(t) == 2 || y_array_int(t) == -1 || y_array_int(t) == -2)
-    %         y_array_int(t) = y_array_int(t);
-    %     else
-    %         y_array_int(t) = y_array_int(t)*2^-18;   
-    %     end
-    % end
+
+
+    a = y_array_double*2^-(sim_options.divide_factor);
+    relativeError_y_out_double_vs_y_out_int = a ./ double(y_array_int);
+    figure(29); plot(relativeError_y_out_double_vs_y_out_int); %*2^-(sim_options.divide_factor));
+
 
 end

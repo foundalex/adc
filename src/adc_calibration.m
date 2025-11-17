@@ -156,159 +156,166 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     hilbert_width_total_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
 
     a = 13;
+    % a = sim_options.fractional_coeff_width-1;
     sim_options.divide_fir_fractional(1) = a;
     sim_options.divide_fir_fractional(2) = a;
     sim_options.divide_fir_fractional(3) = a;
-
-    sim_options.divide_fir_hilbert(1) = a;
-    sim_options.divide_fir_hilbert(2) = a;
-    sim_options.divide_fir_hilbert(3) = a;
+    % b = sim_options.hilbert_coeff_width-1;
+    b = 13;
+    sim_options.divide_fir_hilbert(1) = b;
+    sim_options.divide_fir_hilbert(2) = b;
+    sim_options.divide_fir_hilbert(3) = b;
 
 
 	%% Задержка отсчетов сигнала АЦП0
-    % for i = 1:sim_options.M-1
-    % 
-    %     fractional_mult_file = ['src/width_txt/Width_multiplier_Fractional_filter_' num2str(i) '.txt'];
-    %     fractional_sum_file = ['src/width_txt/Width_adder_Fractional_filter_' num2str(i) '.txt'];
-    % 
-    %     hilbert_mult_file = ['src/width_txt/Width_multiplier_Hilbert_filter_' num2str(i) '.txt'];
-    %     hilbert_sum_file = ['src/width_txt/Width_adder_Hilbert_filter_' num2str(i) '.txt'];
-    % 
-    %     yri = filter(hri_w(:,i), 1, adc_input(:,1)); % filter (стр.6 (15))
-    %     yri = [yri(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
-    % 
-    %     ymi = filter(hh_m.', 1, yri);
-    %     ymi = [ymi(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
-    % 
-    %     %% Фильтр дробной задержки
-    %     [y_fractional_outInt, fractional_mult(:,i), fractional_sum(:,i), fractional_width_total_mult(:,i), fractional_width_total_sum(:,i) ...
-    %         ] = fir_filter(coeff_frac_int(:,i), adc_input(:,1), sim_options.N, ...
-    %     fractional_mult_file, fractional_sum_file, sim_options.width_fractional, sim_options); % (стр.6 (15)) 
-    % 
-    %     y_fractional_outInt = [y_fractional_outInt(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
-    % 
-    %     sim_options.remaind_fir_fractional(i) = (sim_options.fractional_coeff_width-1) - sim_options.divide_fir_fractional(i);
-    %     y_fractional_outInt = bitshift(y_fractional_outInt,-sim_options.divide_fir_fractional(i)); % сдвигаем данные
-    % 
-    %     snr_fractional_out_double = snr(yri, 1000000000);
-    %     snr_fractional_out_int = snr(double(y_fractional_outInt)*2^-(sim_options.remaind_fir_fractional(i)), 1000000000);
-    % 
-    %     if (snr_fractional_out_double - snr_fractional_out_int) > 0.1
-    %         disp('SNR fractional out different!')
-    %         disp([sim_options.SNR, sim_options.freq])
-    %     end
-    % 
-    %     y_fractional_outInt_double = double(y_fractional_outInt)*2^-(sim_options.remaind_fir_fractional(i));
-    %     relative_error_fractional = yri./y_fractional_outInt_double;
-    % 
-    %     figure(4);
-    %     subplot(4,1,1)
-    %     plot([yri(1:500), y_fractional_outInt_double(1:500)]);
-    %     subplot(4,1,2);
-    %     snr(yri, 1000000000);
-    %     subplot(4,1,3);
-    %     snr(y_fractional_outInt_double, 1000000000);
-    %     subplot(4,1,4);
-    %     plot(relative_error_fractional);
-    %     title('Относительная ошибка выходного сигнала фильтра дробной задержки между double и integer')
-    %     xlabel('Номер отсчета') 
-    %     ylabel('Значение ошибки') 
-    %     x4 = xline(37, '--', 'Переходной процесс фильтра')
-    %     x4.LabelHorizontalAlignment = 'center'
-    %     x4.LabelVerticalAlignment = 'middle';
-    % 
-    %     %% Фильтр Гилберта
-    %     [ymi_HilbertInt, hilbert_mult(:,i), hilbert_sum(:,i), hilbert_width_total_mult(:,i), hilbert_width_total_sum(:,i) ...
-    %         ] = fir_filter(hilbert_coeff_int, y_fractional_outInt, sim_options.N, ...
-    %      hilbert_mult_file, hilbert_sum_file, sim_options.width_hilbert, sim_options); % (стр.6 (15)) );
-    % 
-    %     ymi_HilbertInt = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
-    % 
-    %     sim_options.remaind_fir_hilbert(i) = ((sim_options.hilbert_coeff_width-1) - sim_options.divide_fir_hilbert(i)) + sim_options.remaind_fir_fractional(i);
-    %     ymi_HilbertInt = bitshift(ymi_HilbertInt,-sim_options.divide_fir_hilbert(i)); % сдвигаем данные
-    % 
-    %     ymi_HilbertInt_double = double(ymi_HilbertInt)*2^-sim_options.remaind_fir_hilbert(i);
-    %     relative_error_hilbert = ymi./ymi_HilbertInt_double;
-    % 
-    %     snr_hilbert_out_double = snr(ymi, 1000000000);
-    %     snr_hilbert_out_int = snr(double(ymi_HilbertInt)*2^-sim_options.remaind_fir_hilbert(i), 1000000000);
-    % 
-    %     if (snr_hilbert_out_double - snr_hilbert_out_int) > 0.1
-    %         disp('SNR hilbert out different!')
-    %         disp([sim_options.SNR, sim_options.freq])
-    %     end
-    % 
-    %     figure(5);
-    %     subplot(4,1,1)
-    %     plot([ymi(1:500), double(ymi_HilbertInt(1:500))*2^-sim_options.remaind_fir_hilbert(i)]);
-    %     subplot(4,1,2);
-    %     snr(ymi, 1000000000);
-    %     subplot(4,1,3);
-    %     snr(double(ymi_HilbertInt)*2^-sim_options.remaind_fir_hilbert(i), 1000000000);
-    %     subplot(4,1,4);
-    %     plot(relative_error_hilbert);
-    %     title('Относительная ошибка выходного сигнала фильтра Гилберта между double и integer')
-    %     xlabel('Номер отсчета') 
-    %     ylabel('Значение ошибки') 
-    %     x4 = xline(73, '--', 'Переходной процесс фильтра')
-    %     x4.LabelHorizontalAlignment = 'center'
-    %     x4.LabelVerticalAlignment = 'middle';
-    % 
-    %     %%
-    %     [yric(:,i), yric_int(:,i), sim_options.remainder(i)] = single_sideband(yri, y_fractional_outInt, ymi, ymi_HilbertInt, cosi(:,i), sini(:,i), i, del_proc, sim_options);
-    % 
-    % end
-    % 
-    % for i = 1:sim_options.M
-    %     if i == 1
-    %          yri_cut(:,1) = adc_input(1:end-del_proc,1);
-    %          yri_cut_int(:,1) = adc_input(1:end-del_proc,1);
-    %     else
-    %         yri_cut(:,i) = yric(1:end-del_proc,i-1);
-    %         yri_cut_int(:,i) = yric_int(1:end-del_proc,i-1);
-    %     end
-    % end
-    % 
-    % % test signal
-    % sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);
-    % sig_adc_int = zeros(sim_options.M*length(yri_cut_int(:,1)),1);
-	% for i = 1:sim_options.M
-    %     sig_adc(i:sim_options.M:end) = yri_cut(:,i);
-    %     if (i == 1)
-    %        sig_adc_int(i:sim_options.M:end) = double(yri_cut_int(:,i));
-    %     else
-    %        sig_adc_int(i:sim_options.M:end) = double(yri_cut_int(:,i))*2^-sim_options.remainder(i-1);
-    %     end
-    % end
+    for i = 1:sim_options.M-1
+
+        fractional_mult_file = ['src/width_txt/Width_multiplier_Fractional_filter_' num2str(i) '.txt'];
+        fractional_sum_file = ['src/width_txt/Width_adder_Fractional_filter_' num2str(i) '.txt'];
+
+        hilbert_mult_file = ['src/width_txt/Width_multiplier_Hilbert_filter_' num2str(i) '.txt'];
+        hilbert_sum_file = ['src/width_txt/Width_adder_Hilbert_filter_' num2str(i) '.txt'];
+
+        yri = filter(hri_w(:,i), 1, adc_input(:,1)); % filter (стр.6 (15))
+        yri = [yri(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
+
+        ymi = filter(hh_m.', 1, yri);
+        ymi = [ymi(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
+
+        %% Фильтр дробной задержки
+        [y_fractional_outInt, fractional_mult(:,i), fractional_sum(:,i), fractional_width_total_mult(:,i), fractional_width_total_sum(:,i) ...
+            ] = fir_filter(coeff_frac_int(:,i), adc_input(:,1), sim_options.N, ...
+        fractional_mult_file, fractional_sum_file, sim_options.width_fractional, sim_options); % (стр.6 (15)) 
+
+        y_fractional_outInt = [y_fractional_outInt(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
+
+        sim_options.remaind_fir_fractional(i) = (sim_options.fractional_coeff_width-1) - sim_options.divide_fir_fractional(i);
+        y_fractional_outInt = bitshift(y_fractional_outInt,-sim_options.divide_fir_fractional(i)); % сдвигаем данные
+
+        snr_fractional_out_double = snr(yri, 1000000000);
+        snr_fractional_out_int = snr(double(y_fractional_outInt)*2^-(sim_options.remaind_fir_fractional(i)), 1000000000);
+
+        if (snr_fractional_out_double - snr_fractional_out_int) > 0.1
+            disp('SNR fractional out different!')
+            disp([sim_options.SNR, sim_options.freq])
+        end
+
+        y_fractional_outInt_double = double(y_fractional_outInt)*2^-(sim_options.remaind_fir_fractional(i));
+        relative_error_fractional = yri./y_fractional_outInt_double;
+
+        figure(4);
+        subplot(4,1,1)
+        plot([floor(yri(1:500)), y_fractional_outInt_double(1:500)]);
+        subplot(4,1,2);
+        snr(floor(yri), 1000000000);
+        subplot(4,1,3);
+        snr(y_fractional_outInt_double, 1000000000);
+        subplot(4,1,4);
+        plot(relative_error_fractional);
+        title('Относительная ошибка выходного сигнала фильтра дробной задержки между double и integer')
+        xlabel('Номер отсчета') 
+        ylabel('Значение ошибки') 
+        x4 = xline(37, '--', 'Переходной процесс фильтра')
+        x4.LabelHorizontalAlignment = 'center'
+        x4.LabelVerticalAlignment = 'middle';
+
+        %% Фильтр Гилберта
+        [ymi_HilbertInt, hilbert_mult(:,i), hilbert_sum(:,i), hilbert_width_total_mult(:,i), hilbert_width_total_sum(:,i) ...
+            ] = fir_filter(hilbert_coeff_int, y_fractional_outInt, sim_options.N, ...
+         hilbert_mult_file, hilbert_sum_file, sim_options.width_hilbert, sim_options); % (стр.6 (15)) );
+
+        ymi_HilbertInt = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
+
+        sim_options.remaind_fir_hilbert(i) = ((sim_options.hilbert_coeff_width-1) - sim_options.divide_fir_hilbert(i)) + sim_options.remaind_fir_fractional(i);
+        ymi_HilbertInt = bitshift(ymi_HilbertInt,-sim_options.divide_fir_hilbert(i)); % сдвигаем данные
+
+        ymi_HilbertInt_double = double(ymi_HilbertInt)*2^-sim_options.remaind_fir_hilbert(i);
+        relative_error_hilbert = ymi./ymi_HilbertInt_double;
+
+        snr_hilbert_out_double = snr(ymi, 1000000000);
+        snr_hilbert_out_int = snr(double(ymi_HilbertInt)*2^-sim_options.remaind_fir_hilbert(i), 1000000000);
+
+        if (snr_hilbert_out_double - snr_hilbert_out_int) > 0.1
+            disp('SNR hilbert out different!')
+            disp([sim_options.SNR, sim_options.freq])
+        end
+
+        figure(5);
+        subplot(4,1,1)
+        plot([floor(ymi(1:500)), double(ymi_HilbertInt(1:500))*2^-sim_options.remaind_fir_hilbert(i)]);
+        subplot(4,1,2);
+        snr(floor(ymi), 1000000000);
+        subplot(4,1,3);
+        snr(double(ymi_HilbertInt)*2^-sim_options.remaind_fir_hilbert(i), 1000000000);
+        subplot(4,1,4);
+        plot(relative_error_hilbert);
+        title('Относительная ошибка выходного сигнала фильтра Гилберта между double и integer')
+        xlabel('Номер отсчета') 
+        ylabel('Значение ошибки') 
+        x4 = xline(73, '--', 'Переходной процесс фильтра')
+        x4.LabelHorizontalAlignment = 'center'
+        x4.LabelVerticalAlignment = 'middle';
+
+        %%
+        [yric(:,i), yric_int(:,i), sim_options.remainder(i)] = single_sideband(yri, y_fractional_outInt, ymi, ymi_HilbertInt, cosi(:,i), sini(:,i), i, del_proc, sim_options);
+
+    end
+
+    for i = 1:sim_options.M
+        if i == 1
+             yri_cut(:,1) = adc_input(1:end-del_proc,1);
+             yri_cut_int(:,1) = adc_input(1:end-del_proc,1);
+        else
+            yri_cut(:,i) = yric(1:end-del_proc,i-1);
+            yri_cut_int(:,i) = yric_int(1:end-del_proc,i-1);
+        end
+    end
+
+    % test signal
+    sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);
+    sig_adc_int = zeros(sim_options.M*length(yri_cut_int(:,1)),1);
+	for i = 1:sim_options.M
+        sig_adc(i:sim_options.M:end) = yri_cut(:,i);
+        if (i == 1)
+           sig_adc_int(i:sim_options.M:end) = double(yri_cut_int(:,i));
+        else
+           sig_adc_int(i:sim_options.M:end) = double(yri_cut_int(:,i))*2^-sim_options.remainder(i-1);
+        end
+    end
 
     %%
     % save (sprintf(num2str(clock) + ".mat"));
     % load ('2025             11             13             12             40         31.135.mat'); % 500 MHz 70 SNR
 
-    load ('2025             11             14             16              2         22.562.mat'); % 
+    % load ('2025             11             17             15              4          5.962.mat'); % 
     %% unique
     % load ('2025             11             13             17              3           49.5.mat'); % 50 MHz 70 SNR
 
     figure(15);
+    subplot(2,1,1)
     plot([sig_adc(1:750), sig_adc_int(1:750)]);
+    subplot(2,1,2)
+    plot(sig_adc(1:750) ./ sig_adc_int(1:750));
+
 
     figure(16);
     subplot(3,1,1)
-    snr(s_to_subadc_int, sim_options.Fs/sim_options.Inter/sim_options.M);
+    snr(s_to_subadc_int, sim_options.Fs/sim_options.Inter);
     subplot(3,1,2);
-    snr(sig_adc, sim_options.Fs/sim_options.Inter/sim_options.M);
+    snr(sig_adc, sim_options.Fs/sim_options.Inter);
     subplot(3,1,3);
-    snr(sig_adc_int, sim_options.Fs/sim_options.Inter/sim_options.M);
+    snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
 
    sim_options.type_2x2_det =      "int32";                ... % тип данных для матрицы 2х2
    sim_options.type_3x3_det =      "int64";                ... % тип данных для матрицы 3х3
    sim_options.type_4x4_det =      "int64";                ...    
    sim_options.type_5x5_det =      "int64";                ...
-   sim_options.type_divide_out =  "double";
-   sim_options.divide_factor = 14;
-    %% Calibration algorithm 2 (Least Mean Squares)
-    for i = 1:sim_options.M-1
-
+   sim_options.type_divide_out =  "int64";
+   sim_options.divide_factor = 16;
+   sim_options.type_mult_in_adaptive_filter    = "int64";
+   sim_options.type_add_in_adaptive_filter     = "int64";
+   %% Calibration algorithm 2 (Least Mean Squares)
+   for i = 1:sim_options.M-1
         adaptive_mult_file = ['src/width_txt/Width_mult_Adaptive_filter_' num2str(i) '.txt'];
         adaptive_sum_file = ['src/width_txt/Width_adder_Adaptive_filter_' num2str(i) '.txt'];
 
@@ -387,8 +394,8 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
             x_after_adc_int(i:sim_options.M:end) = double(yri_cut_int(1:length(y_array_int),1));
         else
             x_after_adc(i:sim_options.M:end) = y_array(:,i-1);
-            x_after_adc_double(i:sim_options.M:end) = y_array_double(:,i-1);% * 2^-(sim_options.remainder(i-1));
-            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)) * 2^-(sim_options.remainder(i-1));
+            x_after_adc_double(i:sim_options.M:end) = y_array_double(:,i-1) * 2^-(sim_options.divide_factor);
+            x_after_adc_int(i:sim_options.M:end) = double(y_array_int(:,i-1)); % * 2^-(sim_options.divide_factor);
         end
     end
 
@@ -400,7 +407,7 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     ylabel('Амплитуда') 
     legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра double'},'Location','northeast')
     subplot(3,1,2)
-    plot([s_to_subadc_int(1:3600), x_after_adc_double(1:3600)]);
+    plot([s_to_subadc_int(1:600), x_after_adc_double(1:600)]);
     title('Исходный сигнал и выход адаптивного фильтра double')
     xlabel('Номер отсчета') 
     ylabel('Амплитуда') 
