@@ -99,19 +99,20 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     % xlabel('Номер коэффициента') 
     % ylabel('Необходимое количество бит') 
 
-    % for i = 1:sim_options.M-1
-    %     [y3(:,i), f3(:,i)] = freqz(hri_w(:,i), 1,1024, 'whole', 1000000000);
-    %     [y4(:,i), f4(:,i)] = freqz(double(coeff_frac_int(:,i))*2^-(sim_options.fractional_coeff_width-1),1,1024, 'whole', 1000000000);
-    % end
+    for i = 1:sim_options.M
+        [y3(:,i), f3(:,i)] = freqz(hri_w(:,i), 1,1024, 'whole', 1000000000);
+        [y4(:,i), f4(:,i)] = freqz(double(coeff_frac_int(:,i))*2^-(sim_options.fractional_coeff_width-1),1,1024, 'whole', 1000000000);
+    end
     % 
-    % figure(2);
-    % subplot(3,1,1)
-    % plot(f3(:,1), abs(y3(:,1)), f3(:,1), abs(y4(:,1)));
-    % subplot(3,1,2)
-    % plot(f3(:,2), abs(y3(:,2)), f3(:,2), abs(y4(:,2)));
-    % subplot(3,1,3)
-    % plot(f3(:,3), abs(y3(:,3)), f3(:,3), abs(y4(:,3)));
-
+    figure(2);
+    subplot(4,1,1)
+    plot(f3(:,1), abs(y3(:,1)), f3(:,1), abs(y4(:,1)));
+    subplot(4,1,2)
+    plot(f3(:,2), abs(y3(:,2)), f3(:,2), abs(y4(:,2)));
+    subplot(4,1,3)
+    plot(f3(:,3), abs(y3(:,3)), f3(:,3), abs(y4(:,3)));
+    subplot(4,1,4)
+    plot(f3(:,4), abs(y3(:,4)), f3(:,4), abs(y4(:,4)));
 
     % title('Влияние разрядностей коэффициентов на АЧХ фильтра дробной задержки')
     % xlabel('Частота') 
@@ -155,17 +156,16 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     hilbert_width_total_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size); 
     hilbert_width_total_sum = cast(zeros(sim_options.N-1, sim_options.M-1), sim_options.int_size); 
 
-    a = 13;
+    a = 15;
     % a = sim_options.fractional_coeff_width-1;
     sim_options.divide_fir_fractional(1) = a;
     sim_options.divide_fir_fractional(2) = a;
     sim_options.divide_fir_fractional(3) = a;
     % b = sim_options.hilbert_coeff_width-1;
-    b = 13;
+    b = 15;
     sim_options.divide_fir_hilbert(1) = b;
     sim_options.divide_fir_hilbert(2) = b;
     sim_options.divide_fir_hilbert(3) = b;
-
 
 	%% Задержка отсчетов сигнала АЦП0
     for i = 1:sim_options.M-1
@@ -284,10 +284,9 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     end
 
     %%
-    % save (sprintf(num2str(clock) + ".mat"));
+    save (sprintf(num2str(clock) + ".mat"));
     % load ('2025             11             13             12             40         31.135.mat'); % 500 MHz 70 SNR
 
-    % load ('2025             11             17             15              4          5.962.mat'); % 
     %% unique
     % load ('2025             11             13             17              3           49.5.mat'); % 50 MHz 70 SNR
 
@@ -295,18 +294,18 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
     subplot(2,1,1)
     plot([sig_adc(1:750), sig_adc_int(1:750)]);
     subplot(2,1,2)
-    plot(sig_adc(1:750) ./ sig_adc_int(1:750));
+    plot(sig_adc ./ sig_adc_int);
 
 
-    figure(16);
-    subplot(3,1,1)
-    snr(s_to_subadc_int, sim_options.Fs/sim_options.Inter);
-    subplot(3,1,2);
-    snr(sig_adc, sim_options.Fs/sim_options.Inter);
-    subplot(3,1,3);
-    snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
+   figure(16);
+   subplot(3,1,1)
+   snr(s_to_subadc_int, sim_options.Fs/sim_options.Inter);
+   subplot(3,1,2);
+   snr(sig_adc, sim_options.Fs/sim_options.Inter);
+   subplot(3,1,3);
+   snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
 
-   sim_options.type_2x2_det =      "int32";                ... % тип данных для матрицы 2х2
+   sim_options.type_2x2_det =      "int64";                ... % тип данных для матрицы 2х2
    sim_options.type_3x3_det =      "int64";                ... % тип данных для матрицы 3х3
    sim_options.type_4x4_det =      "int64";                ...    
    sim_options.type_5x5_det =      "int64";                ...
@@ -314,6 +313,9 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fra
    sim_options.divide_factor = 16;
    sim_options.type_mult_in_adaptive_filter    = "int64";
    sim_options.type_add_in_adaptive_filter     = "int64";
+
+   % load ('2025             11             18             11             34         50.526.mat'); 
+   sim_options.type_2x2_det =      "int64";                ... % тип данных для матрицы 2х2
    %% Calibration algorithm 2 (Least Mean Squares)
    for i = 1:sim_options.M-1
         adaptive_mult_file = ['src/width_txt/Width_mult_Adaptive_filter_' num2str(i) '.txt'];

@@ -97,7 +97,6 @@ DetM_5x5_int_mult_array_width_total 	= cast(zeros(5,1), sim_options.type_5x5_det
 DetM_5x5_int_pre_sum1_array 			= cast(zeros(2,1), sim_options.type_5x5_det);
 DetM_5x5_int_pre_sum1_array_width_total = cast(zeros(2,1), sim_options.type_5x5_det);
 
-
 %% Находим определители матриц 2x2
 for i = 1:sim_options.num_det2x2
 
@@ -110,7 +109,7 @@ for i = 1:sim_options.num_det2x2
     %%
 
     [DetM_2x2(i), DetM_2x2_int(i), Det2x2_mult1_abs(i), Det2x2_mult2_abs(i), Det2x2_sum_abs(i), mult1_overflow(i), mult2_overflow(i), width_total_mult1(i), ...
-     width_total_mult2(i), sum_overflow(i), width_total_sum(i)]  = det_2x2(s.a{i}, s.a_int{i}, sim_options.type_2x2_det, sim_options.width_fractional); 
+     width_total_mult2(i), sum_overflow(i), width_total_sum(i)]  = det_2x2(s.a{i}, s.a_int{i}, sim_options.type_2x2_det, sim_options.width_hilbert); 
 
     %% Проверка переполнения умножителя
     if (mult1_overflow(i) == 1 || mult2_overflow(i) == 1)
