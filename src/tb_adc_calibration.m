@@ -16,27 +16,24 @@ randn('state',sum(100*clock));
 % Initialize simulation timer
 start_time = clock;
 
-%%
+%% Фильтр дробной задержки
 width_mult = int8(zeros(sim_options.N,sim_options.M-1));
 width_sum = int8(zeros(sim_options.N-1,sim_options.M-1));
-
 fractional_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 fractional_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-
 fractional_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 fractional_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-
-%%
+y_fractional_outInt_abs_max_in_cycle = cast(zeros(sim_options.M-1,1), sim_options.int_size);
+%% Фильтр Гилберта
 width_mult_h = int8(zeros(sim_options.N, sim_options.M-1));
 width_sum_h = int8(zeros(sim_options.N-1, sim_options.M-1));
-
 hilbert_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 hilbert_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-
 hilbert_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 hilbert_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-
+ymi_HilbertInt_abs_max_in_cycle = cast(zeros(sim_options.M-1,1), sim_options.int_size);
 %%
+num_filter_out = string((1:3)');
 num_filter = string((1:sim_options.N)');
 num_determinante = string((1:sim_options.num_det2x2*3)');
 num_adaptive = string((1:sim_options.Size_matrix)');
@@ -95,8 +92,8 @@ for num = 1:sim_options.num_cycles
     [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int, sim_options.Z] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
         sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
 
-    [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, ...
-        hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum, ...
+    [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, y_fractional_outInt_abs_max, ...
+        hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum, ymi_HilbertInt_abs_max, ...
         ... % Determinant
 		... % умножители определителя 2x2 
 		DetM_2x2_multiplier_total_abs_max, ...
@@ -160,6 +157,15 @@ for num = 1:sim_options.num_cycles
 
     % Записываем значения каждого фильтра
     for i = 1:sim_options.M-1
+
+        if (y_fractional_outInt_abs_max_in_cycle(i,1) < y_fractional_outInt_abs_max(i,1))
+            y_fractional_outInt_abs_max_in_cycle(i,1) = y_fractional_outInt_abs_max(i,1); 
+        end
+
+        if (ymi_HilbertInt_abs_max_in_cycle(i,1) < ymi_HilbertInt_abs_max(i))
+            ymi_HilbertInt_abs_max_in_cycle(i,1) = ymi_HilbertInt_abs_max(i); 
+        end
+
         for j = 1:sim_options.N
             % выбираем максимальное значение сигнала умножителей фильтра
             % дробной задержки
@@ -352,6 +358,17 @@ end
 
 
 if sim_options.enable_mask == false
+
+    % формируем таблицу максимальных значений выхода фильтра дробной задержки
+    y_fractional_outInt = y_fractional_outInt_abs_max_in_cycle(:,1);
+    T1 = table(y_fractional_outInt, 'RowNames', num_filter_out);
+        writetable(T1,['src/width_txt/Максимальные_выходные_значения_фильтра_дробной_задержки_АЦП_1_3.xlsx'],'WriteRowNames',true); 
+
+    % формируем таблицу максимальных значений выхода фильтра дробной задержки
+    y_Hilbert_outInt = ymi_HilbertInt_abs_max_in_cycle(:,1);
+    T2 = table(y_Hilbert_outInt, 'RowNames', num_filter_out);
+       writetable(T2,['src/width_txt/Максимальные_выходные_значения_фильтра_Гилберта_АЦП_1_3.xlsx'],'WriteRowNames',true); 
+
     for i = 1:sim_options.M-1
         for j = 1:length(fractional_mult_max(:,i))
             width_mult(j,i) = define_of_width_int(fractional_mult_max(j,i), sim_options.int_size, sim_options.width_fractional);
@@ -371,42 +388,26 @@ if sim_options.enable_mask == false
 
         Multipliers_fractional_width = fractional_total_width_mult_max(:,i);
         Adders_fractional_width = fractional_total_width_sum_max(:,i);
- 
+       
         % формируем таблицу максимальных разрядностей фильтра дробной задержки
-        T2 = table(Multipliers_fractional_width, Adders_fractional_width, 'RowNames', num_filter);
-        writetable(T2,['src/width_txt/Разрядность_элементов_фильтра_дробной_задержки_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
+        T3 = table(Multipliers_fractional_width, Adders_fractional_width, 'RowNames', num_filter);
+        writetable(T3,['src/width_txt/Разрядность_элементов_фильтра_дробной_задержки_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
         
-        % writematrix(fractional_mult_max(:,i), ['src/width_txt/fractional_filter/Max_value_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        % writematrix(fractional_sum_max(:,i), ['src/width_txt/fractional_filter/Max_value_adder_Fractional_filter_' num2str(i) '.txt']);
-        % запись разрядности макс. значений сигнала
-        % writematrix(width_mult(:,i), ['src/width_txt/fractional_filter/Width_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        % writematrix(width_sum(:,i), ['src/width_txt/fractional_filter/Width_adder_Fractional_filter_' num2str(i) '.txt']);
-        % запись суммарной разрядности сумматоров и умножителей
-        % writematrix(fractional_total_width_mult_max(:,i), ['src/width_txt/fractional_filter/Total_width_multiplier_Fractional_filter_' num2str(i) '.txt']);
-        % writematrix(fractional_total_width_sum_max(:,i), ['src/width_txt/fractional_filter/Total_width_adder_Fractional_filter_' num2str(i) '.txt']);
         %% Запись данных для фильтра Гилберта
         % запись макс. значений сигнала
         Multipliers_hilbert = hilbert_mult_max(:,i);
         Adders_hilbert= hilbert_sum_max(:,i);
         % формируем таблицу фильтра дробной задержки
-        T3 = table(Multipliers_hilbert, Adders_hilbert, 'RowNames', num_filter);
-        writetable(T3,['src/width_txt/Максимальные_значения_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true);  
+        T4 = table(Multipliers_hilbert, Adders_hilbert, 'RowNames', num_filter);
+        writetable(T4,['src/width_txt/Максимальные_значения_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true);  
 
         Multipliers_hilbert_width = hilbert_total_width_mult_max(:,i);
         Adders_hilbert_width = hilbert_total_width_sum_max(:,i);
  
         % формируем таблицу максимальных разрядностей фильтра дробной задержки
-        T4 = table(Multipliers_hilbert_width, Adders_hilbert_width, 'RowNames', num_filter);
-        writetable(T4,['src/width_txt/Разрядность_элементов_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
+        T5 = table(Multipliers_hilbert_width, Adders_hilbert_width, 'RowNames', num_filter);
+        writetable(T5,['src/width_txt/Разрядность_элементов_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
 
-        % writematrix(hilbert_mult_max(:,i), ['src/width_txt/hilbert_filter/Max_value_multiplier_Hilbert_filter_' num2str(i) '.txt']);
-        % writematrix(hilbert_sum_max(:,i), ['src/width_txt/hilbert_filter/Max_value_adder_Hilbert_filter_' num2str(i) '.txt']);
-        % % запись разрядности макс. значений сигнала
-        % writematrix(width_mult_h(:,i), ['src/width_txt/hilbert_filter/Width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
-        % writematrix(width_sum_h(:,i), ['src/width_txt/hilbert_filter/Width_adder_Hilbert_filter_' num2str(i) '.txt']);
-        % % запись суммарной разрядности сумматоров и умножителей
-        % writematrix(hilbert_total_width_mult_max(:,i), ['src/width_txt/hilbert_filter/Total_width_multiplier_Hilbert_filter_' num2str(i) '.txt']);
-        % writematrix(hilbert_total_width_sum_max(:,i), ['src/width_txt/hilbert_filter/Total_width_adder_Hilbert_filter_' num2str(i) '.txt']);
         %% Запись данных для определителя
         Multipliers_2x2 = DetM_2x2_multiplier_total_abs_max_in_cycle(:,i);
         Adders_2x2 = Det2x2_sum_abs_max_in_cycle(:,i);
@@ -421,28 +422,28 @@ if sim_options.enable_mask == false
 		Pre_sum2_5x5 = DetM_5x5_int_sum3_abs_max_in_cycle(:,i);
 		Det_5x5 = DetM_5x5_int_abs_max_in_cycle(:,i);
         % формируем таблицу определителя
-        T5 = table(Multipliers_2x2, Adders_2x2, Multipliers_3x3, Pre_sum_3x3, Sum_3x3, Multipliers_4x4, Pre_sum_4x4, Sum4x4, Mult5x5, Pre_sum1_5x5, Pre_sum2_5x5, Det_5x5, 'RowNames', num_determinante);
-        writetable(T5,['src/width_txt/Максимальные_значения_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        T6 = table(Multipliers_2x2, Adders_2x2, Multipliers_3x3, Pre_sum_3x3, Sum_3x3, Multipliers_4x4, Pre_sum_4x4, Sum4x4, Mult5x5, Pre_sum1_5x5, Pre_sum2_5x5, Det_5x5, 'RowNames', num_determinante);
+        writetable(T6,['src/width_txt/Максимальные_значения_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
         %% Запись данных для делителя
         Dividend = Det_5x5(1,1);
         Divisor = Det_x3_int_max_in_cycle(:,i);
         Quotient = Divide_max_in_cycle(:,i);
         % формируем таблицу делителя
-        T6 = table(Dividend, Divisor, Quotient, 'RowNames', num_divide);
-        writetable(T6,['src/width_txt/Максимальные_значения_делителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        T7 = table(Dividend, Divisor, Quotient, 'RowNames', num_divide);
+        writetable(T7,['src/width_txt/Максимальные_значения_делителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
         
         %% Запись данных для адаптивного фильтра
         Multipliers_adaptive = Adaptive_filter_mult_array_max_in_cycle(:,i);
         Sum_adaptive = Adaptive_filter_sum_array_max_in_cycle(:,i);
         % формируем таблицу адаптивного фильтра
-        T7 = table(Multipliers_adaptive, Sum_adaptive, 'RowNames', num_adaptive);
-        writetable(T7,['src/width_txt/Максимальные_значения_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
+        T8 = table(Multipliers_adaptive, Sum_adaptive, 'RowNames', num_adaptive);
+        writetable(T8,['src/width_txt/Максимальные_значения_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
 
         Multipliers_adaptive_total_width = Adaptive_filter_mult_total_width_in_cycle(:,i);
         Sum_adaptive_total_width = Adaptive_filter_sum_total_width_in_cycle(:,i);
         % формируем таблицу адаптивного фильтра
-        T8 = table(Multipliers_adaptive_total_width, Sum_adaptive_total_width, 'RowNames', num_adaptive);
-        writetable(T8,['src/width_txt/Разрядность_элементов_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
+        T9 = table(Multipliers_adaptive_total_width, Sum_adaptive_total_width, 'RowNames', num_adaptive);
+        writetable(T9,['src/width_txt/Разрядность_элементов_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true) 
 
     end
 end

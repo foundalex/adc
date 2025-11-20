@@ -55,7 +55,7 @@ function [y_array, y_array_double, y_array_int, DetM_2x2_array, DetM_2x2_array_i
     Adaptive_filter_sum_array_max, ....
     ... % разрядность сумматоров адаптивного фильтра
     Adaptive_filter_sum_total_width ...
-    ] = least_mean_square(adc_input, adc_input_int, yri_cut, yri_cut_int, adaptive_mult_file, adaptive_sum_file, remainder, sim_options)
+    ] = least_mean_square(adc_input, yri_cut, yri_cut_int, adaptive_mult_file, adaptive_sum_file, sim_options)
 
 bb = 0;
 vv = 0;
@@ -63,8 +63,8 @@ kk = 0;
 y_outd = 0;
 
 nn = 0;
-x3 = zeros(sim_options.Size_matrix,sim_options.Size_matrix);                     
-x3_int = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_2x2_det); 
+x3 = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), "double");                     
+x3_int = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_fir_out); 
 
 DetM_2x2_multiplier_total_abs_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_2x2_det);
 Det2x2_sum_abs_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
@@ -399,56 +399,54 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
             disp('Determinant double x3_shift equal 0');
         end
 
-        det_out_shift_int(kk) = bitshift(det_out_shift_int(kk),-remainder); % сдвигаем данные
-
         %%
 		if i == 1
-		   DetM_2x2_int_double = [cast(DetM_2x2_int(1:4), sim_options.type_2x2_det)*2^-remainder;  cast(DetM_2x2_int(5:10), sim_options.type_2x2_det)];
+		   DetM_2x2_int_double = [cast(DetM_2x2_int(1:4), sim_options.type_2x2_det);  cast(DetM_2x2_int(5:10), sim_options.type_2x2_det)];
 		   % DetM_2x2_double = [(DetM_2x2(1:4))*2^-remainder;  (DetM_2x2(5:10))];
 
-		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1:4),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(5:10),sim_options.type_3x3_det)*2^-remainder];
+		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1:4),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(5:10),sim_options.type_3x3_det)];
 
-		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(2:5),sim_options.type_4x4_det)*2^-remainder];
+		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(2:5),sim_options.type_4x4_det)];
 		elseif i == 2
-		   DetM_2x2_int_double = [cast(DetM_2x2_int(1),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(2:4),sim_options.type_2x2_det); cast(DetM_2x2_int(5:7),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(8:10),sim_options.type_2x2_det)];
-		   DetM_2x2_double = [(DetM_2x2(1))*2^-remainder; (DetM_2x2(2:4)); (DetM_2x2(5:7))*2^-remainder; (DetM_2x2(8:10))];
+		   DetM_2x2_int_double = [cast(DetM_2x2_int(1),sim_options.type_2x2_det); cast(DetM_2x2_int(2:4),sim_options.type_2x2_det); cast(DetM_2x2_int(5:7),sim_options.type_2x2_det); cast(DetM_2x2_int(8:10),sim_options.type_2x2_det)];
+		   DetM_2x2_double = [(DetM_2x2(1)); (DetM_2x2(2:4)); (DetM_2x2(5:7)); (DetM_2x2(8:10))];
 
-		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(2:4),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(5:7),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(8:10),sim_options.type_3x3_det)*2^-remainder];
+		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(2:4),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(5:7),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(8:10),sim_options.type_3x3_det)];
 
-		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1),sim_options.type_4x4_det)*2^-remainder; cast(DetM_4x4_int_sum_array(2),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(3:5),sim_options.type_4x4_det)*2^-remainder];
+		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(2),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(3:5),sim_options.type_4x4_det)];
 		elseif i == 3
-		   DetM_2x2_int_double = [cast(DetM_2x2_int(1),sim_options.type_2x2_det); cast(DetM_2x2_int(2),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(3:4),sim_options.type_2x2_det); cast(DetM_2x2_int(5),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(6:7),sim_options.type_2x2_det); ...
-		   cast(DetM_2x2_int(8:9),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(10),sim_options.type_2x2_det)];
+		   DetM_2x2_int_double = [cast(DetM_2x2_int(1),sim_options.type_2x2_det); cast(DetM_2x2_int(2),sim_options.type_2x2_det); cast(DetM_2x2_int(3:4),sim_options.type_2x2_det); cast(DetM_2x2_int(5),sim_options.type_2x2_det); cast(DetM_2x2_int(6:7),sim_options.type_2x2_det); ...
+		   cast(DetM_2x2_int(8:9),sim_options.type_2x2_det); cast(DetM_2x2_int(10),sim_options.type_2x2_det)];
 
 		   % DetM_2x2_double = [(DetM_2x2(1)); (DetM_2x2(2))*2^-remainder; (DetM_2x2(3:4)); (DetM_2x2(5))*2^-remainder; (DetM_2x2(6:7)); ...
 		   % cast(DetM_2x2(8:9),sim_options.type_2x2_det)*2^-remainder; (DetM_2x2(10))]; 
 
-		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(2),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(3:4),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(5),sim_options.type_3x3_det); 
-		       cast(DetM_3x3_int_sum_array(6:7),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(8:9),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(10),sim_options.type_3x3_det)*2^-remainder];
+		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(2),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(3:4),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(5),sim_options.type_3x3_det); 
+		       cast(DetM_3x3_int_sum_array(6:7),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(8:9),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(10),sim_options.type_3x3_det)];
 
-		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1:2),sim_options.type_4x4_det)*2^-remainder; cast(DetM_4x4_int_sum_array(3),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(4:5),sim_options.type_4x4_det)*2^-remainder];
+		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1:2),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(3),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(4:5),sim_options.type_4x4_det)];
 		elseif i == 4
-		   DetM_2x2_int_double = [cast(DetM_2x2_int(1:2),sim_options.type_2x2_det); cast(DetM_2x2_int(3),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(4:5),sim_options.type_2x2_det); cast(DetM_2x2_int(6),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(7),sim_options.type_2x2_det); ...
-		   cast(DetM_2x2_int(8),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(9),sim_options.type_2x2_det); cast(DetM_2x2_int(10),sim_options.type_2x2_det)*2^-remainder];
+		   DetM_2x2_int_double = [cast(DetM_2x2_int(1:2),sim_options.type_2x2_det); cast(DetM_2x2_int(3),sim_options.type_2x2_det); cast(DetM_2x2_int(4:5),sim_options.type_2x2_det); cast(DetM_2x2_int(6),sim_options.type_2x2_det); cast(DetM_2x2_int(7),sim_options.type_2x2_det); ...
+		   cast(DetM_2x2_int(8),sim_options.type_2x2_det); cast(DetM_2x2_int(9),sim_options.type_2x2_det); cast(DetM_2x2_int(10),sim_options.type_2x2_det)];
 
 		   % DetM_2x2_double = [(DetM_2x2(1:2)); (DetM_2x2(3))*2^-remainder; (DetM_2x2(4:5)); (DetM_2x2(6))*2^-remainder; (DetM_2x2(7)); ...
 		   % (DetM_2x2(8))*2^-remainder; (DetM_2x2(9)); (DetM_2x2(10))*2^-remainder];
 
-		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1:2),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(3),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(4:5),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(6),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(7),sim_options.type_3x3_det)*2^-remainder; ...
-		   cast(DetM_3x3_int_sum_array(8),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(9),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(10),sim_options.type_3x3_det)];
+		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1:2),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(3),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(4:5),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(6),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(7),sim_options.type_3x3_det); ...
+		   cast(DetM_3x3_int_sum_array(8),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(9),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(10),sim_options.type_3x3_det)];
 
-		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1:3),sim_options.type_4x4_det)*2^-remainder; cast(DetM_4x4_int_sum_array(4),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(5),sim_options.type_4x4_det)*2^-remainder];
+		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1:3),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(4),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(5),sim_options.type_4x4_det)];
 		elseif i == 5
-		   DetM_2x2_int_double = [cast(DetM_2x2_int(1:3),sim_options.type_2x2_det); cast(DetM_2x2_int(4),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(5:6),sim_options.type_2x2_det); cast(DetM_2x2_int(7),sim_options.type_2x2_det)*2^-remainder; cast(DetM_2x2_int(8),sim_options.type_2x2_det); ...
-		   cast(DetM_2x2_int(9:10),sim_options.type_2x2_det)*2^-remainder];
+		   DetM_2x2_int_double = [cast(DetM_2x2_int(1:3),sim_options.type_2x2_det); cast(DetM_2x2_int(4),sim_options.type_2x2_det); cast(DetM_2x2_int(5:6),sim_options.type_2x2_det); cast(DetM_2x2_int(7),sim_options.type_2x2_det); cast(DetM_2x2_int(8),sim_options.type_2x2_det); ...
+		   cast(DetM_2x2_int(9:10),sim_options.type_2x2_det)];
 
 		   % DetM_2x2_double = [(DetM_2x2(1:3)); (DetM_2x2(4))*2^-remainder; (DetM_2x2(5:6)); (DetM_2x2(7))*2^-remainder; (DetM_2x2(8)); ...
 		   % (DetM_2x2(9:10))*2^-remainder];
 
-		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1:3),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(4),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(5:6),sim_options.type_3x3_det)*2^-remainder; cast(DetM_3x3_int_sum_array(7),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(8),sim_options.type_3x3_det)*2^-remainder; ...
+		   DetM_3x3_int_double = [cast(DetM_3x3_int_sum_array(1:3),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(4),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(5:6),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(7),sim_options.type_3x3_det); cast(DetM_3x3_int_sum_array(8),sim_options.type_3x3_det); ...
 		   cast(DetM_3x3_int_sum_array(9:10),sim_options.type_3x3_det)];
 
-		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1:4),sim_options.type_4x4_det)*2^-remainder; cast(DetM_4x4_int_sum_array(5),sim_options.type_4x4_det)];
+		   DetM_4x4_int_double = [cast(DetM_4x4_int_sum_array(1:4),sim_options.type_4x4_det); cast(DetM_4x4_int_sum_array(5),sim_options.type_4x4_det)];
 		end
 
 		DetM_2x2_array(bb+1:bb+10) = abs(DetM_2x2);
@@ -584,7 +582,13 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
             divide(det_out_shift(kk), det_x3(j), "double", "double", 64, 64, "double", sim_options.divide_factor);
         % int
 		[www1_int(i,:), overflow_divide_int(i,:), www1_int_abs(i,:), width_total_int(i,:)] = ...
-            divide(det_out_shift_int(kk), int64(det_x3_int(j)), sim_options.type_5x5_det, sim_options.type_2x2_det, 64, 64, sim_options.type_divide_out, sim_options.divide_factor); % int
+            divide(det_out_shift_int(kk), det_x3_int(j), sim_options.type_5x5_det, sim_options.type_5x5_det, 64, 64, sim_options.type_divide_out, sim_options.divide_factor); % int
+
+        if (overflow_divide_int(i,:) == 1)
+            disp('Переполнение делителя');
+            disp({sim_options.SNR, sim_options.freq});
+            disp({www1_int(i,:), det_out_shift_int(kk), int64(det_x3_int(j))});
+        end
 
         % находим макс.значение выхода делителя
         if Divide_max < (www1_int_abs(i,:)) 
@@ -601,7 +605,20 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
     [y_out, y_out_int, y_int_abs, y_int_total_width, sum_array_out, sum_int_width_total] ...
     = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, adaptive_mult_file, adaptive_sum_file, sim_options);
 
-    y_out_int = bitshift(y_out_int, -sim_options.divide_factor); % сдвигаем данные
+    % y_out_int = bitshift(y_out_int, -sim_options.divide_factor); % сдвигаем данные
+
+    y_out_int_shift = y_out_int;
+    y_out_double = round(y_out * 2^-sim_options.divide_factor);
+
+    for j = 1:sim_options.Size_matrix
+        if (bitget(y_out_int_shift(j), sim_options.divide_factor) == 1)
+            y_out_int_shift(j) = bitshift(y_out_int_shift(j), -sim_options.divide_factor); % сдвигаем данные
+            y_out_int_shift(j) = y_out_int_shift(j) + cast(1,sim_options.type_add_in_adaptive_filter);
+        else
+            y_out_int_shift(j) = bitshift(y_out_int_shift(j), -sim_options.divide_factor); % сдвигаем данные
+        end
+    end
+
 
 	%% определяем макс. значения
 	for n = 1:sim_options.Size_matrix
@@ -624,8 +641,8 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 	end 
 
 	y_array(nn+1:nn+sim_options.Size_matrix,:) = y_outd;
-    y_array_double(nn+1:nn+sim_options.Size_matrix,:) = y_out;
-	y_array_int(nn+1:nn+sim_options.Size_matrix,:) = y_out_int;
+    y_array_double(nn+1:nn+sim_options.Size_matrix,:) = y_out_double;
+	y_array_int(nn+1:nn+sim_options.Size_matrix,:) = y_out_int_shift;
     nn = nn + sim_options.Size_matrix;
 
 end
@@ -679,38 +696,22 @@ end
     % xlabel('Номер отсчета') 
 
     %% 5x5
-	% det_out_shift_d = det_out_shift_int;
-	% relativeError_DetM_5x5_LU_vs_Myfunc = det_x3_shift./det_out_shift_d;
-    % relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int = det_out_shift./det_out_shift_d;
+	relativeError_DetM_5x5_LU_vs_Myfunc = det_x3_shift./double(det_out_shift_int);
+    relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int = det_out_shift./double(det_out_shift_int);
 
-	% figure(21)
-    % subplot(2,1,1)
-	% plot(relativeError_DetM_5x5_LU_vs_Myfunc, '-o');
-    % title('Относительная ошибка между определителями, найденных с помощью LU-преобразования и прямого нахождения')
-    % ylabel('Величина ошибки') 
-    % xlabel('Номер отсчета') 
-    % subplot(2,1,2)
-	% plot(relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int, '-o');
-	% title('Относительная ошибка между определителями, найденных с помощью прямого нахождения Double vs Single')
-    % ylabel('Величина ошибки') 
-    % xlabel('Номер отсчета') 
-    % 
-    % figure(22)
-	% subplot(2,1,1)
-    % plot(det_x3_shift)
-    % title('Значения определителей в double')
-    % ylabel('Значение определителя') 
-    % xlabel('Номер определителя') 
-    % subplot(2,1,2)
-    % plot(det_out_shift_d);
-    % title('Значения определителей в single')
-    % ylabel('Значение определителя') 
-    % xlabel('Номер определителя') 
+	figure(21)
+    subplot(2,1,1)
+	plot(relativeError_DetM_5x5_LU_vs_Myfunc, '-o');
+    title('Относительная ошибка между определителями, найденных с помощью LU-преобразования и прямого нахождения')
+    ylabel('Величина ошибки') 
+    xlabel('Номер отсчета') 
+    subplot(2,1,2)
+	plot(relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int, '-o');
+	title('Относительная ошибка между определителями, найденных с помощью прямого нахождения Double vs Single')
+    ylabel('Величина ошибки') 
+    xlabel('Номер отсчета') 
 
-
-    a = y_array_double*2^-(sim_options.divide_factor);
-    relativeError_y_out_double_vs_y_out_int = a ./ double(y_array_int);
+    relativeError_y_out_double_vs_y_out_int = y_array_double ./ double(y_array_int);
     figure(29); plot(relativeError_y_out_double_vs_y_out_int); %*2^-(sim_options.divide_factor));
-
 
 end

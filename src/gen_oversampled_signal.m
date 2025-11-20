@@ -91,15 +91,9 @@ function [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc
 
     Z = ceil(freq/(Fs/Inter/2/M));      % Nyquist zone
 
-    save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             11             14             12              8          2.906.mat'); % 50 MHz 70 SNR
+    % save (sprintf(num2str(clock) + ".mat"));
+    % load ('2025             11             20             10             37         19.634.mat'); % 50 MHz 70 SNR
 
-
-
-    % load ('2025             11             17             13             42         26.933.mat');
-    % load ('2025             11             18              9             32         33.909.mat'); % 50 MHz 70 SNR
-
-    % load ('2025             11             18             11             16         57.989.mat');
 
     figure(30); plot([s_to_subadc_int(1:200)]);
    
