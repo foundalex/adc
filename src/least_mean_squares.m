@@ -610,14 +610,8 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
     y_out_int_shift = y_out_int;
     y_out_double = round(y_out * 2^-sim_options.divide_factor);
 
-    for j = 1:sim_options.Size_matrix
-        if (bitget(y_out_int_shift(j), sim_options.divide_factor) == 1)
-            y_out_int_shift(j) = bitshift(y_out_int_shift(j), -sim_options.divide_factor); % сдвигаем данные
-            y_out_int_shift(j) = y_out_int_shift(j) + cast(1,sim_options.type_add_in_adaptive_filter);
-        else
-            y_out_int_shift(j) = bitshift(y_out_int_shift(j), -sim_options.divide_factor); % сдвигаем данные
-        end
-    end
+    % округление значений после фильтра
+    y_out_int_shift = round_int(y_out_int_shift, sim_options.divide_factor, sim_options.type_add_in_adaptive_filter);
 
 
 	%% определяем макс. значения
