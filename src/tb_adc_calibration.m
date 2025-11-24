@@ -89,8 +89,7 @@ Adaptive_filter_sum_total_width_in_cycle 	        = cast(zeros(sim_options.Size_
 
 for num = 1:sim_options.num_cycles
 
-    [s_to_subadc, s_to_subadc_int, adc_input, adc_input_int, s_after_subadc, s_after_subadc_int, sim_options.Z] = gen_oversampled_signal(sim_options.M, sim_options.Fs, ...
-        sim_options.freq, sim_options.SNR, sim_options.Inter, sim_options.StopTime, sim_options.MODEL_ERROR, sim_options.time_skew_array, sim_options.gain_error_array);
+    [s_to_subadc, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
     [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, y_fractional_outInt_abs_max, ...
         hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum, ymi_HilbertInt_abs_max, ...
@@ -151,9 +150,8 @@ for num = 1:sim_options.num_cycles
         Adaptive_filter_sum_array_max, ....
         ... % разрядность сумматоров адаптивного фильтра
         Adaptive_filter_sum_total_width ...
-	] = adc_calibration(sim_options, adc_input_int, s_to_subadc_int, s_after_subadc_int);
+	] = adc_calibration(sim_options, adc_input, s_to_subadc, s_after_subadc);
 
-    % load ('2025             11             15             12             47         42.094.mat'); % 
 
     % Записываем значения каждого фильтра
     for i = 1:sim_options.M-1
@@ -315,9 +313,9 @@ for num = 1:sim_options.num_cycles
     %% SFDR
     figure(8);
     subplot(5,1,1);
-    sfdr(s_to_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,2);
-    sfdr(s_after_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    sfdr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,3);
     sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,4);
@@ -327,9 +325,9 @@ for num = 1:sim_options.num_cycles
     %% SNR
     figure(9);
     subplot(5,1,1);
-    snr(s_to_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,2);
-    snr(s_after_subadc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    snr(s_after_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,3);
     snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,4);
@@ -337,12 +335,12 @@ for num = 1:sim_options.num_cycles
     subplot(5,1,5);
     snr(x_after_adc_int(100:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     %% 
-    snr_in_int(num) = snr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    snr_in_int(num) = snr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
     snr_output_lu(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
     snr_output_double(num) = snr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
     snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
 
-    sfdr_in_int(num) = sfdr(double(s_after_subadc_int), sim_options.Fs/sim_options.Inter);
+    sfdr_in_int(num) = sfdr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
     sfdr_output_lu(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
     sfdr_output_double(num) = sfdr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
     sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
