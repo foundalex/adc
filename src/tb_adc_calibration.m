@@ -89,10 +89,17 @@ Adaptive_filter_sum_total_width_in_cycle 	        = cast(zeros(sim_options.Size_
 
 for num = 1:sim_options.num_cycles
 
+    % Функция генерации сигналов для АЦП
     [s_to_subadc, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
-    [x_after_adc, x_after_adc_double, x_after_adc_int, fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, y_fractional_outInt_abs_max, ...
-        hilbert_width_mult, hilbert_width_sum, hilbert_width_total_mult, hilbert_width_total_sum, ymi_HilbertInt_abs_max, ...
+    % Основная функция калибровки АЦП
+    [x_after_adc, x_after_adc_double, x_after_adc_int, ...
+        ... % Значения полосового фильтра ADC0
+        golden_mult, golden_sum, golden_width_total_mult, golden_width_total_sum, y_golden_outInt_abs_max, ...  
+        ... % Значения фильтров дробной задержки
+        fractional_mult, fractional_sum, fractional_width_total_mult, fractional_width_total_sum, y_fractional_outInt_abs_max, ...  
+        ... % Значения фильтров Гилберта
+        hilbert_mult, hilbert_sum, hilbert_width_total_mult, hilbert_width_total_sum, ymi_HilbertInt_abs_max ...
         ... % Determinant
 		... % умножители определителя 2x2 
 		DetM_2x2_multiplier_total_abs_max, ...
@@ -154,6 +161,20 @@ for num = 1:sim_options.num_cycles
 
 
     % Записываем значения каждого фильтра
+    for j = 1:sim_options.N
+            % выбираем максимальное значение сигнала умножителей 
+            % полосового фильтра АЦП0
+            if (golden_mult_max(j,i) < golden_mult(j,i))
+                golden_mult_max(j,i) = golden_mult(j,i); 
+            end
+            % выбираем максимальное значение разрядности умножителя
+            % полосового фильтра АЦП0
+            if (golden_total_width_mult_max(j,i) < golden_width_total_mult(j,i))
+                golden_total_width_mult_max(j,i) = golden_width_total_mult(j,i); 
+            end
+        end
+
+
     for i = 1:sim_options.M-1
 
         if (y_fractional_outInt_abs_max_in_cycle(i,1) < y_fractional_outInt_abs_max(i,1))
@@ -357,15 +378,24 @@ end
 
 if sim_options.enable_mask == false
 
+    %% Запись данных для полосового фильтра АЦП0
+    % формируем таблицу максимальных значений полосового фильтра АЦП0
+    T1 = table(golden_mult, golden_sum, 'RowNames', num_filter);
+    writetable(T1,['src/width_txt/Максимальные_значения_полосового_фильтра_АЦП_0.xlsx'],'WriteRowNames',true);  
+
+    % формируем таблицу максимальных разрядностей полосового фильтра АЦП0
+    T2 = table(golden_total_width_mult_max, golden_total_width_sum_max, 'RowNames', num_filter);
+    writetable(T2,['src/width_txt/Разрядность_элементов_полосового_фильтра_АЦП_0.xlsx'],'WriteRowNames',true); 
+
     % формируем таблицу максимальных значений выхода фильтра дробной задержки
     y_fractional_outInt = y_fractional_outInt_abs_max_in_cycle(:,1);
-    T1 = table(y_fractional_outInt, 'RowNames', num_filter_out);
-        writetable(T1,['src/width_txt/Максимальные_выходные_значения_фильтра_дробной_задержки_АЦП_1_3.xlsx'],'WriteRowNames',true); 
+    T3 = table(y_fractional_outInt, 'RowNames', num_filter_out);
+        writetable(T3,['src/width_txt/Максимальные_выходные_значения_фильтра_дробной_задержки_АЦП_1_3.xlsx'],'WriteRowNames',true); 
 
     % формируем таблицу максимальных значений выхода фильтра дробной задержки
     y_Hilbert_outInt = ymi_HilbertInt_abs_max_in_cycle(:,1);
-    T2 = table(y_Hilbert_outInt, 'RowNames', num_filter_out);
-       writetable(T2,['src/width_txt/Максимальные_выходные_значения_фильтра_Гилберта_АЦП_1_3.xlsx'],'WriteRowNames',true); 
+    T4 = table(y_Hilbert_outInt, 'RowNames', num_filter_out);
+       writetable(T4,['src/width_txt/Максимальные_выходные_значения_фильтра_Гилберта_АЦП_1_3.xlsx'],'WriteRowNames',true); 
 
     for i = 1:sim_options.M-1
         for j = 1:length(fractional_mult_max(:,i))
@@ -376,6 +406,7 @@ if sim_options.enable_mask == false
             width_sum(j,i) = define_of_width_int(fractional_sum_max(j,i), sim_options.int_size, sim_options.width_fractional);
             width_sum_h(j,i) = define_of_width_int(hilbert_sum_max(j,i), sim_options.int_size, sim_options.width_hilbert);
         end
+
         %% Запись данных для фильтра дробной задержки
         % запись макс. значений сигнала
         Multipliers_fractional = fractional_mult_max(:,i);
@@ -446,47 +477,48 @@ if sim_options.enable_mask == false
     end
 end
 
-    figure(10);
-    subplot(2,1,1)
-    plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_lu, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
-    title('SNR')
-    xlabel('Нормированная частота') 
-    ylabel('SNR (dB)') 
-    legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
-    % 
-    subplot(2,1,2)
-    plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_lu, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
-    title('SFDR (dB)')
-    xlabel('Нормированная частота') 
-    ylabel('SFDR (dB)') 
-    legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+%% Итоговый график SNR и SFDR каждой итерации алгоритма
+figure(10);
+subplot(2,1,1)
+plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_lu, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
+title('SNR')
+xlabel('Нормированная частота') 
+ylabel('SNR (dB)') 
+legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+% 
+subplot(2,1,2)
+plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_lu, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
+title('SFDR (dB)')
+xlabel('Нормированная частота') 
+ylabel('SFDR (dB)') 
+legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
-    %% Measurements2
-    % figure(7);
-    % subplot(2,1,1)
-    % plot(norm_freq, snr_in_id, '-o', norm_freq, snr_input, '-o', norm_freq, snr_output, '-o');
-    % title('SNR')
-    % xlabel('Нормированная частота') 
-    % ylabel('SNR (dB)') 
-    % legend('до калибровки без искажений', 'до калибровки с искажениями', 'после калибровки')
-    % subplot(2,1,2)
-    % plot(norm_freq, sfdr_in_id, '-o', norm_freq, sfdr_input, '-o', norm_freq, sfdr_output, '-o');
-    % title('SFDR (dB)')
-    % xlabel({'Нормированная частота fнорм = f/(Fs/M)','Fs - частота дискретизации всего TI-ADC, М - количество каналов'}) 
-    % ylabel('SFDR (dB)') 
-    % legend('до калибровки без искажений', 'до калибровки с искажениями','после калибровки')
-    % 
-    % x4 = xline(0.42, '--', 'Интервал из статьи 1-ой зоны Найквиста')
-    % x4.LabelHorizontalAlignment = 'center'
-    % x4.LabelVerticalAlignment = 'middle';
-    % x2 = xline(0.55, '--', 'Интервал из статьи начало 2-ой зоны Найквиста')
-    % x2.LabelHorizontalAlignment = 'center'
-    % x2.LabelVerticalAlignment = 'middle';
-    % x3 = xline(0.92, '--', 'Интервал из статьи конец 2-ой зоны Найквиста')
-    % x3.LabelHorizontalAlignment = 'center'
-    % x3.LabelVerticalAlignment = 'middle';
-    % y2 = yline(79,'--', 'Нижняя граница SFDR (dB)')
-    % y2.LabelHorizontalAlignment = 'left'
+%% Measurements2
+% figure(7);
+% subplot(2,1,1)
+% plot(norm_freq, snr_in_id, '-o', norm_freq, snr_input, '-o', norm_freq, snr_output, '-o');
+% title('SNR')
+% xlabel('Нормированная частота') 
+% ylabel('SNR (dB)') 
+% legend('до калибровки без искажений', 'до калибровки с искажениями', 'после калибровки')
+% subplot(2,1,2)
+% plot(norm_freq, sfdr_in_id, '-o', norm_freq, sfdr_input, '-o', norm_freq, sfdr_output, '-o');
+% title('SFDR (dB)')
+% xlabel({'Нормированная частота fнорм = f/(Fs/M)','Fs - частота дискретизации всего TI-ADC, М - количество каналов'}) 
+% ylabel('SFDR (dB)') 
+% legend('до калибровки без искажений', 'до калибровки с искажениями','после калибровки')
+% 
+% x4 = xline(0.42, '--', 'Интервал из статьи 1-ой зоны Найквиста')
+% x4.LabelHorizontalAlignment = 'center'
+% x4.LabelVerticalAlignment = 'middle';
+% x2 = xline(0.55, '--', 'Интервал из статьи начало 2-ой зоны Найквиста')
+% x2.LabelHorizontalAlignment = 'center'
+% x2.LabelVerticalAlignment = 'middle';
+% x3 = xline(0.92, '--', 'Интервал из статьи конец 2-ой зоны Найквиста')
+% x3.LabelHorizontalAlignment = 'center'
+% x3.LabelVerticalAlignment = 'middle';
+% y2 = yline(79,'--', 'Нижняя граница SFDR (dB)')
+% y2.LabelHorizontalAlignment = 'left'
 
 
 stop_time = clock;
