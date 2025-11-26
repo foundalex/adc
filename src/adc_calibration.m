@@ -437,6 +437,16 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     subplot(4,1,4);
     snr(sig_adc_int, sim_options.Fs/sim_options.Inter);
 
+    figure(17);
+    subplot(4,1,1)
+    sfdr(s_to_subadc_int, sim_options.Fs/sim_options.Inter);
+    subplot(4,1,2)
+    sfdr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    subplot(4,1,3);
+    sfdr(sig_adc, sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4);
+    sfdr(sig_adc_int, sim_options.Fs/sim_options.Inter);
+
 
                                                    %% Вторая часть алгоритма калибровки (Метод наименьших квадратов)
    for i = 1:sim_options.M-1
@@ -500,7 +510,7 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
             Adaptive_filter_sum_array_max(:,i), ....
             ... % разрядность сумматоров адаптивного фильтра
             Adaptive_filter_sum_total_width(:,i) ...
-        ] = least_mean_squares(adc_input(:,i+1), yri_cut_int(:,i+1), yri_cut_int(:,i+1), adaptive_mult_file, adaptive_sum_file, sim_options);
+        ] = least_mean_squares(adc_input(:,i+1), yri_cut(:,i+1), yri_cut_int(:,i+1), adaptive_mult_file, adaptive_sum_file, sim_options);
     end
 
     % save (sprintf(num2str(clock) + ".mat"));

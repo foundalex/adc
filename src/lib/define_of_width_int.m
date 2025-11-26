@@ -6,7 +6,7 @@ function width = define_of_width_int(input, int_size, num)
         input_abs = input;
     end
 
-    if int_size == "int64" || int_size == "int32"
+    if int_size == "int64" || int_size == "int32" || int_size == "int16"
         for i = 0:num-1
             table_list(i+1) = cast(2^i,int_size);
         end

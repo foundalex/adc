@@ -205,9 +205,9 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 	DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
 	Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
 
-	DetM_4x4_array_int(bb+1:bb+5) = DetM_4x4_int_sum_array;
-	DetM_4x4_array_dd(bb+1:bb+5) = DetM_4x4_array;
-	Det_4x4_LU_matlab_array(bb+1:bb+5) = Det_4x4_LU_matlab;
+	DetM_4x4_array_int(vv+1:vv+5) = DetM_4x4_int_sum_array;
+	DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
+	Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
 
 	bb = bb + 10;
 	vv = vv + 5;
@@ -416,9 +416,9 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 		DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
 		Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
 	
-		DetM_4x4_array_int(bb+1:bb+5) = DetM_4x4_int_sum_array;
-		DetM_4x4_array_dd(bb+1:bb+5) = DetM_4x4_array;
-		Det_4x4_LU_matlab_array(bb+1:bb+5) = Det_4x4_LU_matlab;
+		DetM_4x4_array_int(vv+1:vv+5) = DetM_4x4_int_sum_array;
+		DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
+		Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
 
 		bb = bb + 10;
 		vv = vv + 5;
@@ -665,7 +665,19 @@ end
     ylabel('Величина ошибки') 
     xlabel('Номер отсчета') 
     % 
+    relativeError_y_out_matlab_vs_y_out_int = y_array ./ double(y_array_int);
     relativeError_y_out_double_vs_y_out_int = y_array_double ./ double(y_array_int);
-    figure(29); plot(relativeError_y_out_double_vs_y_out_int);
+    
+    figure(29); 
+    subplot(2,1,1)
+    plot(relativeError_y_out_matlab_vs_y_out_int);
+    title('Относительная ошибка выходного сигнала алгоритма, построенного с помощью матлаб функций и собственных функций в int')
+    ylabel('Величина ошибки') 
+    xlabel('Номер отсчета')
+    subplot(2,1,2)
+    plot(relativeError_y_out_double_vs_y_out_int);
+    title('Относительная ошибка выходного сигнала алгоритма, построенного с помощью собственных функций в double и int')
+    ylabel('Величина ошибки') 
+    xlabel('Номер отсчета')
 
 end

@@ -30,3 +30,5 @@ function out = bitmask(input, int_size, width)
     end
 
 end
+
+ 
