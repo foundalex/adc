@@ -1,110 +1,57 @@
-function [y_array, y_array_double, y_array_int, DetM_2x2_array, DetM_2x2_array_int, ...
-	... % умножители определителя 2x2 
-    DetM_2x2_multiplier_total_abs_max, ...
-    ... % сумматоры определителя 2x2 
-    Det2x2_sum_abs_max, ...
-    ... % умножители определителя 3х3
-    Mult_DetM_3x3_array_max, ...
-	... % разрядность умножителей определителя 3x3
-	Mult_DetM_3x3_array_mult_total_width_max, ...
-    ... % пресумматоры определителя 3х3
-	DetM_3x3_int_pre_sum_array_max, ...
-	... % разрядность пресумматоров определителя 3x3
-	DetM_3x3_int_pre_sum_width_total_max, ...
-	... % сумматоры определителя 3х3
-	DetM_3x3_int_sum_array_max, ...
-	... % разрядность сумматоров определителя 3x3
-	DetM_3x3_int_sum_width_total_max, ...
-    ... % умножители определителя 4х4
-	DetM_4x4_int_mult_array_max, ...
-	... % разрядность умножителей определителя 4х4
-	DetM_4x4_int_mult_width_total_max, ...
-	... % пресумматоры определителя 4х4
-    DetM_4x4_int_pre_sum_array_max, ...
-	... % разрядность пресумматоров определителя 4х4
-	DetM_4x4_int_pre_sum_width_total_max, ...
-	... % сумматоры определителя 4х4
-	DetM_4x4_int_sum_array_max, ...
-	... % разрядность сумматоров определителя 4х4
-	DetM_4x4_int_sum_array_width_total_max, ...
-	... % умножители определителя 5х5
-	DetM_5x5_int_mult_array_max, ...
-	... % разрядность умножителей 5x5
-	DetM_5x5_int_mult_array_width_total_max, ...
-	... % пресумматоры1 определителя 5х5
-	DetM_5x5_int_pre_sum1_array_max, ...
-	... % разрядность пресумматоров1 определителя 5х5
-	DetM_5x5_int_pre_sum1_array_width_total_max, ...
-	... % пресумматор2 определителя 5х5
-	DetM_5x5_int_sum3_abs_max, ...
-	... % разрядность пресумматора2 определителя 5х5
-	DetM_5x5_int_sum3_width_total_max, ...
-	... % сумматор определителя 5х5
-	DetM_5x5_int_abs_max, ...
-	... % разрядность сумматора определителя 5х5
-	DetM_5x5_int_width_total_max, ...
-    ... % начальный определитель
-    Det_x3_int_max, ...
+function [y_array, y_array_double, y_array_int, DetM_2x2_array, DetM_2x2_array_int, determinate_struct ...
     ... % выход делителя
     Divide_max, ...
-    ... % умножители адаптивного фильтра
-    Adaptive_filter_mult_array_max, ...
-    ... % разрядность умножителей адаптивного фильтра
-    Adaptive_filter_mult_total_width, ...
-    ... % сумматоры адаптивного фильтра
-    Adaptive_filter_sum_array_max, ....
-    ... % разрядность сумматоров адаптивного фильтра
-    Adaptive_filter_sum_total_width ...
+    adaptive_filter_struct_max ...
     ] = least_mean_square(adc_input, yri_cut, yri_cut_int, adaptive_mult_file, adaptive_sum_file, sim_options)
 
 bb = 0;
 vv = 0;
 kk = 0;
-y_outd = 0;
-yri_cut = double(yri_cut);
 nn = 0;
+
 x3 = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), "double");                     
 x3_int = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_fir_out); 
 
-DetM_2x2_multiplier_total_abs_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_2x2_det);
-Det2x2_sum_abs_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
+determinate_struct = struct;
+determinate_struct.DetM_2x2_multiplier_total_abs_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_2x2_det);
+determinate_struct.Det2x2_sum_abs_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
 
-Mult_DetM_3x3_array_max = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
-Mult_DetM_3x3_array_mult_total_width_max = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
-DetM_3x3_int_pre_sum_array_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
-DetM_3x3_int_pre_sum_width_total_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
-DetM_3x3_int_sum_array_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
-DetM_3x3_int_sum_width_total_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+determinate_struct.Mult_DetM_3x3_array_max = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
+determinate_struct.Mult_DetM_3x3_array_mult_total_width_max = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
+determinate_struct.DetM_3x3_int_pre_sum_array_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+determinate_struct.DetM_3x3_int_pre_sum_width_total_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+determinate_struct.DetM_3x3_int_sum_array_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+determinate_struct.DetM_3x3_int_sum_width_total_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
 % умножители определителя 4х4
-DetM_4x4_int_mult_array_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
+determinate_struct.DetM_4x4_int_mult_array_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
 % разрядность умножителей определителя 4х4
-DetM_4x4_int_mult_width_total_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
+determinate_struct.DetM_4x4_int_mult_width_total_max = cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
 % пресумматоры определителя 4х4
-DetM_4x4_int_pre_sum_array_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
+determinate_struct.DetM_4x4_int_pre_sum_array_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
 % разрядность пресумматоров определителя 4х4
-DetM_4x4_int_pre_sum_width_total_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
+determinate_struct.DetM_4x4_int_pre_sum_width_total_max = cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
 % сумматоры определителя 4х4
-DetM_4x4_int_sum_array_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_4x4_det);
+determinate_struct.DetM_4x4_int_sum_array_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_4x4_det);
 % разрядность сумматоров определителя 4х4
-DetM_4x4_int_sum_array_width_total_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_4x4_det);
+determinate_struct.DetM_4x4_int_sum_array_width_total_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_4x4_det);
 % умножители определителя 5х5
-DetM_5x5_int_mult_array_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_mult_array_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_5x5_det);
 % разрядность умножителей 5x5
-DetM_5x5_int_mult_array_width_total_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_mult_array_width_total_max = cast(zeros(sim_options.Size_matrix,1), sim_options.type_5x5_det);
 % пресумматоры1 определителя 5х5
-DetM_5x5_int_pre_sum1_array_max = cast(zeros(2,1), sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_pre_sum1_array_max = cast(zeros(2,1), sim_options.type_5x5_det);
 % разрядность пресумматоров1 определителя 5х5
-DetM_5x5_int_pre_sum1_array_width_total_max = cast(zeros(2,1), sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_pre_sum1_array_width_total_max = cast(zeros(2,1), sim_options.type_5x5_det);
 % пресумматор2 определителя 5х5
-DetM_5x5_int_sum3_abs_max = cast(0, sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_sum3_abs_max = cast(0, sim_options.type_5x5_det);
 % разрядность пресумматора2 определителя 5х5
-DetM_5x5_int_sum3_width_total_max = cast(0, sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_sum3_width_total_max = cast(0, sim_options.type_5x5_det);
 % сумматор определителя 5х5
-DetM_5x5_int_abs_max = cast(0, sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_abs_max = cast(0, sim_options.type_5x5_det);
 % разрядность сумматора определителя 5х5
-DetM_5x5_int_width_total_max = cast(0, sim_options.type_5x5_det);
+determinate_struct.DetM_5x5_int_width_total_max = cast(0, sim_options.type_5x5_det);
 % начальный определитель
-Det_x3_int_max = cast(0, sim_options.type_5x5_det);
+determinate_struct.Det_x3_int_max = cast(0, sim_options.type_5x5_det);
 % выход делителя
 Divide_max = cast(0, sim_options.type_divide_out);
 
@@ -114,10 +61,12 @@ www1_double_abs = zeros(sim_options.Size_matrix,1);
 www1_int = cast(zeros(sim_options.Size_matrix,1), sim_options.type_divide_out);
 www1_int_abs = cast(zeros(sim_options.Size_matrix,1), sim_options.type_divide_out);
 
-Adaptive_filter_mult_array_max = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
-Adaptive_filter_mult_total_width = cast(zeros(sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
-Adaptive_filter_sum_array_max = cast(zeros(sim_options.Size_matrix,1),sim_options.type_add_in_adaptive_filter);
-Adaptive_filter_sum_total_width = cast(zeros(sim_options.Size_matrix,1),sim_options.type_add_in_adaptive_filter);
+% Структура адаптивного фильтра
+adaptive_filter_struct_max = struct;
+adaptive_filter_struct_max.Adaptive_filter_mult_array_max = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
+adaptive_filter_struct_max.Adaptive_filter_mult_total_width = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
+adaptive_filter_struct_max.Adaptive_filter_sum_array_max = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix),sim_options.type_add_in_adaptive_filter);
+adaptive_filter_struct_max.Adaptive_filter_sum_total_width = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix),sim_options.type_add_in_adaptive_filter);
 
 for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1 
 
@@ -136,197 +85,33 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 
     %% Поиск определителя матрицы, состоящей из отсчетов сигнала с i-го суб-АЦП
     det_matlab(j) = det(x3);
-
-	[det_x3(j), det_x3_int(j), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, ...
-		... % умножители определителя 2x2 
-		DetM_2x2_multiplier_total_abs, ...
-		... % сумматоры определителя 2x2 
-		Det2x2_sum_abs, ...
-		... % умножители определителя 3х3
-		Mult_DetM_3x3_array, ...
-		... % разрядность умножителей определителя 3x3
-		Mult_DetM_3x3_array_mult_total_width, ...
-		... % пресумматоры определителя 3х3
-		DetM_3x3_int_pre_sum_array, ...
-		... % разрядность пресумматоров определителя 3x3
-		DetM_3x3_int_pre_sum_width_total, ...
-		... % сумматоры определителя 3х3
-		DetM_3x3_int_sum_array, ...
-		... % разрядность сумматоров определителя 3x3
-		DetM_3x3_int_sum_width_total, ...
-		... % умножители определителя 4х4
-		DetM_4x4_int_mult_array, ...
-		... % разрядность умножителей определителя 4х4
-		DetM_4x4_int_mult_width_total, ...
-		... % пресумматоры определителя 4х4
-		DetM_4x4_int_pre_sum_array, ...
-		... % разрядность пресумматоров определителя 4х4
-		DetM_4x4_int_pre_sum_width_total, ...
-		... % сумматоры определителя 4х4
-		DetM_4x4_int_sum_array, ...
-		... % разрядность сумматоров определителя 4х4
-		DetM_4x4_int_sum_array_width_total, ...
-		... % умножители определителя 5х5
-		DetM_5x5_int_mult_array, ...
-		... % разрядность умножителей 5x5
-		DetM_5x5_int_mult_array_width_total, ...
-		... % пресумматоры1 определителя 5х5
-		DetM_5x5_int_pre_sum1_array, ...
-		... % разрядность пресумматоров1 определителя 5х5
-		DetM_5x5_int_pre_sum1_array_width_total, ...
-		... % пресумматор2 определителя 5х5
-		DetM_5x5_int_sum3_abs, ...
-		... % разрядность пресумматора2 определителя 5х5
-		DetM_5x5_int_sum3_width_total, ...
-		... % сумматор определителя 5х5
-		DetM_5x5_int_abs, ...
-		... % разрядность сумматора определителя 5х5
-		DetM_5x5_int_width_total ...
-	] = determinate(x3, x3_int, sim_options); % int
-
     if (det_matlab(j) == 0)
         det_matlab(j) = 1;
         disp('Determinant LU x3 equal 0');
     end
-    if (det_x3_int(j) == 0)
-        det_x3_int(j) = 1;
-        disp('Determinant int x3 equal 0');
-    end
-    if (det_x3(j) == 0)
-        det_x3(j) = 1;
-        disp('Determinant double x3 equal 0');
-    end
+
+	[det_x3(j), det_x3_int(j), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
+        ] = determinate(x3, x3_int, sim_options); % int
 
 	DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
-	DetM_2x2_array_int(bb+1:bb+10) = Det2x2_sum_abs;
+	DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
 	Det_2x2_LU_matlab_array(bb+1:bb+10) = Det_2x2_LU_matlab;
 	
-	DetM_3x3_array_int(bb+1:bb+10) = DetM_3x3_int_sum_array;
+	DetM_3x3_array_int(bb+1:bb+10) = s.DetM_3x3_int_sum_array;
 	DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
 	Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
 
-	DetM_4x4_array_int(vv+1:vv+5) = DetM_4x4_int_sum_array;
+	DetM_4x4_array_int(vv+1:vv+5) = s.DetM_4x4_int_sum_array;
 	DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
 	Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
 
 	bb = bb + 10;
 	vv = vv + 5;
 
-	%% определяем макс. значения в определителе 2x2
-	for n = 1:sim_options.num_det2x2*2
-		% определяем максимальное значение на каждом из 20 умножителей
-		if DetM_2x2_multiplier_total_abs_max(n) < DetM_2x2_multiplier_total_abs(n) 
-			DetM_2x2_multiplier_total_abs_max(n) = DetM_2x2_multiplier_total_abs(n);
-		end
-	end 
-	for n = 1:sim_options.num_det2x2
-		% определяем максимальное значение на каждом из 10 сумматоров
-		if Det2x2_sum_abs_max(n) < Det2x2_sum_abs(n) 
-			Det2x2_sum_abs_max(n) = Det2x2_sum_abs(n);
-		end
-	end 
-	%% 																		3x3
-	for n = 1:sim_options.num_det2x2*3
-		% определяем максимальное значение на каждом из 30 умножителей
-		if Mult_DetM_3x3_array_max(n) < Mult_DetM_3x3_array(n) 
-			Mult_DetM_3x3_array_max(n) = Mult_DetM_3x3_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 30 умножителей
-		if Mult_DetM_3x3_array_mult_total_width_max(n) < Mult_DetM_3x3_array_mult_total_width(n) 
-			Mult_DetM_3x3_array_mult_total_width_max(n) = Mult_DetM_3x3_array_mult_total_width(n);
-		end
-	end
-	for n = 1:sim_options.num_det2x2
-		% определяем максимальное значение на каждом из 10 пресумматорах
-		if DetM_3x3_int_pre_sum_array_max(n) < DetM_3x3_int_pre_sum_array(n) 
-			DetM_3x3_int_pre_sum_array_max(n) = DetM_3x3_int_pre_sum_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 10 пресумматорах
-		if DetM_3x3_int_pre_sum_width_total_max(n) < DetM_3x3_int_pre_sum_width_total(n) 
-			DetM_3x3_int_pre_sum_width_total_max(n) = DetM_3x3_int_pre_sum_width_total(n);
-		end
-		% определяем максимальное значение на каждом из 10 сумматорах
-		if DetM_3x3_int_sum_array_max(n) < DetM_3x3_int_sum_array(n) 
-			DetM_3x3_int_sum_array_max(n) = DetM_3x3_int_sum_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 10 сумматорах
-		if DetM_3x3_int_sum_width_total_max(n) < DetM_3x3_int_sum_width_total(n) 
-			DetM_3x3_int_sum_width_total_max(n) = DetM_3x3_int_sum_width_total(n);
-		end
-	end
-	%% 																		4x4 
-	for n = 1:sim_options.num_det2x2*2
-		% определяем максимальное значение на каждом из 20 умножителей
-		if  DetM_4x4_int_mult_array_max(n) < DetM_4x4_int_mult_array(n) 
-			DetM_4x4_int_mult_array_max(n) = DetM_4x4_int_mult_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 20 умножителей
-		if  DetM_4x4_int_mult_width_total_max(n) < DetM_4x4_int_mult_width_total(n) 
-			DetM_4x4_int_mult_width_total_max(n) = DetM_4x4_int_mult_width_total(n);
-		end
-	end
-	for n = 1:sim_options.num_det2x2
-		% определяем максимальное значение на каждом из 10 пресумматоров
-		if  DetM_4x4_int_pre_sum_array_max(n) < DetM_4x4_int_pre_sum_array(n) 
-			DetM_4x4_int_pre_sum_array_max(n) = DetM_4x4_int_pre_sum_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 10 пресумматоров
-		if  DetM_4x4_int_pre_sum_width_total_max(n) < DetM_4x4_int_pre_sum_width_total(n) 
-			DetM_4x4_int_pre_sum_width_total_max(n) = DetM_4x4_int_pre_sum_width_total(n);
-		end
-	end
-	for n = 1:5
-		% определяем максимальное значение на каждом из 5 сумматоров
-		if  DetM_4x4_int_sum_array_max(n) < DetM_4x4_int_sum_array(n) 
-			DetM_4x4_int_sum_array_max(n) = DetM_4x4_int_sum_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 5 сумматоров
-		if  DetM_4x4_int_sum_array_width_total(n) < DetM_4x4_int_sum_array_width_total(n) 
-			DetM_4x4_int_sum_array_width_total(n) = DetM_4x4_int_sum_array_width_total(n);
-		end
-	end
-	%% 																		5x5
-	for n = 1:5
-		% определяем максимальное значение на каждом из 5 сумматоров
-		if  DetM_5x5_int_mult_array_max(n) < DetM_5x5_int_mult_array(n) 
-			DetM_5x5_int_mult_array_max(n) = DetM_5x5_int_mult_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 5 сумматоров
-		if  DetM_5x5_int_mult_array_width_total_max(n) < DetM_5x5_int_mult_array_width_total(n) 
-			DetM_5x5_int_mult_array_width_total_max(n) = DetM_5x5_int_mult_array_width_total(n);
-		end
-	end
-	for n = 1:2
-		% определяем максимальное значение на каждом из 5 сумматоров
-		if  DetM_5x5_int_pre_sum1_array_max(n) < DetM_5x5_int_pre_sum1_array(n) 
-			DetM_5x5_int_pre_sum1_array_max(n) = DetM_5x5_int_pre_sum1_array(n);
-		end		
-		% определяем макс. разрядность на каждом из 5 сумматоров
-		if  DetM_5x5_int_pre_sum1_array_width_total_max(n) < DetM_5x5_int_pre_sum1_array_width_total(n) 
-			DetM_5x5_int_pre_sum1_array_width_total_max(n) = DetM_5x5_int_pre_sum1_array_width_total(n);
-		end
-	end
-	% пресумматор2 определителя 5х5
-	if  DetM_5x5_int_sum3_abs_max < DetM_5x5_int_sum3_abs 
-		DetM_5x5_int_sum3_abs_max = DetM_5x5_int_sum3_abs;
-	end
-	% разрядность пресумматора2 определителя 5х5
-	if  DetM_5x5_int_sum3_width_total_max < DetM_5x5_int_sum3_width_total 
-		DetM_5x5_int_sum3_width_total_max = DetM_5x5_int_sum3_width_total;
-	end
-	% сумматор определителя 5х5
-	if  DetM_5x5_int_abs_max < DetM_5x5_int_abs 
-		DetM_5x5_int_abs_max = DetM_5x5_int_abs;
-	end
-	% разрядность сумматора определителя 5х5
-	if  DetM_5x5_int_width_total_max < DetM_5x5_int_width_total 
-		DetM_5x5_int_width_total_max = DetM_5x5_int_width_total;
-    end
-    % начальный определитель
-    if Det_x3_int_max < DetM_5x5_int_abs
-        Det_x3_int_max = DetM_5x5_int_abs;
-    end
-	%% 
+	% Запись в структуру максимальных значений сумматоров и множителей
+    % определителя
+	determinate_struct = compare_determinante(s, determinate_struct, sim_options);
+	
 
 	for i = 1:sim_options.Size_matrix
         % Добавляем в матрицу столбец эталонного сигнала с фильтра дробной
@@ -344,195 +129,33 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 
         % функция матлаб
 		det_x3_shift(kk) = det(x3_shift);
-
-        % собственная функция
-		[det_out_shift(kk), det_out_shift_int(kk), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, ...
-			... % умножители определителя 2x2 
-			DetM_2x2_multiplier_total_abs, ...
-			... % сумматоры определителя 2x2 
-			Det2x2_sum_abs, ...
-			... % умножители определителя 3х3
-			Mult_DetM_3x3_array, ...
-			... % разрядность умножителей определителя 3x3
-			Mult_DetM_3x3_array_mult_total_width, ...
-			... % пресумматоры определителя 3х3
-			DetM_3x3_int_pre_sum_array, ...
-			... % разрядность пресумматоров определителя 3x3
-			DetM_3x3_int_pre_sum_width_total, ...
-			... % сумматоры определителя 3х3
-			DetM_3x3_int_sum_array, ...
-			... % разрядность сумматоров определителя 3x3
-			DetM_3x3_int_sum_width_total, ...
-			... % умножители определителя 4х4
-			DetM_4x4_int_mult_array, ...
-			... % разрядность умножителей определителя 4х4
-			DetM_4x4_int_mult_width_total, ...
-			... % пресумматоры определителя 4х4
-			DetM_4x4_int_pre_sum_array, ...
-			... % разрядность пресумматоров определителя 4х4
-			DetM_4x4_int_pre_sum_width_total, ...
-			... % сумматоры определителя 4х4
-			DetM_4x4_int_sum_array, ...
-			... % разрядность сумматоров определителя 4х4
-			DetM_4x4_int_sum_array_width_total, ...
-			... % умножители определителя 5х5
-			DetM_5x5_int_mult_array, ...
-			... % разрядность умножителей 5x5
-			DetM_5x5_int_mult_array_width_total, ...
-			... % пресумматоры1 определителя 5х5
-			DetM_5x5_int_pre_sum1_array, ...
-			... % разрядность пресумматоров1 определителя 5х5
-			DetM_5x5_int_pre_sum1_array_width_total, ...
-			... % пресумматор2 определителя 5х5
-			DetM_5x5_int_sum3_abs, ...
-			... % разрядность пресумматора2 определителя 5х5
-			DetM_5x5_int_sum3_width_total, ...
-			... % сумматор определителя 5х5
-			DetM_5x5_int_abs, ...
-			... % разрядность сумматора определителя 5х5
-			DetM_5x5_int_width_total ...
-		] = determinate(x3_shift, x3_shift_int, sim_options);
-
         if (det_x3_shift(kk) == 0)
             det_x3_shift(kk) = 1;
             disp('Determinant LU x3_shift equal 0');
         end
-        if (det_out_shift_int(kk) == 0)
-            det_out_shift_int(kk) = 1;
-            disp('Determinant int x3_shift equal 0');
-        end
-        if (det_out_shift(kk) == 0)
-            det_out_shift(kk) = 1;
-            disp('Determinant double x3_shift equal 0');
-        end
 
-        %%
+        % собственная функция
+		[det_out_shift(kk), det_out_shift_int(kk), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
+            ] = determinate(x3_shift, x3_shift_int, sim_options);
 
 		DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
-		DetM_2x2_array_int(bb+1:bb+10) = Det2x2_sum_abs;
+		DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
 		Det_2x2_LU_matlab_array(bb+1:bb+10) = Det_2x2_LU_matlab;
 	
-		DetM_3x3_array_int(bb+1:bb+10) = DetM_3x3_int_sum_array;
+		DetM_3x3_array_int(bb+1:bb+10) = s.DetM_3x3_int_sum_array;
 		DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
 		Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
 	
-		DetM_4x4_array_int(vv+1:vv+5) = DetM_4x4_int_sum_array;
+		DetM_4x4_array_int(vv+1:vv+5) = s.DetM_4x4_int_sum_array;
 		DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
 		Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
 
 		bb = bb + 10;
 		vv = vv + 5;
 
-		%% определяем макс. значения в определителе 2x2
-		for n = 1:sim_options.num_det2x2*2
-			% определяем максимальное значение на каждом из 20 умножителей
-			if DetM_2x2_multiplier_total_abs_max(n) < DetM_2x2_multiplier_total_abs(n) 
-				DetM_2x2_multiplier_total_abs_max(n) = DetM_2x2_multiplier_total_abs(n);
-			end
-		end 
-		for n = 1:sim_options.num_det2x2
-			% определяем максимальное значение на каждом из 10 сумматоров
-			if Det2x2_sum_abs_max(n) < Det2x2_sum_abs(n) 
-				Det2x2_sum_abs_max(n) = Det2x2_sum_abs(n);
-			end
-		end 
-		%% 																		3x3
-		for n = 1:sim_options.num_det2x2*3
-			% определяем максимальное значение на каждом из 30 умножителей
-			if Mult_DetM_3x3_array_max(n) < Mult_DetM_3x3_array(n) 
-				Mult_DetM_3x3_array_max(n) = Mult_DetM_3x3_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 30 умножителей
-			if Mult_DetM_3x3_array_mult_total_width_max(n) < Mult_DetM_3x3_array_mult_total_width(n) 
-				Mult_DetM_3x3_array_mult_total_width_max(n) = Mult_DetM_3x3_array_mult_total_width(n);
-            end
-		end
-		for n = 1:sim_options.num_det2x2
-			% определяем максимальное значение на каждом из 10 пресумматорах
-			if DetM_3x3_int_pre_sum_array_max(n) < DetM_3x3_int_pre_sum_array(n) 
-				DetM_3x3_int_pre_sum_array_max(n) = DetM_3x3_int_pre_sum_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 10 пресумматорах
-			if DetM_3x3_int_pre_sum_width_total_max(n) < DetM_3x3_int_pre_sum_width_total(n) 
-				DetM_3x3_int_pre_sum_width_total_max(n) = DetM_3x3_int_pre_sum_width_total(n);
-			end
-			% определяем максимальное значение на каждом из 10 сумматорах
-			if DetM_3x3_int_sum_array_max(n) < DetM_3x3_int_sum_array(n) 
-				DetM_3x3_int_sum_array_max(n) = DetM_3x3_int_sum_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 10 сумматорах
-			if DetM_3x3_int_sum_width_total_max(n) < DetM_3x3_int_sum_width_total(n) 
-				DetM_3x3_int_sum_width_total_max(n) = DetM_3x3_int_sum_width_total(n);
-			end
-		end
-		%% 																		4x4 
-		for n = 1:sim_options.num_det2x2*2
-			% определяем максимальное значение на каждом из 20 умножителей
-			if  DetM_4x4_int_mult_array_max(n) < DetM_4x4_int_mult_array(n) 
-				DetM_4x4_int_mult_array_max(n) = DetM_4x4_int_mult_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 20 умножителей
-			if  DetM_4x4_int_mult_width_total_max(n) < DetM_4x4_int_mult_width_total(n) 
-				DetM_4x4_int_mult_width_total_max(n) = DetM_4x4_int_mult_width_total(n);
-			end
-		end
-		for n = 1:sim_options.num_det2x2
-			% определяем максимальное значение на каждом из 10 пресумматоров
-			if  DetM_4x4_int_pre_sum_array_max(n) < DetM_4x4_int_pre_sum_array(n) 
-				DetM_4x4_int_pre_sum_array_max(n) = DetM_4x4_int_pre_sum_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 10 пресумматоров
-			if  DetM_4x4_int_pre_sum_width_total_max(n) < DetM_4x4_int_pre_sum_width_total(n) 
-				DetM_4x4_int_pre_sum_width_total_max(n) = DetM_4x4_int_pre_sum_width_total(n);
-			end
-		end
-		for n = 1:5
-			% определяем максимальное значение на каждом из 5 сумматоров
-			if  DetM_4x4_int_sum_array_max(n) < DetM_4x4_int_sum_array(n) 
-				DetM_4x4_int_sum_array_max(n) = DetM_4x4_int_sum_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 5 сумматоров
-			if  DetM_4x4_int_sum_array_width_total(n) < DetM_4x4_int_sum_array_width_total(n) 
-				DetM_4x4_int_sum_array_width_total(n) = DetM_4x4_int_sum_array_width_total(n);
-			end
-		end
-		%% 																		5x5
-		for n = 1:5
-			% определяем максимальное значение на каждом из 5 сумматоров
-			if  DetM_5x5_int_mult_array_max(n) < DetM_5x5_int_mult_array(n) 
-				DetM_5x5_int_mult_array_max(n) = DetM_5x5_int_mult_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 5 сумматоров
-			if  DetM_5x5_int_mult_array_width_total_max(n) < DetM_5x5_int_mult_array_width_total(n) 
-				DetM_5x5_int_mult_array_width_total_max(n) = DetM_5x5_int_mult_array_width_total(n);
-			end
-		end
-		for n = 1:2
-			% определяем максимальное значение на каждом из 5 сумматоров
-			if  DetM_5x5_int_pre_sum1_array_max(n) < DetM_5x5_int_pre_sum1_array(n) 
-				DetM_5x5_int_pre_sum1_array_max(n) = DetM_5x5_int_pre_sum1_array(n);
-			end		
-			% определяем макс. разрядность на каждом из 5 сумматоров
-			if  DetM_5x5_int_pre_sum1_array_width_total_max(n) < DetM_5x5_int_pre_sum1_array_width_total(n) 
-				DetM_5x5_int_pre_sum1_array_width_total_max(n) = DetM_5x5_int_pre_sum1_array_width_total(n);
-			end
-		end
-		% пресумматор2 определителя 5х5
-		if  DetM_5x5_int_sum3_abs_max < DetM_5x5_int_sum3_abs 
-			DetM_5x5_int_sum3_abs_max = DetM_5x5_int_sum3_abs;
-		end
-		% разрядность пресумматора2 определителя 5х5
-		if  DetM_5x5_int_sum3_width_total_max < DetM_5x5_int_sum3_width_total 
-			DetM_5x5_int_sum3_width_total_max = DetM_5x5_int_sum3_width_total;
-		end
-		% сумматор определителя 5х5
-		if  DetM_5x5_int_abs_max < DetM_5x5_int_abs 
-			DetM_5x5_int_abs_max = DetM_5x5_int_abs;
-		end
-		% разрядность сумматора определителя 5х5
-		if  DetM_5x5_int_width_total_max < DetM_5x5_int_width_total 
-			DetM_5x5_int_width_total_max = DetM_5x5_int_width_total;
-        end
+        % Запись в структуру максимальных значений сумматоров и множителей
+        % определителя
+		determinate_struct = compare_determinante(s, determinate_struct, sim_options);
 
 		%% Деление определителя матрицы с эталонным сигналом на определитель матрицы сигнала с i-го суб-АЦП
         % для получения коэффициентов адаптивного фильтра
@@ -562,8 +185,7 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
     x3_int_c = cast(x3_int, sim_options.type_mult_in_adaptive_filter);
     www1_int_c = cast(www1_int, sim_options.type_mult_in_adaptive_filter);
 
-    [y_out, y_out_int, y_int_abs, y_int_total_width, sum_array_out, sum_int_width_total] ...
-    = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, adaptive_mult_file, adaptive_sum_file, sim_options);
+    [y_out, y_out_int, adaptive_filter_structure] = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, adaptive_mult_file, adaptive_sum_file, sim_options);
 
     % y_out_int = bitshift(y_out_int, -sim_options.divide_factor); % сдвигаем данные
 
@@ -575,24 +197,29 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 
 
 	%% определяем макс. значения
-	for n = 1:sim_options.Size_matrix
+	for n = 1:sim_options.Size_matrix*sim_options.Size_matrix
 		% определяем максимальное значение на каждом умножителе
-		if Adaptive_filter_mult_array_max(n) < y_int_abs(n) 
-			Adaptive_filter_mult_array_max(n) = y_int_abs(n);
+		if adaptive_filter_struct_max.Adaptive_filter_mult_array_max(n) < adaptive_filter_structure.mult_int_abs(n) 
+			adaptive_filter_struct_max.Adaptive_filter_mult_array_max(n) = adaptive_filter_structure.mult_int_abs(n); 
         end
 		% определяем максимальную разрядность умножителей
-		if Adaptive_filter_mult_total_width(n) < y_int_total_width(n) 
-			Adaptive_filter_mult_total_width(n) = y_int_total_width(n);
+		if adaptive_filter_struct_max.Adaptive_filter_mult_total_width(n) < adaptive_filter_structure.mult_int_total_width(n) 
+			adaptive_filter_struct_max.Adaptive_filter_mult_total_width(n) = adaptive_filter_structure.mult_int_total_width(n);
         end
-		% определяем максимальное значение сумматоров
-		if Adaptive_filter_sum_array_max(n) < sum_array_out(n) 
-			Adaptive_filter_sum_array_max(n) = sum_array_out(n);
-        end
-        % определяем максимальную разрядность сумматоров
-		if Adaptive_filter_sum_total_width(n) < sum_int_width_total(n) 
-			Adaptive_filter_sum_total_width(n) = sum_int_width_total(n);
-        end
-	end 
+    end
+
+    for n = 1:sim_options.Size_matrix
+        for k = 1:sim_options.Size_matrix
+		    % определяем максимальное значение сумматоров
+		    if adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) < adaptive_filter_structure.sum_array_out(n,k)
+			    adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) = adaptive_filter_structure.sum_array_out(n,k);
+            end
+            % определяем максимальную разрядность сумматоров
+		    if adaptive_filter_struct_max.Adaptive_filter_sum_total_width(n,k) < adaptive_filter_structure.sum_int_width_total(n,k) 
+			    adaptive_filter_struct_max.Adaptive_filter_sum_total_width(n,k) = adaptive_filter_structure.sum_int_width_total(n,k);
+            end
+        end 
+    end
 
 	y_array(nn+1:nn+sim_options.Size_matrix,:) = y_outd;
     y_array_double(nn+1:nn+sim_options.Size_matrix,:) = y_out_double;
@@ -680,4 +307,121 @@ end
     ylabel('Величина ошибки') 
     xlabel('Номер отсчета')
 
+end
+
+function determinate_struct = compare_determinante(s, determinate_struct, sim_options); 
+%% определяем макс. значения в определителе 2x2
+	for n = 1:sim_options.num_det2x2*2
+		% определяем максимальное значение на каждом из 20 умножителей
+		if determinate_struct.DetM_2x2_multiplier_total_abs_max(n) < s.Det2x2_mult_abs(n) 
+			determinate_struct.DetM_2x2_multiplier_total_abs_max(n) = s.Det2x2_mult_abs(n);
+		end
+	end 
+	for n = 1:sim_options.num_det2x2
+		% определяем максимальное значение на каждом из 10 сумматоров
+		if determinate_struct.Det2x2_sum_abs_max(n) < s.Det2x2_sum_abs(n) 
+			determinate_struct.Det2x2_sum_abs_max(n) = s.Det2x2_sum_abs(n);
+		end
+	end 
+	%% 																		3x3
+	for n = 1:sim_options.num_det2x2*3
+		% определяем максимальное значение на каждом из 30 умножителей
+		if determinate_struct.Mult_DetM_3x3_array_max(n) < s.Mult_DetM_3x3_array(n) 
+			determinate_struct.Mult_DetM_3x3_array_max(n) = s.Mult_DetM_3x3_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 30 умножителей
+		if determinate_struct.Mult_DetM_3x3_array_mult_total_width_max(n) < s.Mult_DetM_3x3_array_mult_total_width(n) 
+			determinate_struct.Mult_DetM_3x3_array_mult_total_width_max(n) = s.Mult_DetM_3x3_array_mult_total_width(n);
+		end
+	end
+	for n = 1:sim_options.num_det2x2
+		% определяем максимальное значение на каждом из 10 пресумматорах
+		if determinate_struct.DetM_3x3_int_pre_sum_array_max(n) < s.DetM_3x3_int_pre_sum_array(n) 
+			determinate_struct.DetM_3x3_int_pre_sum_array_max(n) = s.DetM_3x3_int_pre_sum_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 10 пресумматорах
+		if determinate_struct.DetM_3x3_int_pre_sum_width_total_max(n) < s.DetM_3x3_int_pre_sum_width_total(n) 
+			determinate_struct.DetM_3x3_int_pre_sum_width_total_max(n) = s.DetM_3x3_int_pre_sum_width_total(n);
+		end
+		% определяем максимальное значение на каждом из 10 сумматорах
+		if determinate_struct.DetM_3x3_int_sum_array_max(n) < s.DetM_3x3_int_sum_array(n) 
+			determinate_struct.DetM_3x3_int_sum_array_max(n) = s.DetM_3x3_int_sum_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 10 сумматорах
+		if determinate_struct.DetM_3x3_int_sum_width_total_max(n) < s.DetM_3x3_int_sum_width_total(n) 
+			determinate_struct.DetM_3x3_int_sum_width_total_max(n) = s.DetM_3x3_int_sum_width_total(n);
+		end
+	end
+	%% 																		4x4 
+	for n = 1:sim_options.num_det2x2*2
+		% определяем максимальное значение на каждом из 20 умножителей
+		if  determinate_struct.DetM_4x4_int_mult_array_max(n) < s.DetM_4x4_int_mult_array(n) 
+			determinate_struct.DetM_4x4_int_mult_array_max(n) = s.DetM_4x4_int_mult_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 20 умножителей
+		if  determinate_struct.DetM_4x4_int_mult_width_total_max(n) < s.DetM_4x4_int_mult_width_total(n) 
+			determinate_struct.DetM_4x4_int_mult_width_total_max(n) = s.DetM_4x4_int_mult_width_total(n);
+		end
+	end
+	for n = 1:sim_options.num_det2x2
+		% определяем максимальное значение на каждом из 10 пресумматоров
+		if  determinate_struct.DetM_4x4_int_pre_sum_array_max(n) < s.DetM_4x4_int_pre_sum_array(n) 
+			determinate_struct.DetM_4x4_int_pre_sum_array_max(n) = s.DetM_4x4_int_pre_sum_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 10 пресумматоров
+		if  determinate_struct.DetM_4x4_int_pre_sum_width_total_max(n) < s.DetM_4x4_int_pre_sum_width_total(n) 
+			determinate_struct.DetM_4x4_int_pre_sum_width_total_max(n) = s.DetM_4x4_int_pre_sum_width_total(n);
+		end
+	end
+	for n = 1:5
+		% определяем максимальное значение на каждом из 5 сумматоров
+		if  determinate_struct.DetM_4x4_int_sum_array_max(n) < s.DetM_4x4_int_sum_array(n) 
+			determinate_struct.DetM_4x4_int_sum_array_max(n) = s.DetM_4x4_int_sum_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 5 сумматоров
+		if  determinate_struct.DetM_4x4_int_sum_array_width_total_max(n) < s.DetM_4x4_int_sum_array_width_total(n) 
+			determinate_struct.DetM_4x4_int_sum_array_width_total_max(n) = s.DetM_4x4_int_sum_array_width_total(n);
+		end
+	end
+	%% 																		5x5
+	for n = 1:5
+		% определяем максимальное значение на каждом из 5 сумматоров
+		if  determinate_struct.DetM_5x5_int_mult_array_max(n) < s.DetM_5x5_int_mult_array(n) 
+			determinate_struct.DetM_5x5_int_mult_array_max(n) = s.DetM_5x5_int_mult_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 5 сумматоров
+		if  determinate_struct.DetM_5x5_int_mult_array_width_total_max(n) < s.DetM_5x5_int_mult_array_width_total(n) 
+			determinate_struct.DetM_5x5_int_mult_array_width_total_max(n) = s.DetM_5x5_int_mult_array_width_total(n);
+		end
+	end
+	for n = 1:2
+		% определяем максимальное значение на каждом из 5 сумматоров
+		if  determinate_struct.DetM_5x5_int_pre_sum1_array_max(n) < s.DetM_5x5_int_pre_sum1_array(n) 
+			determinate_struct.DetM_5x5_int_pre_sum1_array_max(n) = s.DetM_5x5_int_pre_sum1_array(n);
+		end		
+		% определяем макс. разрядность на каждом из 5 сумматоров
+		if  determinate_struct.DetM_5x5_int_pre_sum1_array_width_total_max(n) < s.DetM_5x5_int_pre_sum1_array_width_total(n) 
+			determinate_struct.DetM_5x5_int_pre_sum1_array_width_total_max(n) = s.DetM_5x5_int_pre_sum1_array_width_total(n);
+		end
+	end
+	% пресумматор2 определителя 5х5
+	if  determinate_struct.DetM_5x5_int_sum3_abs_max < s.DetM_5x5_int_sum3_abs 
+		determinate_struct.DetM_5x5_int_sum3_abs_max = s.DetM_5x5_int_sum3_abs;
+	end
+	% разрядность пресумматора2 определителя 5х5
+	if  determinate_struct.DetM_5x5_int_sum3_width_total_max < s.DetM_5x5_int_sum3_width_total 
+		determinate_struct.DetM_5x5_int_sum3_width_total_max = s.DetM_5x5_int_sum3_width_total;
+	end
+	% сумматор определителя 5х5
+	if  determinate_struct.DetM_5x5_int_abs_max < s.DetM_5x5_int_abs 
+		determinate_struct.DetM_5x5_int_abs_max = s.DetM_5x5_int_abs;
+	end
+	% разрядность сумматора определителя 5х5
+	if  determinate_struct.DetM_5x5_int_width_total_max < s.DetM_5x5_int_width_total 
+		determinate_struct.DetM_5x5_int_width_total_max = s.DetM_5x5_int_width_total;
+    end
+    % начальный определитель
+    if determinate_struct.Det_x3_int_max < s.DetM_5x5_int_abs
+        determinate_struct.Det_x3_int_max = s.DetM_5x5_int_abs;
+    end
 end

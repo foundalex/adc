@@ -1,4 +1,4 @@
-function [y, overflow, y_abs, width_total] = mult(a, b, int_size, width, e, en)
+function [y, overflow, y_abs, width_total] = mult(a, b, int_size, width)
    
     % проверка выходной разрядности
     width_a = define_of_width_int(a, int_size, width);
@@ -24,6 +24,11 @@ function [y, overflow, y_abs, width_total] = mult(a, b, int_size, width, e, en)
     else
 	    y_abs = y;
     end
+
+    % % Наложение маски на первый умножитель
+    % if enable_mask == true
+    %     y = bitmask(y, int_size, mask);
+    % end
 
 
     % %% Проверка переполнения умножителя
