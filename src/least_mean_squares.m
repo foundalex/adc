@@ -2,7 +2,7 @@ function [y_array, y_array_double, y_array_int, DetM_2x2_array, DetM_2x2_array_i
     ... % выход делителя
     Divide_max, ...
     adaptive_filter_struct_max ...
-    ] = least_mean_square(adc_input, yri_cut, yri_cut_int, adaptive_mult_file, adaptive_sum_file, sim_options)
+    ] = least_mean_square(adc_input, yri_cut, yri_cut_int, read_max_width, sim_options)
 
 bb = 0;
 vv = 0;
@@ -65,8 +65,8 @@ www1_int_abs = cast(zeros(sim_options.Size_matrix,1), sim_options.type_divide_ou
 adaptive_filter_struct_max = struct;
 adaptive_filter_struct_max.Adaptive_filter_mult_array_max = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
 adaptive_filter_struct_max.Adaptive_filter_mult_total_width = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,1),sim_options.type_mult_in_adaptive_filter);
-adaptive_filter_struct_max.Adaptive_filter_sum_array_max = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix),sim_options.type_add_in_adaptive_filter);
-adaptive_filter_struct_max.Adaptive_filter_sum_total_width = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix),sim_options.type_add_in_adaptive_filter);
+adaptive_filter_struct_max.Adaptive_filter_sum_array_max = cast(zeros(sim_options.Size_matrix*2,3),sim_options.type_add_in_adaptive_filter);
+adaptive_filter_struct_max.Adaptive_filter_sum_total_width = cast(zeros(sim_options.Size_matrix*2,3),sim_options.type_add_in_adaptive_filter);
 
 for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1 
 
@@ -91,7 +91,7 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
     end
 
 	[det_x3(j), det_x3_int(j), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
-        ] = determinate(x3, x3_int, sim_options); % int
+        ] = determinate(x3, x3_int, read_max_width.det_max_width, sim_options); % int
 
 	DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
 	DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
@@ -136,7 +136,7 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 
         % собственная функция
 		[det_out_shift(kk), det_out_shift_int(kk), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
-            ] = determinate(x3_shift, x3_shift_int, sim_options);
+            ] = determinate(x3_shift, x3_shift_int, read_max_width.det_max_width, sim_options);
 
 		DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
 		DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
@@ -185,15 +185,12 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
     x3_int_c = cast(x3_int, sim_options.type_mult_in_adaptive_filter);
     www1_int_c = cast(www1_int, sim_options.type_mult_in_adaptive_filter);
 
-    [y_out, y_out_int, adaptive_filter_structure] = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, adaptive_mult_file, adaptive_sum_file, sim_options);
+    [y_out, y_out_int, adaptive_filter_structure] = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, read_max_width.adaptive_max_width, sim_options);
 
-    % y_out_int = bitshift(y_out_int, -sim_options.divide_factor); % сдвигаем данные
-
-    y_out_int_shift = y_out_int;
     y_out_double = round(y_out * 2^-sim_options.divide_factor);
 
     % округление значений после фильтра
-    y_out_int_shift = round_int(y_out_int_shift, sim_options.divide_factor, sim_options.type_add_in_adaptive_filter);
+    y_out_int_shift = round_int(y_out_int, sim_options.divide_factor, sim_options.type_add_in_adaptive_filter);
 
 
 	%% определяем макс. значения
@@ -208,8 +205,8 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
         end
     end
 
-    for n = 1:sim_options.Size_matrix
-        for k = 1:sim_options.Size_matrix
+    for n = 1:sim_options.Size_matrix*2
+        for k = 1:3
 		    % определяем максимальное значение сумматоров
 		    if adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) < adaptive_filter_structure.sum_array_out(n,k)
 			    adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) = adaptive_filter_structure.sum_array_out(n,k);
@@ -228,84 +225,84 @@ for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1
 
 end
 
-    %% 2x2
-    relativeError_DetM_2x2_Myfunc_double_vs_Myfunc_int = DetM_2x2_array./double(DetM_2x2_array_int);
-	relativeError_DetM_2x2_Myfunc_double_vs_Matlab_LU = Det_2x2_LU_matlab_array./double(DetM_2x2_array);
+%% 2x2
+relativeError_DetM_2x2_Myfunc_double_vs_Myfunc_int = DetM_2x2_array./double(DetM_2x2_array_int);
+relativeError_DetM_2x2_Myfunc_double_vs_Matlab_LU = Det_2x2_LU_matlab_array./double(DetM_2x2_array);
 
-    figure(18)
-	subplot(2,1,1)
-	plot(relativeError_DetM_2x2_Myfunc_double_vs_Matlab_LU, '-o');
-	title('Относительная ошибка между определителями 2x2, найденных с помощью прямого нахождения в double vs Функции Матлаб')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
-	subplot(2,1,2)
-    plot(relativeError_DetM_2x2_Myfunc_double_vs_Myfunc_int, '-o');
-    title('Относительная ошибка между определителями 2x2, найденных с помощью прямого нахождения double vs integer')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
-    % 
-	%% 3x3
-    relativeError_DetM_3x3_Myfunc_double_vs_Myfunc_int = DetM_3x3_array_dd./double(DetM_3x3_array_int);
-	relativeError_DetM_3x3_Myfunc_double_vs_Matlab_LU = Det_3x3_LU_matlab_array./double(DetM_3x3_array_int);
+figure(18)
+subplot(2,1,1)
+plot(relativeError_DetM_2x2_Myfunc_double_vs_Matlab_LU, '-o');
+title('Относительная ошибка между определителями 2x2, найденных с помощью прямого нахождения в double vs Функции Матлаб')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
+subplot(2,1,2)
+plot(relativeError_DetM_2x2_Myfunc_double_vs_Myfunc_int, '-o');
+title('Относительная ошибка между определителями 2x2, найденных с помощью прямого нахождения double vs integer')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
+% 
+%% 3x3
+relativeError_DetM_3x3_Myfunc_double_vs_Myfunc_int = DetM_3x3_array_dd./double(DetM_3x3_array_int);
+relativeError_DetM_3x3_Myfunc_double_vs_Matlab_LU = Det_3x3_LU_matlab_array./double(DetM_3x3_array_int);
 
-    figure(19)
-	subplot(2,1,1)
-    plot(relativeError_DetM_3x3_Myfunc_double_vs_Matlab_LU, '-o');
-    title('Относительная ошибка между определителями 3x3, найденных с помощью прямого нахождения в double vs Функции Матлаб')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
-	subplot(2,1,2)
-    plot(relativeError_DetM_3x3_Myfunc_double_vs_Myfunc_int, '-o');
-    title('Относительная ошибка между определителями 3x3, найденных с помощью прямого нахождения double vs integer')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
+figure(19)
+subplot(2,1,1)
+plot(relativeError_DetM_3x3_Myfunc_double_vs_Matlab_LU, '-o');
+title('Относительная ошибка между определителями 3x3, найденных с помощью прямого нахождения в double vs Функции Матлаб')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
+subplot(2,1,2)
+plot(relativeError_DetM_3x3_Myfunc_double_vs_Myfunc_int, '-o');
+title('Относительная ошибка между определителями 3x3, найденных с помощью прямого нахождения double vs integer')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
 	
-	%% 4x4
-	relativeError_DetM_4x4_Myfunc_double_vs_Myfunc_int = DetM_4x4_array_dd./double(DetM_4x4_array_int);
-	relativeError_DetM_4x4_Myfunc_double_vs_Matlab_LU = Det_4x4_LU_matlab_array./double(DetM_4x4_array_int);
+%% 4x4
+relativeError_DetM_4x4_Myfunc_double_vs_Myfunc_int = DetM_4x4_array_dd./double(DetM_4x4_array_int);
+relativeError_DetM_4x4_Myfunc_double_vs_Matlab_LU = Det_4x4_LU_matlab_array./double(DetM_4x4_array_int);
 
-    figure(20)
-	subplot(2,1,1)
-    plot(relativeError_DetM_4x4_Myfunc_double_vs_Matlab_LU, '-o');
-    title('Относительная ошибка между определителями 4x4, найденных с помощью прямого нахождения в double vs Функции Матлаб')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
-	subplot(2,1,2)
-    plot(relativeError_DetM_4x4_Myfunc_double_vs_Myfunc_int, '-o');
-    title('Относительная ошибка между определителями 4x4, найденных с помощью прямого нахождения double vs integer')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
+figure(20)
+subplot(2,1,1)
+plot(relativeError_DetM_4x4_Myfunc_double_vs_Matlab_LU, '-o');
+title('Относительная ошибка между определителями 4x4, найденных с помощью прямого нахождения в double vs Функции Матлаб')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
+subplot(2,1,2)
+plot(relativeError_DetM_4x4_Myfunc_double_vs_Myfunc_int, '-o');
+title('Относительная ошибка между определителями 4x4, найденных с помощью прямого нахождения double vs integer')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
 
-    %% 5x5
-	relativeError_DetM_5x5_LU_vs_Myfunc = det_x3_shift./double(det_out_shift_int);
-    relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int = det_out_shift./double(det_out_shift_int);
+%% 5x5
+relativeError_DetM_5x5_LU_vs_Myfunc = det_x3_shift./double(det_out_shift_int);
+relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int = det_out_shift./double(det_out_shift_int);
 
-	figure(21)
-    subplot(2,1,1)
-	plot(relativeError_DetM_5x5_LU_vs_Myfunc, '-o');
-    title('Относительная ошибка между определителями, найденных с помощью LU-преобразования и прямого нахождения')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
-    subplot(2,1,2)
-	plot(relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int, '-o');
-	title('Относительная ошибка между определителями, найденных с помощью прямого нахождения Double vs Integer')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета') 
-    % 
-    relativeError_y_out_matlab_vs_y_out_int = y_array ./ double(y_array_int);
-    relativeError_y_out_double_vs_y_out_int = y_array_double ./ double(y_array_int);
+figure(21)
+subplot(2,1,1)
+plot(relativeError_DetM_5x5_LU_vs_Myfunc, '-o');
+title('Относительная ошибка между определителями, найденных с помощью LU-преобразования и прямого нахождения')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
+subplot(2,1,2)
+plot(relativeError_DetM_5x5_Myfunc_double_vs_Myfunc_int, '-o');
+title('Относительная ошибка между определителями, найденных с помощью прямого нахождения Double vs Integer')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета') 
+% 
+relativeError_y_out_matlab_vs_y_out_int = y_array ./ double(y_array_int);
+relativeError_y_out_double_vs_y_out_int = y_array_double ./ double(y_array_int);
     
-    figure(29); 
-    subplot(2,1,1)
-    plot(relativeError_y_out_matlab_vs_y_out_int);
-    title('Относительная ошибка выходного сигнала алгоритма, построенного с помощью матлаб функций и собственных функций в int')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета')
-    subplot(2,1,2)
-    plot(relativeError_y_out_double_vs_y_out_int);
-    title('Относительная ошибка выходного сигнала алгоритма, построенного с помощью собственных функций в double и int')
-    ylabel('Величина ошибки') 
-    xlabel('Номер отсчета')
+figure(29); 
+subplot(2,1,1)
+plot(relativeError_y_out_matlab_vs_y_out_int);
+title('Относительная ошибка выходного сигнала алгоритма, построенного с помощью матлаб функций и собственных функций в int')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета')
+subplot(2,1,2)
+plot(relativeError_y_out_double_vs_y_out_int);
+title('Относительная ошибка выходного сигнала алгоритма, построенного с помощью собственных функций в double и int')
+ylabel('Величина ошибки') 
+xlabel('Номер отсчета')
 
 end
 

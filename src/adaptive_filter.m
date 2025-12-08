@@ -1,28 +1,32 @@
 function [data_outd, data_out_int, adaptive_filter_structure] ...
-= adaptive_filter(input_data_double, coeff_double, input_data, coeff, adaptive_mult_file, adaptive_sum_file, sim_options)
+    = adaptive_filter(input_data_double, coeff_double, input_data, coeff, adaptive_max_width, sim_options)
 
+    % Первые 25 умножителей
     y_int = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_mult_in_adaptive_filter);
+    y_int_overflow = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_mult_in_adaptive_filter);
     y_int_abs = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_mult_in_adaptive_filter);
     y_int_total_width = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_mult_in_adaptive_filter);
 
-	data_out = cast(zeros(sim_options.Size_matrix, sim_options.Size_matrix+1), sim_options.type_add_in_adaptive_filter);
-    data_out_int = cast(zeros(sim_options.Size_matrix,1), sim_options.type_add_in_adaptive_filter);
-
-
-
-    if sim_options.enable_mask == true
-        width_mult = readmatrix(adaptive_mult_file);
-        width_sum = readmatrix(adaptive_sum_file);
-    end
-
+    %% Первые 10 сумматоров
+    sum1_data_out = cast(zeros(sim_options.Size_matrix, 2), sim_options.type_add_in_adaptive_filter);
+    sum1_int_overflow = cast(zeros(sim_options.Size_matrix, 2), sim_options.type_add_in_adaptive_filter);
+    sum1_array_out = cast(zeros(sim_options.Size_matrix, 2), sim_options.type_add_in_adaptive_filter);
+    sum1_int_width_total = cast(zeros(sim_options.Size_matrix, 2), sim_options.type_add_in_adaptive_filter);
+    %% Вторые 5 сумматоров
+    sum2_data_out = cast(zeros(sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
+    sum2_int_overflow = cast(zeros(sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
+    %% Третьи 5 сумматоров
+    sum_data_out = cast(zeros(sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
+    sum_int_overflow = cast(zeros(sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
+    %%
     adaptive_filter_structure = struct;
 
     adaptive_filter_structure.mult_int_abs = cast(zeros(sim_options.Size_matrix * sim_options.Size_matrix, 1), sim_options.type_mult_in_adaptive_filter);
     adaptive_filter_structure.mult_int_total_width = cast(zeros(sim_options.Size_matrix * sim_options.Size_matrix, 1), sim_options.type_mult_in_adaptive_filter);
-    adaptive_filter_structure.sum_array_out = cast(zeros(sim_options.Size_matrix,1), sim_options.type_add_in_adaptive_filter);
-    adaptive_filter_structure.sum_int_width_total = cast(zeros(sim_options.Size_matrix,1), sim_options.type_add_in_adaptive_filter);
+    adaptive_filter_structure.sum_array_out = cast(zeros(sim_options.Size_matrix*2, 3), sim_options.type_add_in_adaptive_filter);
+    adaptive_filter_structure.sum_int_width_total = cast(zeros(sim_options.Size_matrix*2,3), sim_options.type_add_in_adaptive_filter);
 
-    kk = 0;
+    kk = 1;
     %% умножители
     for i = 1:sim_options.Size_matrix
         for j = 1:sim_options.Size_matrix
@@ -41,53 +45,118 @@ function [data_outd, data_out_int, adaptive_filter_structure] ...
 
             %% Накладываем маску на умножители
             if sim_options.enable_mask == true
-                c = bitmask(y_int(j,i), sim_options.type_mult_in_adaptive_filter, width_mult(i));
+                c = bitmask(y_int(j,i), sim_options.type_mult_in_adaptive_filter, adaptive_max_width(i,1));
                 if c ~= y_int(j,i)
                     disp('Bit mask error mult adaptivve filter');
-                    c = bitmask(y_int(j,i), sim_options.type_mult_in_adaptive_filter, width_mult(i));
+                    c = bitmask(y_int(j,i), sim_options.type_mult_in_adaptive_filter, adaptive_max_width(i,1));
                     disp({c, y_int(j,i)});
                     disp({sim_options.freq, sim_options.SNR});
                 end
                 y_int(j,i) = c;
             end
-            adaptive_filter_structure.mult_int_abs(kk+1) = y_int_abs(j,i);
-            adaptive_filter_structure.mult_int_total_width(kk+1) = y_int_total_width(j,i);
+            adaptive_filter_structure.mult_int_abs(kk) = y_int_abs(j,i);
+            adaptive_filter_structure.mult_int_total_width(kk) = y_int_total_width(j,i);
             kk = kk + 1;
         end
     end
 
-    %% сумматоры
+    
+    kk = 1;
+    %% Первые 10 сумматоров
     for i = 1:sim_options.Size_matrix
-        for j = 1:sim_options.Size_matrix
-            [data_out(i,j+1), sum_int_overflow(i,j), adaptive_filter_structure.sum_array_out(i,j), adaptive_filter_structure.sum_int_width_total(i,j)] = ...
-                adder(data_out(i,j), y_int(i,j), sim_options.type_add_in_adaptive_filter, sim_options.width_hilbert);
+        for j = 1:2
+            [sum1_data_out(i,j), sum1_int_overflow(i,j), sum1_array_out(i,j), sum1_int_width_total(i,j)] = ...
+                adder(y_int(i,j+(j-1)), y_int(i,j+j), sim_options.type_add_in_adaptive_filter, sim_options.width_hilbert);
 
             %% Проверка переполнения сумматоров
-            if (sum_int_overflow(i,j) == 1)
-                disp('Sum overflow adaptive filter');
-                disp({adaptive_filter_structure.sum_array_out(i,j), data_out(i,j+j), y_int(i,j)});
+            if (sum1_int_overflow(i,j) == 1)
+                disp('Sum1 overflow adaptive filter');
+                disp({sum1_array_out(i,j), y_int(i,j+(j-1)), y_int(i,j+j), sum1_data_out(i,j)});
             end
             %% Проверка выходной разрядности сумматоров
-            if (adaptive_filter_structure.sum_int_width_total(i,j) > sim_options.width_double)
-                disp('Sum width overflow adaptive filter');
-                disp({adaptive_filter_structure.sum_array_out(i,j), data_out(i,j+1), y_int(i,j)});
+            if (sum1_int_width_total(i,j) > sim_options.width_hilbert)
+                disp('Sum1 width overflow adaptive filter');
+                disp({sum1_array_out(i,j), y_int(i,j+(j-1)), y_int(i,j+j), sum1_data_out(i,j)});
             end
 
             %% Накладываем маску на сумматоры
             if sim_options.enable_mask == true
-                c = bitmask(data_out(i,j+1), sim_options.type_add_in_adaptive_filter, width_sum(i,j));
-                if c ~= data_out(i,j+1)
-                    disp('Bit mask error mult adaptivve filter');
-                    c = bitmask(data_out(i,j+1), sim_options.type_add_in_adaptive_filter, width_sum(i,j));
-                    disp({c, data_out(i,j+1)});
+                c = bitmask(sum1_data_out(i,j), sim_options.type_add_in_adaptive_filter, adaptive_max_width(i,2));
+                if c ~= sum1_data_out(i,j)
+                    disp('Bit mask error sum1 adaptivve filter');
+                    c = bitmask(sum1_data_out(i,j+1), sim_options.type_add_in_adaptive_filter, adaptive_max_width(i,2));
+                    disp({c, sum1_data_out(i,j)});
                     disp({sim_options.freq, sim_options.SNR});
                 end
-                data_out(i,j+1) = c;
+                sum1_data_out(i,j) = c;
             end
+
+            adaptive_filter_structure.sum_array_out(kk,1) = sum1_array_out(i,j);
+            adaptive_filter_structure.sum_int_width_total(kk,1) = sum1_int_width_total(i,j);
+
+            kk = kk + 1;
         end
     end
 
-    data_out_int = data_out(:,sim_options.Size_matrix+1);
+    %% Вторые 5 сумматоров
+    for i = 1:sim_options.Size_matrix
+        [sum2_data_out(i), sum2_int_overflow(i), adaptive_filter_structure.sum_array_out(i,2), adaptive_filter_structure.sum_int_width_total(i,2)] = ...
+            adder(sum1_data_out(i,1), sum1_data_out(i,2), sim_options.type_add_in_adaptive_filter, sim_options.width_hilbert);
+
+         %% Проверка переполнения сумматоров
+        if (sum2_int_overflow(i) == 1)
+            disp('Sum2 overflow adaptive filter');
+            disp({adaptive_filter_structure.sum_array_out(i,2), sum2_data_out(i)});
+        end
+		%% Проверка выходной разрядности сумматоров
+		if (adaptive_filter_structure.sum_int_width_total(i,2) > sim_options.width_hilbert)
+			disp('Sum2 width overflow adaptive filter');
+			disp({adaptive_filter_structure.sum_array_out(i,2), sum2_data_out(i), sum1_data_out(i,1), sum1_data_out(i,2)});
+		end
+
+		%% Накладываем маску на сумматоры
+		if sim_options.enable_mask == true
+			c = bitmask(sum2_data_out(i), sim_options.type_add_in_adaptive_filter, adaptive_max_width(i,3));
+			if c ~= sum2_data_out(i)
+				disp('Bit mask error sum2 adaptivve filter');
+				c = bitmask(sum2_data_out(i), sim_options.type_add_in_adaptive_filter, adaptive_max_width(i,3));
+				disp({c, sum2_data_out(i)});
+				disp({sim_options.freq, sim_options.SNR});
+			end
+			sum2_data_out(i) = c;
+		end
+    end
+
+	%% Третьи 5 сумматоров
+    for i = 1:sim_options.Size_matrix
+        [sum_data_out(i), sum_int_overflow(i), adaptive_filter_structure.sum_array_out(i,3), adaptive_filter_structure.sum_int_width_total(i,3)] = ...
+            adder(sum2_data_out(i), y_int(i,5), sim_options.type_add_in_adaptive_filter, sim_options.width_hilbert);
+
+        %% Проверка переполнения сумматоров
+		if (sum_int_overflow(i) == 1)
+			disp('Sum overflow adaptive filter');
+			disp({adaptive_filter_structure.sum_array_out(i,3), sum_data_out(i)});
+		end
+		%% Проверка выходной разрядности сумматоров
+		if (adaptive_filter_structure.sum_int_width_total(i,3) > sim_options.width_hilbert)
+			disp('Sum width overflow adaptive filter');
+			disp({adaptive_filter_structure.sum_array_out(i,3), sum_data_out(i)});
+		end
+
+		%% Накладываем маску на сумматоры
+		if sim_options.enable_mask == true
+			c = bitmask(sum_data_out(i), sim_options.type_add_in_adaptive_filter, adaptive_max_width(i,4));
+			if c ~= sum_data_out(i)
+				disp('Bit mask error sum adaptivve filter');
+				c = bitmask(sum_data_out(i), sim_options.type_add_in_adaptive_filter, adaptive_max_width(i,4));
+				disp({c, sum_data_out(i)});
+				disp({sim_options.freq, sim_options.SNR});
+			end
+			sum_data_out(i) = c;
+		end
+    end
+
+    data_out_int = sum_data_out;
 
 
     %% double

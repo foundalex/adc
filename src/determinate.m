@@ -1,63 +1,56 @@
 
 function [DetM_5x5, DetM_5x5_int, DetM_2x2_abs, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s ...
-] = determinate(data_in, data_in_int, sim_options)
+    ] = determinate(data_in, data_in_int, det_max_width, sim_options)
+
+s = struct;
 
 DetM_2x2 = zeros(sim_options.num_det2x2,1);
 DetM_2x2_int = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
 
 Det_2x2_LU_matlab = zeros(sim_options.num_det2x2,1);
 
-struct.Det2x2_mult_abs = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
-struct.Det2x2_sum_abs = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
+s.Det2x2_mult_abs = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
+s.Det2x2_sum_abs = cast(zeros(sim_options.num_det2x2,1), sim_options.type_2x2_det);
 
 %% Определитель 3х3
-Mult_DetM_3x3_int = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
+Mult_DetM_3x3_int = cast(zeros(sim_options.num_det2x2,3), sim_options.type_3x3_det);
 
 %%
-Det_3x3_LU_matlab 							    = zeros(sim_options.num_det2x2,1);
-Mult_DetM_3x3_array                             = cast(zeros(sim_options.num_det2x2,3), sim_options.type_3x3_det);
-Mult_DetM_3x3_array_mult_total_width 		    = cast(zeros(sim_options.num_det2x2,3), sim_options.type_3x3_det);
-struct.Mult_DetM_3x3_array 						= cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
-struct.Mult_DetM_3x3_array_mult_total_width 	= cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
-struct.DetM_3x3_int_pre_sum_array 				= cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
-struct.DetM_3x3_int_pre_sum_width_total 		= cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
-struct.DetM_3x3_int_sum_array 					= cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
-struct.DetM_3x3_int_sum_width_total 			= cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+Det_3x3_LU_matlab 							= zeros(sim_options.num_det2x2,1);
+Mult_DetM_3x3_array                         = cast(zeros(sim_options.num_det2x2,3), sim_options.type_3x3_det);
+Mult_DetM_3x3_array_mult_total_width 		= cast(zeros(sim_options.num_det2x2,3), sim_options.type_3x3_det);
+s.Mult_DetM_3x3_array 						= cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
+s.Mult_DetM_3x3_array_mult_total_width 	    = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
+s.DetM_3x3_int_pre_sum_array 				= cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+s.DetM_3x3_int_pre_sum_width_total 		    = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+s.DetM_3x3_int_sum_array 					= cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
+s.DetM_3x3_int_sum_width_total 			    = cast(zeros(sim_options.num_det2x2,1), sim_options.type_3x3_det);
 
-struct.DetM_4x4_int_mult_array	 				= cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
-struct.DetM_4x4_int_mult_width_total 			= cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
-struct.DetM_4x4_int_pre_sum_array 				= cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
-struct.DetM_4x4_int_pre_sum_width_total 		= cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
-struct.DetM_4x4_int_sum_array 					= cast(zeros(5,1), sim_options.type_4x4_det);
-struct.DetM_4x4_int_sum_array_width_total 		= cast(zeros(5,1), sim_options.type_4x4_det);
+s.DetM_4x4_int_mult_array	 				= cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
+s.DetM_4x4_int_mult_width_total 			= cast(zeros(sim_options.num_det2x2*2,1), sim_options.type_4x4_det);
+s.DetM_4x4_int_pre_sum_array 				= cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
+s.DetM_4x4_int_pre_sum_width_total 		    = cast(zeros(sim_options.num_det2x2,1), sim_options.type_4x4_det);
+s.DetM_4x4_int_sum_array 					= cast(zeros(5,1), sim_options.type_4x4_det);
+s.DetM_4x4_int_sum_array_width_total 		= cast(zeros(5,1), sim_options.type_4x4_det);
 
-struct.DetM_5x5_int_mult_array 					= cast(zeros(5,1), sim_options.type_5x5_det);
-struct.DetM_5x5_int_mult_array_width_total 		= cast(zeros(5,1), sim_options.type_5x5_det);
-struct.DetM_5x5_int_pre_sum1_array 				= cast(zeros(2,1), sim_options.type_5x5_det);
-struct.DetM_5x5_int_pre_sum1_array_width_total 	= cast(zeros(2,1), sim_options.type_5x5_det);
+s.DetM_5x5_int_mult_array 					= cast(zeros(5,1), sim_options.type_5x5_det);
+s.DetM_5x5_int_mult_array_width_total 		= cast(zeros(5,1), sim_options.type_5x5_det);
+s.DetM_5x5_int_pre_sum1_array 				= cast(zeros(2,1), sim_options.type_5x5_det);
+s.DetM_5x5_int_pre_sum1_array_width_total 	= cast(zeros(2,1), sim_options.type_5x5_det);
 
-% if sim_options.enable_mask == true
-%     width_mult1_det_2x2 = readmatrix(width_mult_txt);
-%     width_mult2_det_2x2 = readmatrix(width_sum_txt);
-%     width_sum_det_2x2 = readmatrix(width_sum_txt);
-% end
-
-%%
-a = data_in;
-a_int = data_in_int;
+Mult_DetM_3x3_array_int = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_3x3_det);
                                                                             %% 2x2
 %% Находим матрицы 2x2
-s = struct;
 e = 0;
 t = 4;
 for n = 1:4
     for i = 1:t
         for j = 1:1
-            s.a{i+e}(:,j) = a(4:end,n);
-            s.a_int{i+e}(:,j) = a_int(4:end,n);
+            s.a{i+e}(:,j) = data_in(4:end,n);
+            s.a_int{i+e}(:,j) = data_in_int(4:end,n);
         end
-        s.a{i+e}(:,2) = a(4:end,n+i);
-        s.a_int{i+e}(:,2) = a_int(4:end,n+i);
+        s.a{i+e}(:,2) = data_in(4:end,n+i);
+        s.a_int{i+e}(:,2) = data_in_int(4:end,n+i);
     end
     e = e+i;
     t = t-1;
@@ -74,7 +67,7 @@ for i = 1:sim_options.num_det2x2
         Det_2x2_LU_matlab(i) = ee;
     end
 
-    %% Определитель 2х2
+    %% Определитель 2х2 doible
 
     DetM_2x2(i) = s.a{i}(1,1) * s.a{i}(2,2) - s.a{i}(2,1) * s.a{i}(1,2);
 
@@ -103,7 +96,7 @@ for i = 1:sim_options.num_det2x2
 
     % Наложение маски на первый умножитель
     if sim_options.enable_mask == true
-        c1 = bitmask(mult_int(i+(i-1)), sim_options.type_2x2_det, width_mult(i+(i-1)));
+        c1 = bitmask(mult_int(i+(i-1)), sim_options.type_2x2_det, det_max_width(i+(i-1)),1);
         if c1 ~= mult_int(i+(i-1))
             disp('Bit mask error mult 1 det 2x2');
             % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
@@ -132,7 +125,7 @@ for i = 1:sim_options.num_det2x2
 
     % Наложение маски на второй умножитель
     if sim_options.enable_mask == true
-        c1 = bitmask(mult_int(i+i), sim_options.type_2x2_det, width_mult(i));
+        c1 = bitmask(mult_int(i+i), sim_options.type_2x2_det, det_max_width(i+i),1);
         if c1 ~= mult_int(i+i)
             disp('Bit mask error mult 2 det 2x2');
             disp(width_total_mult(i+i));
@@ -160,10 +153,9 @@ for i = 1:sim_options.num_det2x2
     end
     % Наложение маски на сумматор
     if sim_options.enable_mask == true
-        c1 = bitmask(DetM_2x2_int(i), sim_options.type_2x2_det, width_sum(i));
+        c1 = bitmask(DetM_2x2_int(i), sim_options.type_2x2_det, det_max_width(i,2));
         if c1 ~= DetM_2x2_int(i)
             disp('Bit mask error sum det 2x2');
-            % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
             disp(width_total_sum(i));
             disp({c1, DetM_2x2_int(i)});
             disp({sim_options.freq, sim_options.SNR});
@@ -171,48 +163,47 @@ for i = 1:sim_options.num_det2x2
         DetM_2x2_int(i) = c1;
     end
 end
-
                                                                             %% 3x3
 % double
-Mult_DetM_2x2_n_10_a31 = a(3,1) * DetM_2x2(10);
-Mult_DetM_2x2_n_10_a32 = a(3,2) * DetM_2x2(10);
-Mult_DetM_2x2_n_10_a33 = a(3,3) * DetM_2x2(10);
+Mult_DetM_2x2_n_10_a31 = data_in(3,1) * DetM_2x2(10);
+Mult_DetM_2x2_n_10_a32 = data_in(3,2) * DetM_2x2(10);
+Mult_DetM_2x2_n_10_a33 = data_in(3,3) * DetM_2x2(10);
 
-Mult_DetM_2x2_n_9_a31 = a(3,1) * DetM_2x2(9);
-Mult_DetM_2x2_n_9_a32 = a(3,2) * DetM_2x2(9);
-Mult_DetM_2x2_n_9_a34 = a(3,4) * DetM_2x2(9);
+Mult_DetM_2x2_n_9_a31 = data_in(3,1) * DetM_2x2(9);
+Mult_DetM_2x2_n_9_a32 = data_in(3,2) * DetM_2x2(9);
+Mult_DetM_2x2_n_9_a34 = data_in(3,4) * DetM_2x2(9);
 
-Mult_DetM_2x2_n_8_a31 = a(3,1) * DetM_2x2(8);
-Mult_DetM_2x2_n_8_a32 = a(3,2) * DetM_2x2(8);
-Mult_DetM_2x2_n_8_a35 = a(3,5) * DetM_2x2(8);
+Mult_DetM_2x2_n_8_a31 = data_in(3,1) * DetM_2x2(8);
+Mult_DetM_2x2_n_8_a32 = data_in(3,2) * DetM_2x2(8);
+Mult_DetM_2x2_n_8_a35 = data_in(3,5) * DetM_2x2(8);
 
-Mult_DetM_2x2_n_7_a31 = a(3,1) * DetM_2x2(7);
-Mult_DetM_2x2_n_7_a33 = a(3,3) * DetM_2x2(7);
-Mult_DetM_2x2_n_7_a34 = a(3,4) * DetM_2x2(7);
+Mult_DetM_2x2_n_7_a31 = data_in(3,1) * DetM_2x2(7);
+Mult_DetM_2x2_n_7_a33 = data_in(3,3) * DetM_2x2(7);
+Mult_DetM_2x2_n_7_a34 = data_in(3,4) * DetM_2x2(7);
 
-Mult_DetM_2x2_n_6_a31 = a(3,1) * DetM_2x2(6);
-Mult_DetM_2x2_n_6_a33 = a(3,3) * DetM_2x2(6);
-Mult_DetM_2x2_n_6_a35 = a(3,5) * DetM_2x2(6);
+Mult_DetM_2x2_n_6_a31 = data_in(3,1) * DetM_2x2(6);
+Mult_DetM_2x2_n_6_a33 = data_in(3,3) * DetM_2x2(6);
+Mult_DetM_2x2_n_6_a35 = data_in(3,5) * DetM_2x2(6);
 
-Mult_DetM_2x2_n_5_a31 = a(3,1) * DetM_2x2(5);
-Mult_DetM_2x2_n_5_a34 = a(3,4) * DetM_2x2(5);
-Mult_DetM_2x2_n_5_a35 = a(3,5) * DetM_2x2(5);
+Mult_DetM_2x2_n_5_a31 = data_in(3,1) * DetM_2x2(5);
+Mult_DetM_2x2_n_5_a34 = data_in(3,4) * DetM_2x2(5);
+Mult_DetM_2x2_n_5_a35 = data_in(3,5) * DetM_2x2(5);
 
-Mult_DetM_2x2_n_4_a32 = a(3,2) * DetM_2x2(4);
-Mult_DetM_2x2_n_4_a33 = a(3,3) * DetM_2x2(4);
-Mult_DetM_2x2_n_4_a34 = a(3,4) * DetM_2x2(4);
+Mult_DetM_2x2_n_4_a32 = data_in(3,2) * DetM_2x2(4);
+Mult_DetM_2x2_n_4_a33 = data_in(3,3) * DetM_2x2(4);
+Mult_DetM_2x2_n_4_a34 = data_in(3,4) * DetM_2x2(4);
 
-Mult_DetM_2x2_n_3_a32 = a(3,2) * DetM_2x2(3);
-Mult_DetM_2x2_n_3_a33 = a(3,3) * DetM_2x2(3);
-Mult_DetM_2x2_n_3_a35 = a(3,5) * DetM_2x2(3);
+Mult_DetM_2x2_n_3_a32 = data_in(3,2) * DetM_2x2(3);
+Mult_DetM_2x2_n_3_a33 = data_in(3,3) * DetM_2x2(3);
+Mult_DetM_2x2_n_3_a35 = data_in(3,5) * DetM_2x2(3);
 
-Mult_DetM_2x2_n_2_a32 = a(3,2) * DetM_2x2(2);
-Mult_DetM_2x2_n_2_a34 = a(3,4) * DetM_2x2(2);
-Mult_DetM_2x2_n_2_a35 = a(3,5) * DetM_2x2(2);
+Mult_DetM_2x2_n_2_a32 = data_in(3,2) * DetM_2x2(2);
+Mult_DetM_2x2_n_2_a34 = data_in(3,4) * DetM_2x2(2);
+Mult_DetM_2x2_n_2_a35 = data_in(3,5) * DetM_2x2(2);
 
-Mult_DetM_2x2_n_1_a33 = a(3,3) * DetM_2x2(1);
-Mult_DetM_2x2_n_1_a34 = a(3,4) * DetM_2x2(1);
-Mult_DetM_2x2_n_1_a35 = a(3,5) * DetM_2x2(1);
+Mult_DetM_2x2_n_1_a33 = data_in(3,3) * DetM_2x2(1);
+Mult_DetM_2x2_n_1_a34 = data_in(3,4) * DetM_2x2(1);
+Mult_DetM_2x2_n_1_a35 = data_in(3,5) * DetM_2x2(1);
 
 %% Умножители определителя 3х3
 
@@ -229,7 +220,7 @@ index(:,1) = [3, 4, 5];
 
 for i = 1:3
 	for j = 1:sim_options.num_det2x2
-        [Mult_DetM_3x3_int(j,i), Mult_DetM_3x3_overflow(j,i), Mult_DetM_3x3_array(j,i), Mult_DetM_3x3_array_mult_total_width(j,i)] = mult(cast(a_int(3,index(i,j)),sim_options.type_3x3_det), cast(DetM_2x2_int(j),sim_options.type_3x3_det), sim_options.type_3x3_det, sim_options.width_hilbert);
+        [Mult_DetM_3x3_int(j,i), Mult_DetM_3x3_overflow(j,i), Mult_DetM_3x3_array(j,i), Mult_DetM_3x3_array_mult_total_width(j,i)] = mult(cast(data_in_int(3,index(i,j)),sim_options.type_3x3_det), cast(DetM_2x2_int(j),sim_options.type_3x3_det), sim_options.type_3x3_det, sim_options.width_hilbert);
 
         % Проверка переполнения умножителя
         if (Mult_DetM_3x3_overflow(j,i) == 1)
@@ -242,60 +233,67 @@ for i = 1:3
 		    disp('Mult total width in function det3x3 higher than 64');
             disp({Mult_DetM_3x3_int(j,i)});
         end
-
-        % Наложение маски на первый умножитель
-        if sim_options.enable_mask == true
-            c1 = bitmask(Mult_DetM_3x3_int(j,i), sim_options.type_3x3_det, width_mult1(i));
-            if c1 ~= Mult_DetM_3x3_int(j,i)
-                disp('Bit mask error mult det 3x3');
-                % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-                disp(width_total_mult1(i));
-                disp({c1, Mult_DetM_3x3_int(j,i)});
-                disp({sim_options.freq, sim_options.SNR});
-            end
-            Mult_DetM_3x3_int(j,i) = c1;
-        end
     end
     s.Mult_DetM_3x3_array(i:3:end) = Mult_DetM_3x3_array(:,i);
     s.Mult_DetM_3x3_array_mult_total_width(i:3:end) = Mult_DetM_3x3_array_mult_total_width(:,i);
+
+    Mult_DetM_3x3_array_int(i:3:end) = Mult_DetM_3x3_int(:,i);
 end
 
+for j = 1:sim_options.num_det2x2*3
+    % Наложение маски на первый умножитель определителя 3х3
+    if sim_options.enable_mask == true
+        c1 = bitmask(Mult_DetM_3x3_array_int(j), sim_options.type_3x3_det, det_max_width(j,3));
+        if c1 ~= Mult_DetM_3x3_array_int(j)
+            disp('Bit mask error mult det 3x3');
+            disp(det_max_width(j,3));
+            disp({c1, Mult_DetM_3x3_array_int(j)});
+            disp({sim_options.freq, sim_options.SNR});
+        end
+        Mult_DetM_3x3_array_int(j) = c1;
+    end
+end
 
 
 %% double 3x3
 DetM_3x3_n_11 = Mult_DetM_2x2_n_10_a33 - Mult_DetM_2x2_n_9_a34 + Mult_DetM_2x2_n_8_a35; 
-Det_3x3_LU_matlab(1) = (det(a(3:end,3:end))); % 3 4 5
+Det_3x3_LU_matlab(1) = (det(data_in(3:end,3:end))); % 3 4 5
 
 DetM_3x3_n_12 = Mult_DetM_2x2_n_10_a32 - Mult_DetM_2x2_n_7_a34 + Mult_DetM_2x2_n_6_a35; 
-Det_3x3_LU_matlab(2) = (det([a(3:end,2), a(3:end,4:5)])); % 2 4 5 
+Det_3x3_LU_matlab(2) = (det([data_in(3:end,2), data_in(3:end,4:5)])); % 2 4 5 
 
 DetM_3x3_n_13 = Mult_DetM_2x2_n_9_a32 - Mult_DetM_2x2_n_7_a33 + Mult_DetM_2x2_n_5_a35;
-Det_3x3_LU_matlab(3) = (det([a(3:end,2), a(3:end,3), a(3:end,5)])); % 2 3 5
+Det_3x3_LU_matlab(3) = (det([data_in(3:end,2), data_in(3:end,3), data_in(3:end,5)])); % 2 3 5
 
 DetM_3x3_n_14 = Mult_DetM_2x2_n_8_a32 - Mult_DetM_2x2_n_6_a33 + Mult_DetM_2x2_n_5_a34;
-Det_3x3_LU_matlab(4) = (det([a(3:end,2), a(3:end,3), a(3:end,4)])); 
+Det_3x3_LU_matlab(4) = (det([data_in(3:end,2), data_in(3:end,3), data_in(3:end,4)])); 
 
 % 2 3x3
 DetM_3x3_n_22 = Mult_DetM_2x2_n_10_a31 - Mult_DetM_2x2_n_4_a34 + Mult_DetM_2x2_n_3_a35; 
-Det_3x3_LU_matlab(5) = (det([a(3:end,1), a(3:end,4), a(3:end,5)])); 
+Det_3x3_LU_matlab(5) = (det([data_in(3:end,1), data_in(3:end,4), data_in(3:end,5)])); 
 
 DetM_3x3_n_23 = Mult_DetM_2x2_n_9_a31 - Mult_DetM_2x2_n_4_a33 + Mult_DetM_2x2_n_2_a35;
-Det_3x3_LU_matlab(6) = (det([a(3:end,1), a(3:end,3), a(3:end,5)])); 
+Det_3x3_LU_matlab(6) = (det([data_in(3:end,1), data_in(3:end,3), data_in(3:end,5)])); 
 
 DetM_3x3_n_24 = Mult_DetM_2x2_n_8_a31 - Mult_DetM_2x2_n_3_a33 + Mult_DetM_2x2_n_2_a34;
-Det_3x3_LU_matlab(8) = (det([a(3:end,1), a(3:end,2), a(3:end,5)])); 
+Det_3x3_LU_matlab(8) = (det([data_in(3:end,1), data_in(3:end,2), data_in(3:end,5)])); 
 
 % 3 3x3
 DetM_3x3_n_33 = Mult_DetM_2x2_n_7_a31 - Mult_DetM_2x2_n_4_a32 + Mult_DetM_2x2_n_1_a35;
-Det_3x3_LU_matlab(9) = (det([a(3:end,1), a(3:end,2), a(3:end,4)])); 
+Det_3x3_LU_matlab(9) = (det([data_in(3:end,1), data_in(3:end,2), data_in(3:end,4)])); 
 
 DetM_3x3_n_34 = Mult_DetM_2x2_n_6_a31 - Mult_DetM_2x2_n_3_a32 + Mult_DetM_2x2_n_1_a34;
-Det_3x3_LU_matlab(7) = (det([a(3:end,1), a(3:end,3), a(3:end,4)])); 
+Det_3x3_LU_matlab(7) = (det([data_in(3:end,1), data_in(3:end,3), data_in(3:end,4)])); 
 
 % 4 3x3
 DetM_3x3_n_44 = Mult_DetM_2x2_n_5_a31 - Mult_DetM_2x2_n_2_a32 + Mult_DetM_2x2_n_1_a33;
-Det_3x3_LU_matlab(10) = (det([a(3:end,1), a(3:end,2), a(3:end,3)])); 
+Det_3x3_LU_matlab(10) = (det([data_in(3:end,1), data_in(3:end,2), data_in(3:end,3)])); 
 
+for n = 1:sim_options.num_det2x2
+    if Det_3x3_LU_matlab(n) < 0
+	    Det_3x3_LU_matlab(n) = Det_3x3_LU_matlab(n) * -1;
+    end
+end
 
 %% Сумматоры определителя 3х3
 [DetM_3x3_int_sum1(1,1), DetM_3x3_int_sum1_overflow(1,1), s.DetM_3x3_int_pre_sum_array(1,1), s.DetM_3x3_int_pre_sum_width_total(1,1)] = ...
@@ -365,7 +363,7 @@ for i = 1:sim_options.num_det2x2
     end
     % Наложение маски на пресумматор
     if sim_options.enable_mask == true
-        c1 = bitmask(DetM_3x3_int_sum1(i,1), sim_options.type_3x3_det, width_mult1(i));
+        c1 = bitmask(DetM_3x3_int_sum1(i,1), sim_options.type_3x3_det, det_max_width(i,4));
         if c1 ~= DetM_3x3_int_sum1(i,i)
             disp('Bit mask error pre_sum det 3x3');
             % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
@@ -390,7 +388,7 @@ for i = 1:sim_options.num_det2x2
     end
     % Наложение маски на сумматор
     if sim_options.enable_mask == true
-        c1 = bitmask(DetM_3x3_int(i,1), sim_options.type_3x3_det, width_mult1(i));
+        c1 = bitmask(DetM_3x3_int(i,1), sim_options.type_3x3_det, det_max_width(i,5));
         if c1 ~= DetM_3x3_int(i,i)
             disp('Bit mask error pre_sum det 3x3');
             % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
@@ -404,45 +402,45 @@ end
 
                                                                             %% 4x4
 % double                                                            
-var_mult_a_det11 = a(2,2) * DetM_3x3_n_11; 
-var_mult_a_det12 = a(2,3) * DetM_3x3_n_12;
-var_mult_a_det13 = a(2,4) * DetM_3x3_n_13;
-var_mult_a_det14 = a(2,5) * DetM_3x3_n_14;
+var_mult_a_det11 = data_in(2,2) * DetM_3x3_n_11; 
+var_mult_a_det12 = data_in(2,3) * DetM_3x3_n_12;
+var_mult_a_det13 = data_in(2,4) * DetM_3x3_n_13;
+var_mult_a_det14 = data_in(2,5) * DetM_3x3_n_14;
 
 DetM_4x4_n_1 = var_mult_a_det11 - var_mult_a_det12  + var_mult_a_det13 - var_mult_a_det14;
-Det_4x4_LU_matlab(1) = det([a(2:end,2), a(2:end,3), a(2:end,4), a(2:end,5)]); 
+Det_4x4_LU_matlab(1) = det([data_in(2:end,2), data_in(2:end,3), data_in(2:end,4), data_in(2:end,5)]); 
 
-var_mult_a_det21 = a(2,1) * DetM_3x3_n_11;
-var_mult_a_det22 = a(2,3) * DetM_3x3_n_22;
-var_mult_a_det23 = a(2,4) * DetM_3x3_n_23;
-var_mult_a_det24 = a(2,5) * DetM_3x3_n_24;
+var_mult_a_det21 = data_in(2,1) * DetM_3x3_n_11;
+var_mult_a_det22 = data_in(2,3) * DetM_3x3_n_22;
+var_mult_a_det23 = data_in(2,4) * DetM_3x3_n_23;
+var_mult_a_det24 = data_in(2,5) * DetM_3x3_n_24;
 
 DetM_4x4_n_2 = var_mult_a_det21 - var_mult_a_det22 + var_mult_a_det23 - var_mult_a_det24;
-Det_4x4_LU_matlab(2) = det([a(2:end,1), a(2:end,3), a(2:end,4), a(2:end,5)]); 
+Det_4x4_LU_matlab(2) = det([data_in(2:end,1), data_in(2:end,3), data_in(2:end,4), data_in(2:end,5)]); 
 
-var_mult_a_det31 = a(2,1) * DetM_3x3_n_12;
-var_mult_a_det32 = a(2,2) * DetM_3x3_n_22;
-var_mult_a_det33 = a(2,4) * DetM_3x3_n_33;
-var_mult_a_det34 = a(2,5) * DetM_3x3_n_34;
+var_mult_a_det31 = data_in(2,1) * DetM_3x3_n_12;
+var_mult_a_det32 = data_in(2,2) * DetM_3x3_n_22;
+var_mult_a_det33 = data_in(2,4) * DetM_3x3_n_33;
+var_mult_a_det34 = data_in(2,5) * DetM_3x3_n_34;
 
 DetM_4x4_n_3 = var_mult_a_det31 - var_mult_a_det32 + var_mult_a_det33 - var_mult_a_det34;
-Det_4x4_LU_matlab(3) = det([a(2:end,1), a(2:end,2), a(2:end,4), a(2:end,5)]); 
+Det_4x4_LU_matlab(3) = det([data_in(2:end,1), data_in(2:end,2), data_in(2:end,4), data_in(2:end,5)]); 
 
-var_mult_a_det41 = a(2,1) * DetM_3x3_n_13;
-var_mult_a_det42 = a(2,2) * DetM_3x3_n_23;
-var_mult_a_det43 = a(2,3) * DetM_3x3_n_33;
-var_mult_a_det44 = a(2,5) * DetM_3x3_n_44;
+var_mult_a_det41 = data_in(2,1) * DetM_3x3_n_13;
+var_mult_a_det42 = data_in(2,2) * DetM_3x3_n_23;
+var_mult_a_det43 = data_in(2,3) * DetM_3x3_n_33;
+var_mult_a_det44 = data_in(2,5) * DetM_3x3_n_44;
 
 DetM_4x4_n_4 = var_mult_a_det41 - var_mult_a_det42 + var_mult_a_det43 - var_mult_a_det44;
-Det_4x4_LU_matlab(4) = det([a(2:end,1), a(2:end,2), a(2:end,3), a(2:end,5)]); 
+Det_4x4_LU_matlab(4) = det([data_in(2:end,1), data_in(2:end,2), data_in(2:end,3), data_in(2:end,5)]); 
 
-var_mult_a_det51 = a(2,1) * DetM_3x3_n_14;
-var_mult_a_det52 = a(2,2) * DetM_3x3_n_24;
-var_mult_a_det53 = a(2,3) * DetM_3x3_n_34;
-var_mult_a_det54 = a(2,4) * DetM_3x3_n_44;
+var_mult_a_det51 = data_in(2,1) * DetM_3x3_n_14;
+var_mult_a_det52 = data_in(2,2) * DetM_3x3_n_24;
+var_mult_a_det53 = data_in(2,3) * DetM_3x3_n_34;
+var_mult_a_det54 = data_in(2,4) * DetM_3x3_n_44;
 
 DetM_4x4_n_5 = var_mult_a_det51 - var_mult_a_det52 + var_mult_a_det53 - var_mult_a_det54;
-Det_4x4_LU_matlab(5) = det([a(2:end,1), a(2:end,2), a(2:end,3), a(2:end,4)]); 
+Det_4x4_LU_matlab(5) = det([data_in(2:end,1), data_in(2:end,2), data_in(2:end,3), data_in(2:end,4)]); 
 
 DetM_4x4_array(1) = (DetM_4x4_n_1);
 DetM_4x4_array(2) = (DetM_4x4_n_2);
@@ -466,7 +464,7 @@ index_DetM_3x3(5,:) = [7, 4, 2, 1];
 kk = 0;
 for j = 1:5
     for i = 1:4
-        [var_mult_det4x4_int(j,i), var_mult_det4x4_int_overflow(j,i), var_mult_det4x4_abs(j,i), var_mult_det4x4_width_total(j,i)] = mult(cast(a_int(2,index1(j,i)), sim_options.type_4x4_det), ...
+        [var_mult_det4x4_int(j,i), var_mult_det4x4_int_overflow(j,i), var_mult_det4x4_abs(j,i), var_mult_det4x4_width_total(j,i)] = mult(cast(data_in_int(2,index1(j,i)), sim_options.type_4x4_det), ...
             cast(DetM_3x3_int(index_DetM_3x3(j,i)), sim_options.type_4x4_det), sim_options.type_4x4_det, sim_options.width_hilbert);
 
         % Проверка переполнения умножителя
@@ -480,23 +478,26 @@ for j = 1:5
 		    disp('Mult total width in function det4x4 higher than 64');
             disp({var_mult_det4x4_int(i,1)});
             disp({i});
-        end
-        % Наложение маски на умножитель
-        if sim_options.enable_mask == true
-            c1 = bitmask(var_mult_det4x4_int(j,i), sim_options.type_3x3_det, width_mult1(i));
-            if c1 ~= var_mult_det4x4_int(j,i)
-                disp('Bit mask error pre_sum det 3x3');
-                % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-                disp(var_mult_det4x4_width_total(j,i));
-                disp({c1, var_mult_det4x4_int(j,i)});
-                disp({sim_options.freq, sim_options.SNR});
-            end
-            var_mult_det4x4_int(j,i) = c1;
-        end        
+        end       
     end
     s.DetM_4x4_int_mult_array(kk+1:kk+4) = var_mult_det4x4_abs(j,:);
     s.DetM_4x4_int_mult_width_total(kk+1:kk+4) = var_mult_det4x4_width_total(j,:);
+    DetM_4x4_int_mult_array(kk+1:kk+4) = var_mult_det4x4_abs(j,:);
     kk = kk + 4;
+end
+
+% Наложение маски на умножитель
+for j = 1:sim_options.num_det2x2*2
+    if sim_options.enable_mask == true
+        c1 = bitmask(DetM_4x4_int_mult_array(j), sim_options.type_3x3_det, det_max_width(j,6));
+        if c1 ~= DetM_4x4_int_mult_array(j)
+            disp('Bit mask error pre_sum det 3x3');
+            % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
+            disp({c1, DetM_4x4_int_mult_array(j)});
+            disp({sim_options.freq, sim_options.SNR});
+        end
+        DetM_4x4_int_mult_array(j) = c1;
+    end 
 end
 
 %% Сумматоры определителя 4х4
@@ -519,19 +520,6 @@ for i = 1:5
                 disp({DetM_4x4_int_sum(i,1)});
                 disp({i,j});
             end
-
-            % Наложение маски на сумматор
-            if sim_options.enable_mask == true
-                c1 = bitmask(DetM_4x4_int_sum(i,j), sim_options.type_4x4_det, width_mult1(i));
-                if c1 ~= DetM_4x4_int_sum(i,j)
-                    disp('Bit mask error pre_sum det 4x4');
-                    % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-                    % disp(DetM_4x4_int_sum(i,j));
-                    disp({c1, DetM_4x4_int_sum(i,j)});
-                    disp({sim_options.freq, sim_options.SNR});
-                end
-                DetM_4x4_int_sum(i,j) = c1;
-            end
         else
             [DetM_4x4_int_sum(i,j), DetM_4x4_int_sum1_overflow(i,j), DetM_4x4_int_sum1_abs(i,j), DetM_4x4_int_sum1_width_total(i,j)] = adder(var_mult_det4x4_int(i,j+1), ...
                 -var_mult_det4x4_int(i,j+2),  sim_options.type_4x4_det, sim_options.width_hilbert);
@@ -548,25 +536,27 @@ for i = 1:5
                 disp({DetM_4x4_int_sum(i,j)});
                 disp({i,j});
             end
-
-            % Наложение маски на сумматор
-            if sim_options.enable_mask == true
-                c1 = bitmask(DetM_4x4_int_sum(i,j), sim_options.type_4x4_det, width_mult1(i));
-                if c1 ~= DetM_4x4_int_sum(i,j)
-                    disp('Bit mask error pre_sum det 4x4');
-                    % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-                    % disp(DetM_4x4_int_sum(i,j));
-                    disp({c1, DetM_4x4_int_sum(i,j)});
-                    disp({sim_options.freq, sim_options.SNR});
-                end
-                DetM_4x4_int_sum(i,j) = c1;
-            end
         end
         s.DetM_4x4_int_pre_sum_array(kk+1) = DetM_4x4_int_sum1_abs(i,j);
         s.DetM_4x4_int_pre_sum_width_total(kk+1) = DetM_4x4_int_sum1_width_total(i,j);
+        DetM_4x4_int_pre_sum_array(kk+1) = DetM_4x4_int_sum(i,j);
         kk = kk + 1;
+
+        % Наложение маски на сумматор
+        if sim_options.enable_mask == true
+            c1 = bitmask(DetM_4x4_int_pre_sum_array(kk+1), sim_options.type_4x4_det, det_max_width(kk+1,7));
+            if c1 ~= DetM_4x4_int_pre_sum_array(kk+1)
+                disp('Bit mask error pre_sum det 4x4');
+                disp({c1, DetM_4x4_int_pre_sum_array(kk+1)});
+                disp({sim_options.freq, sim_options.SNR});
+            end
+            DetM_4x4_int_pre_sum_array(i,j) = c1;
+        end
     end
-    [DetM_4x4_int(i), DetM_4x4_int_overflow(i), DetM_4x4_int_abs(i), DetM_4x4_int_width_total(i)] = adder(DetM_4x4_int_sum(i,1), ...
+
+
+    % Сумматор определителя 4х4
+    [DetM_4x4_int(i), DetM_4x4_int_overflow(i), s.DetM_4x4_int_sum_array(i), s.DetM_4x4_int_sum_array_width_total(i)] = adder(DetM_4x4_int_sum(i,1), ...
         DetM_4x4_int_sum(i,2), sim_options.type_4x4_det, sim_options.width_hilbert);
 
     % Проверка переполнения сумматора
@@ -576,7 +566,7 @@ for i = 1:5
         disp({i});
     end
 	% Проверка выходной разрядности сумматора
-    if (DetM_4x4_int_width_total(i) > sim_options.width_hilbert-1)
+    if (s.DetM_4x4_int_sum_array_width_total(i) > sim_options.width_hilbert-1)
 	    disp('Sum total width in function det4x4 higher than 64');
         disp({DetM_4x4_int(i)});
         disp({i});
@@ -584,34 +574,29 @@ for i = 1:5
 
     % Наложение маски на сумматор
     if sim_options.enable_mask == true
-        c1 = bitmask(DetM_4x4_int(i), sim_options.type_4x4_det, width_mult1(i));
+        c1 = bitmask(DetM_4x4_int(i), sim_options.type_4x4_det, det_max_width(i,8));
         if c1 ~= DetM_4x4_int(i)
-            disp('Bit mask error pre_sum det 3x3');
-            % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-            % disp(DetM_4x4_int_sum(i,j));
+            disp('Bit mask error sum det 4x4');
             disp({c1, DetM_4x4_int(i)});
             disp({sim_options.freq, sim_options.SNR});
         end
         DetM_4x4_int(i) = c1;
     end
-
-    s.DetM_4x4_int_sum_array(i) = DetM_4x4_int_abs(i);
-    s.DetM_4x4_int_sum_array_width_total(i) = DetM_4x4_int_width_total(i);
-    
 end
 
                                                                             %% 5x5
 	% double                                                                    
-	var1 = a(1,1) * DetM_4x4_n_1;
-	var2 = a(1,2) * DetM_4x4_n_2;
-	var3 = a(1,3) * DetM_4x4_n_3;
-	var4 = a(1,4) * DetM_4x4_n_4;
-	var5 = a(1,5) * DetM_4x4_n_5;
+	var1 = data_in(1,1) * DetM_4x4_n_1;
+	var2 = data_in(1,2) * DetM_4x4_n_2;
+	var3 = data_in(1,3) * DetM_4x4_n_3;
+	var4 = data_in(1,4) * DetM_4x4_n_4;
+	var5 = data_in(1,5) * DetM_4x4_n_5;
 	DetM_5x5 = var1 - var2 + var3 - var4 + var5;
 
 	%% Умножители матрицы 5х5
-	for i = 1:5
-		[var_int_det5x5(i,:), var_int_det5x5_overflow(i,:), var_int_det5x5_abs(i,:), var_int_det5x5_mult_width_total(i,:)] = mult(cast(a_int(1,i),sim_options.type_5x5_det), ...
+	for i = 1:sim_options.Size_matrix
+
+		[var_int_det5x5(i,:), var_int_det5x5_overflow(i,:), s.DetM_5x5_int_mult_array(i,:), s.DetM_5x5_int_mult_array_width_total(i,:)] = mult(cast(data_in_int(1,i),sim_options.type_5x5_det), ...
 			DetM_4x4_int(i), sim_options.type_5x5_det, sim_options.width_hilbert);
 	
 		% Проверка переполнения сумматора
@@ -621,7 +606,7 @@ end
 			disp({i});
 		end
 		% Проверка выходной разрядности сумматора
-		if (var_int_det5x5_mult_width_total(i) > sim_options.width_hilbert-1)
+		if (s.DetM_5x5_int_mult_array_width_total(i) > sim_options.width_hilbert-1)
 			disp('Mult total width in function det5x5 higher than 64');
 			disp({var_int_det5x5(i)});
 			disp({i});
@@ -629,7 +614,7 @@ end
 
 		% Наложение маски на сумматор
 		if sim_options.enable_mask == true
-			c1 = bitmask(var_int_det5x5(i), sim_options.type_5x5_det, width_mult1(i));
+			c1 = bitmask(var_int_det5x5(i), sim_options.type_5x5_det, det_max_width(i,9));
 			if c1 ~= var_int_det5x5(i)
 				disp('Bit mask error mult det 5x5');
 				% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
@@ -638,17 +623,13 @@ end
 				disp({sim_options.freq, sim_options.SNR});
 			end
 			var_int_det5x5(i) = c1;
-		end
-	
-		s.DetM_5x5_int_mult_array(i) = var_int_det5x5_abs(i);
-		s.DetM_5x5_int_mult_array_width_total(i) = var_int_det5x5_mult_width_total(i);
-	
+        end
 	end
 
 	%% Сумматоры1 определителя 5х5
 	for i = 1:2
 		if (mod(i,2) == 1)
-			[DetM_5x5_int_sum1(i), DetM_5x5_int_sum1_overflow(i), DetM_5x5_int_sum1_abs(i), DetM_5x5_int_sum1_width_total(i)] = adder(var_int_det5x5(i), ...
+			[DetM_5x5_int_sum1(i), DetM_5x5_int_sum1_overflow(i), s.DetM_5x5_int_pre_sum1_array(i), s.DetM_5x5_int_pre_sum1_array_width_total(i)] = adder(var_int_det5x5(i), ...
 				-var_int_det5x5(i+1), sim_options.type_5x5_det, sim_options.width_hilbert);
 			% Проверка переполнения сумматора
 			if (DetM_5x5_int_sum1_overflow(i) == 1)
@@ -657,25 +638,13 @@ end
 				disp({i});
 			end
 			% Проверка выходной разрядности сумматора
-			if (DetM_5x5_int_sum1_width_total(i) > sim_options.width_hilbert-1)
+			if (s.DetM_5x5_int_pre_sum1_array_width_total(i) > sim_options.width_hilbert-1)
 				disp('Sum1 total width in function det5x5 higher than 64');
 				disp({DetM_5x5_int_sum1_width_total(i)});
 				disp({i});
-			end
-			% Наложение маски на сумматор
-			if sim_options.enable_mask == true
-				c1 = bitmask(DetM_5x5_int_sum1(i), sim_options.type_5x5_det, width_mult1(i));
-				if c1 ~= DetM_5x5_int_sum1(i)
-					disp('Bit mask error mult det 5x5');
-					% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-					% disp(DetM_4x4_int_sum(i,j));
-					disp({c1, DetM_5x5_int_sum1(i)});
-					disp({sim_options.freq, sim_options.SNR});
-				end
-				DetM_5x5_int_sum1(i) = c1;
-			end
+            end
 		else
-			[DetM_5x5_int_sum1(i), DetM_5x5_int_sum1_overflow(i), DetM_5x5_int_sum1_abs(i), DetM_5x5_int_sum1_width_total(i)] = adder(var_int_det5x5(i+1), ...
+			[DetM_5x5_int_sum1(i), DetM_5x5_int_sum1_overflow(i), s.DetM_5x5_int_pre_sum1_array(i), s.DetM_5x5_int_pre_sum1_array_width_total(i)] = adder(var_int_det5x5(i+1), ...
 				-var_int_det5x5(i+2), sim_options.type_5x5_det, sim_options.width_hilbert);
 			% Проверка переполнения сумматора
 			if (DetM_5x5_int_sum1_overflow(i) == 1)
@@ -684,31 +653,30 @@ end
 				disp({i});
 			end
 			% Проверка выходной разрядности сумматора
-			if (DetM_5x5_int_sum1_width_total(i) > sim_options.width_hilbert-1)
+			if (s.DetM_5x5_int_pre_sum1_array_width_total(i) > sim_options.width_hilbert-1)
 				disp('Sum1 total width in function det5x5 higher than 64');
 				disp({DetM_5x5_int_sum1(i)});
 				disp({i});
-			end
-			% Наложение маски на сумматор
-			if sim_options.enable_mask == true
-				c1 = bitmask(DetM_5x5_int_sum1(i), sim_options.type_5x5_det, width_mult1(i));
-				if c1 ~= DetM_5x5_int_sum1(i)
-					disp('Bit mask error mult det 5x5');
-					% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-					% disp(DetM_4x4_int_sum(i,j));
-					disp({c1, DetM_5x5_int_sum1(i)});
-					disp({sim_options.freq, sim_options.SNR});
-				end
-				DetM_5x5_int_sum1(i) = c1;
-			end
-		end
-		s.DetM_5x5_int_pre_sum1_array(i) = DetM_5x5_int_sum1_abs(i);
-		s.DetM_5x5_int_pre_sum1_array_width_total(i) = DetM_5x5_int_sum1_width_total(i);
+            end
+        end
+
+        % Наложение маски на сумматор
+		if sim_options.enable_mask == true
+		    c1 = bitmask(DetM_5x5_int_sum1(i), sim_options.type_5x5_det, det_max_width(i,10));
+			if c1 ~= DetM_5x5_int_sum1(i)
+			    disp('Bit mask error mult det 5x5');
+				% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
+				% disp(DetM_4x4_int_sum(i,j));
+				disp({c1, DetM_5x5_int_sum1(i)});
+				disp({sim_options.freq, sim_options.SNR});
+            end
+			DetM_5x5_int_sum1(i) = c1;
+        end
 	end
 
-	%% Сумматоры2 определителя 5х5
+	%% Сумматор2 определителя 5х5
 	[DetM_5x5_int_sum3, DetM_5x5_int_sum3_overflow, s.DetM_5x5_int_sum3_abs, s.DetM_5x5_int_sum3_width_total] = adder(DetM_5x5_int_sum1(1), ...
-		DetM_5x5_int_sum1(2), 	sim_options.type_5x5_det, sim_options.width_hilbert);
+		DetM_5x5_int_sum1(2), sim_options.type_5x5_det, sim_options.width_hilbert);
 	
 	% Проверка переполнения сумматора
 	if (DetM_5x5_int_sum3_overflow == 1)
@@ -723,18 +691,16 @@ end
 
 	% Наложение маски на сумматор
 	if sim_options.enable_mask == true
-		c1 = bitmask(DetM_5x5_int_sum3, sim_options.type_5x5_det, width_mult1(i));
+		c1 = bitmask(DetM_5x5_int_sum3, sim_options.type_5x5_det, det_max_width(1,11));
 		if c1 ~= DetM_5x5_int_sum3
 			disp('Bit mask error mult det 5x5');
-			% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-			% disp(DetM_4x4_int_sum(i,j));
 			disp({c1, DetM_5x5_int_sum3});
 			disp({sim_options.freq, sim_options.SNR});
 		end
 		DetM_5x5_int_sum3 = c1;
 	end
 
-	%% Сумматоры3 определителя 5х5
+	%% Сумматор3 определителя 5х5
 	[DetM_5x5_int, DetM_5x5_int_overflow, s.DetM_5x5_int_abs, s.DetM_5x5_int_width_total] = adder(DetM_5x5_int_sum3,  var_int_det5x5(5), ...
 		sim_options.type_5x5_det, sim_options.width_hilbert);
 
@@ -750,18 +716,16 @@ end
 	end
 	% Наложение маски на сумматор
 	if sim_options.enable_mask == true
-		c1 = bitmask(DetM_5x5_int, sim_options.type_5x5_det, width_mult1(i));
+		c1 = bitmask(DetM_5x5_int, sim_options.type_5x5_det, det_max_width(1,11));
 		if c1 ~= DetM_5x5_int
 			disp('Bit mask error mult det 5x5');
-			% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-			% disp(DetM_4x4_int_sum(i,j));
 			disp({c1, DetM_5x5_int});
 			disp({sim_options.freq, sim_options.SNR});
 		end
 		DetM_5x5_int = c1;
 	end
 
-
+    %% Если определитель равен нулю, то присваиваем значение 1. Обязательно!
     if (DetM_5x5_int == 0)
         DetM_5x5_int = 1;
         disp('Determinant int x3 equal 0');
@@ -774,30 +738,7 @@ end
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
-	%%
-	for n = 1:sim_options.num_det2x2
-		if Det_3x3_LU_matlab(n) < 0
-			Det_3x3_LU_matlab(n) = Det_3x3_LU_matlab(n) * -1;
-		end
-	end
-
-	%%
+	%% double
 	if DetM_3x3_n_11 < 0
 		DetM_3x3_array(1) = DetM_3x3_n_11 * -1;
 	else

@@ -1,4 +1,6 @@
-function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fir_filter(b, x, N, width_mult_txt, width_sum_txt, width, sim_options)
+function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width, width, sim_options)
+
+    filter_max_width_out = struct;
 
     buffer = cast(zeros(1,length(b)),sim_options.int_size);
 
@@ -6,21 +8,16 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
     mult_overflow = int8(zeros(N,length(x)));
     mult_abs = cast(zeros(N,length(x)),sim_options.int_size);
     width_total_mult = int8(zeros(N,length(x)));
-    width_total_mult_max = int8(zeros(N,1));
+    filter_max_width_out.width_total_mult_max = int8(zeros(N,1));
 
     sum = cast(zeros(N-1,length(x)),sim_options.int_size);
 	sum_overflow = int8(zeros(N-1,length(x)));
     sum_abs = cast(zeros(N-1,length(x)),sim_options.int_size);
     width_total_sum = int8(zeros(N-1,length(x)));
-    width_total_sum_max = int8(zeros(N-1,1));
+    filter_max_width_out.width_total_sum_max = int8(zeros(N-1,1));
 
-    mult_max = cast(zeros(N,1),sim_options.int_size);
-    sum_max = cast(zeros(N-1,1),sim_options.int_size);
-
-    if sim_options.enable_mask == true
-        width_mult = readmatrix(width_mult_txt);
-        width_sum = readmatrix(width_sum_txt);
-    end
+    filter_max_width_out.mult_max = cast(zeros(N,1),sim_options.int_size);
+    filter_max_width_out.sum_max = cast(zeros(N-1,1),sim_options.int_size);
 
     %% Main cycle
     for n = 1:length(x)
@@ -44,23 +41,23 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
             end
             %% Накладываем маску
             if sim_options.enable_mask == true
-                c = bitmask(mult_n(i,n), sim_options.int_size, width_mult(i));
+                c = bitmask(mult_n(i,n), sim_options.int_size, max_width(i,1));
                 if c ~= mult_n(i,n)
                     disp('Bit mask error mult');
                     disp(width);
-                    c = bitmask(mult_n(i,n), sim_options.int_size, width_mult(i));
+                    c = bitmask(mult_n(i,n), sim_options.int_size, max_width(i,1));
                     disp({c,mult_n(i,n)});
                     disp({sim_options.freq, sim_options.SNR});
                 end
                 mult_n(i,n) = c;
             else
-                if mult_max(i) < mult_abs(i,n) % определяем максимальное значение на каждом умножителе
-                    mult_max(i) = mult_abs(i,n);
+                if filter_max_width_out.mult_max(i) < mult_abs(i,n) % определяем максимальное значение на каждом умножителе
+                    filter_max_width_out.mult_max(i) = mult_abs(i,n);
                 end
 
                 % записываем макс значение разрядностей умножителей
-                if width_total_mult_max(i) < width_total_mult(i,n)
-                    width_total_mult_max(i) = width_total_mult(i,n);
+                if filter_max_width_out.width_total_mult_max(i) < width_total_mult(i,n)
+                    filter_max_width_out.width_total_mult_max(i) = width_total_mult(i,n);
                 end
             end
 		end
@@ -83,11 +80,11 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
             end
         %% Накладываем маску
         if sim_options.enable_mask == true
-            c1 = bitmask(sum(1,n), sim_options.int_size, width_sum(1));
+            c1 = bitmask(sum(1,n), sim_options.int_size, max_width(1,2));
             if c1 ~= sum(1,n)
                 disp('Bit mask error sum');
                 disp(width);
-                c1 = bitmask(sum(1,n), sim_options.int_size, width_sum(1));
+                c1 = bitmask(sum(1,n), sim_options.int_size, max_width(1,2));
                 disp({1,n});
                 disp({c1,sum(1,n)});
                 disp({sim_options.freq, sim_options.SNR});
@@ -95,13 +92,13 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
             sum(1,n) = c1;
         else
             % записываем макс значение на сумматоре
-            if sum_max(1) < sum_abs(1,n)
-                sum_max(1) = sum_abs(1,n);
+            if filter_max_width_out.sum_max(1) < sum_abs(1,n)
+                filter_max_width_out.sum_max(1) = sum_abs(1,n);
             end
 
             % записываем макс значение суммы разрядностей сумматоров
-            if width_total_sum_max(1) < width_total_sum(1,n)
-                width_total_sum_max(1) = width_total_sum(1,n);
+            if filter_max_width_out.width_total_sum_max(1) < width_total_sum(1,n)
+                filter_max_width_out.width_total_sum_max(1) = width_total_sum(1,n);
             end
         end
 
@@ -122,10 +119,10 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
             end
             %% Наложение маски
             if sim_options.enable_mask == true
-                c1 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
+                c1 = bitmask(sum(i+1,n), sim_options.int_size, max_width(i+1,2));
                 if c1 ~= sum(i+1,n)
                     disp('Bit mask error sum');
-                    c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
+                    c2 = bitmask(sum(i+1,n), sim_options.int_size, max_width(i+1,2));
                     disp(width);
                     disp({i+1,n});
                     disp({c1,sum(i+1,n)});
@@ -134,13 +131,13 @@ function [y, mult_max, sum_max, width_total_mult_max, width_total_sum_max]  = fi
                 sum(i+1,n) = c1;
             else
                 % записываем макс значение на сумматоре
-                if sum_max(i+1) < sum_abs(i+1,n)
-                    sum_max(i+1) = sum_abs(i+1,n);
+                if filter_max_width_out.sum_max(i+1) < sum_abs(i+1,n)
+                    filter_max_width_out.sum_max(i+1) = sum_abs(i+1,n);
                 end
 
                 % записываем макс значение суммы разрядностей сумматоров
-                if width_total_sum_max(i+1) < width_total_sum(i+1,n)
-                    width_total_sum_max(i+1) = width_total_sum(i+1,n);
+                if filter_max_width_out.width_total_sum_max(i+1) < width_total_sum(i+1,n)
+                    filter_max_width_out.width_total_sum_max(i+1) = width_total_sum(i+1,n);
                 end
             end
         end
