@@ -1,4 +1,6 @@
-function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width, width, sim_options)
+function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width_table, width, sim_options)
+
+    max_width = table2array(max_width_table(:,2:end));
 
     filter_max_width_out = struct;
 
@@ -28,26 +30,28 @@ function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width, width, sim_
 			[mult_n(i,n), mult_overflow(i,n), mult_abs(i,n), width_total_mult(i,n)] = mult(b(i), buffer(i), sim_options.int_size, width);
             %% Проверка выходной разрядности умножителей
             if (mult_overflow(i,n) == 1)
-                disp('Mult overflow');
+                disp(['Mult overflow in ', max_width_table.Properties.VariableNames{2}, ' number ', num2str(i)]);
                 disp(width);
                 disp({mult_n(i,n), i, n});
+                disp(max_width_table.Properties.VariableNames{2});
             end
         
             if (width_total_mult(i,n) > width+1)
-                % [mult_n(i,n), mult_overflow(i,n), mult_abs(i,n), width_total_mult(i,n)] = mult(b(i), buffer(i), sim_options.int_size, width);
-                disp('Mult width overflow');
+                disp(['Mult width overflow in ', max_width_table.Properties.VariableNames{2}, ' number ', num2str(i)]);
                 disp(width);
                 disp({width_total_mult(i,n), i, n});
+                disp(max_width_table.Properties.VariableNames{2});
             end
             %% Накладываем маску
             if sim_options.enable_mask == true
                 c = bitmask(mult_n(i,n), sim_options.int_size, max_width(i,1));
                 if c ~= mult_n(i,n)
-                    disp('Bit mask error mult');
+                    disp(['Bit mask error mult in ', max_width_table.Properties.VariableNames{2}, ' number ', num2str(i)]);
                     disp(width);
                     c = bitmask(mult_n(i,n), sim_options.int_size, max_width(i,1));
                     disp({c,mult_n(i,n)});
                     disp({sim_options.freq, sim_options.SNR});
+                    disp(max_width_table.Properties.VariableNames{2});
                 end
                 mult_n(i,n) = c;
             else
@@ -67,13 +71,13 @@ function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width, width, sim_
 
         %% Проверка выходной разрядности сумматора
             if (sum_overflow(1,n) == 1)
-                disp('Sum1 overflow');
+                disp(['Sum overflow in ', max_width_table.Properties.VariableNames{3}, ' number 1']);
                 disp(width);
                 disp({sim_options.SNR, sim_options.freq});
                 disp({sum(1), 1, n});
             end
             if (width_total_sum(1,n) > width+1)
-                disp('Sum1 width overflow');
+                disp(['Sum width overflow in ', max_width_table.Properties.VariableNames{3}, ' number 1']);
                 disp(width);
                 disp({sim_options.SNR, sim_options.freq});
                 disp({width_total_sum(1,n), 1, n});
@@ -82,7 +86,7 @@ function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width, width, sim_
         if sim_options.enable_mask == true
             c1 = bitmask(sum(1,n), sim_options.int_size, max_width(1,2));
             if c1 ~= sum(1,n)
-                disp('Bit mask error sum');
+                disp(['Bit mask error sum in ', max_width_table.Properties.VariableNames{3}, ' number 1']);
                 disp(width);
                 c1 = bitmask(sum(1,n), sim_options.int_size, max_width(1,2));
                 disp({1,n});
@@ -106,13 +110,13 @@ function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width, width, sim_
 			[sum(i+1,n), sum_overflow(i+1,n), sum_abs(i+1,n), width_total_sum(i+1,n)] = adder(sum(i,n),  mult_n(i+2,n), sim_options.int_size, width);
             %% Проверка выходной разрядности сумматора
             if (sum_overflow(i+1,n) == 1)
-                disp('Sum overflow');
+                disp(['Sum overflow in ', max_width_table.Properties.VariableNames{3}, ' number ', num2str(i+1)]);
                 disp(width);
                 disp({sim_options.SNR, sim_options.freq});
                 disp({ i+1, n});
             end
             if (width_total_sum(i+1,n) > width+1)
-                disp('Sum width overflow');
+                disp(['Sum width overflow in ', max_width_table.Properties.VariableNames{3}, ' number ', num2str(i+1)]);
                 disp(width);
                 disp({sim_options.SNR, sim_options.freq});
                 disp({width_total_sum(i+1,n), i+1, n});
@@ -121,12 +125,11 @@ function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width, width, sim_
             if sim_options.enable_mask == true
                 c1 = bitmask(sum(i+1,n), sim_options.int_size, max_width(i+1,2));
                 if c1 ~= sum(i+1,n)
-                    disp('Bit mask error sum');
-                    c2 = bitmask(sum(i+1,n), sim_options.int_size, max_width(i+1,2));
+                    disp(['Bit mask error sum in ', max_width_table.Properties.VariableNames{3}, ' number ', num2str(i+1)]);
                     disp(width);
-                    disp({i+1,n});
-                    disp({c1,sum(i+1,n)});
-                    disp({sim_options.freq, sim_options.SNR});
+                    disp([i+1, n]);
+                    disp([c1, sum(i+1,n)]);
+                    disp([sim_options.freq, sim_options.SNR]);
                 end
                 sum(i+1,n) = c1;
             else

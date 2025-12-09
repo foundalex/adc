@@ -10,21 +10,22 @@ function [s_to_subadc, adc_input_int, s_after_subadc, Z] = gen_oversampled_signa
     begin = (1:sim_options.M).*sim_options.Inter+1;
 
     if sim_options.MODEL_ERROR == true
-        dlin = floor((length(s)-(sim_options.time_skew_array(1:sim_options.M).*sim_options.Inter))./(sim_options.M*sim_options.Inter));
+        dlin = floor((length(s)-(sim_options.time_skew_array(1:sim_options.M-1).*sim_options.Inter))./(sim_options.M*sim_options.Inter));
     else
         dlin = floor((length(s)-begin)./(sim_options.M*sim_options.Inter));
     end
 
-    adc_input = zeros(dlin(sim_options.M),sim_options.M);
-    adc_input_int = int16(zeros(dlin(sim_options.M),sim_options.M));
+    adc_input = zeros(dlin(sim_options.M-1),sim_options.M);
+    adc_input_int = int16(zeros(dlin(sim_options.M-1),sim_options.M));
 
-    ended = dlin(sim_options.M)*sim_options.Inter*sim_options.M;
+    ended = dlin(sim_options.M-1)*sim_options.Inter*sim_options.M;
     
     %% разбиваем входной сигнал на сигналы для суб-АЦП
 
     % АЦП0 - эталон
     adc_input(:,1) = s(begin(1):step:ended);
     adc_input_good(:,1) = s(begin(1):step:ended);
+    
     for i = 2:sim_options.M  
         % если ошибки суб-АЦП включены, то добавляем time skew
         if i == sim_options.M
@@ -39,15 +40,23 @@ function [s_to_subadc, adc_input_int, s_after_subadc, Z] = gen_oversampled_signa
             end
         end
     end
+
     %% добавляем к каждому суб-АЦП шум
     for i = 1:sim_options.M 
         adc_input(:,i) = awgn(adc_input(:,i), sim_options.SNR(i) , "measured");
         adc_input_good(:,i) = awgn(adc_input_good(:,i), sim_options.SNR(i) , "measured");
     end
+
+    for i = 1:sim_options.M 
+        s_fi(:,i) = fi(adc_input(:,i),1,12,11);
+        s_int(:,i) = int16(round(s_fi(:,i)*2^11));
+    end
+
     %% если ошибки суб-АЦП включены, то добавляем gain error
+    adc_input_int(:,1) = s_int(:,1);
     if sim_options.MODEL_ERROR == true
         for i = 1:sim_options.M-1 
-            adc_input(:,i+1) = round(adc_input(:,i+1) * sim_options.gain_error_array(i));
+            adc_input_int(:,i+1) = int16(fi((s_int(:,i+1)) * sim_options.gain_error_array(i),1,12,0));
         end
     end
 
@@ -58,10 +67,11 @@ function [s_to_subadc, adc_input_int, s_after_subadc, Z] = gen_oversampled_signa
 
     % перевод в инты
     for i = 1:sim_options.M
-        adc_input_int(:,i) = int16(round(fi(adc_input(:,i),1,12,11)*sim_options.Bit));
+        % adc_input_int(:,i) = int16(round(fi(adc_input(:,i),1,12,11)*sim_options.Bit));
         adc_input_int_good(:,i) = int16(round(fi(adc_input_good(:,i),1,12,11)*sim_options.Bit));
     end
-    %% 
+
+    %
     % spectrumScope = spectrumAnalyzer(SampleRate=Fs/Inter/4, ...            
     %         AveragingMethod='exponential',ForgettingFactor=0.99, ...
     %         YLimits=[-30 10],ShowLegend=true);
@@ -87,6 +97,12 @@ function [s_to_subadc, adc_input_int, s_after_subadc, Z] = gen_oversampled_signa
     Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     % save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             11             20             10             37         19.634.mat'); % 50 MHz 70 SNR
+    % load ('2025             12              9             16              1          56.94.mat'); 
+
+    figure(2);
+    subplot(2,1,1)
+    plot(s_to_subadc);
+    subplot(2,1,2)
+    plot(s_after_subadc);
    
 end

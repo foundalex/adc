@@ -59,7 +59,6 @@ end
 %% Находим определители матриц 2x2
 for i = 1:sim_options.num_det2x2
     % double LU
-
     ee = det(s.a{i});
     if (ee < 0)
         Det_2x2_LU_matlab(i) = ee * -1;
@@ -67,8 +66,7 @@ for i = 1:sim_options.num_det2x2
         Det_2x2_LU_matlab(i) = ee;
     end
 
-    %% Определитель 2х2 doible
-
+    %% Определитель 2х2 double
     DetM_2x2(i) = s.a{i}(1,1) * s.a{i}(2,2) - s.a{i}(2,1) * s.a{i}(1,2);
 
     DetM_2x2_abs(i) = DetM_2x2(i);
@@ -76,33 +74,30 @@ for i = 1:sim_options.num_det2x2
         DetM_2x2_abs(i) = DetM_2x2_abs(i) * -1;
     end
 
-
     %% Умножители определителя 2х2
     [mult_int(i+(i-1)), mult_overflow(i+(i-1)), s.Det2x2_mult_abs(i+(i-1)), width_total_mult(i+(i-1))] = mult(cast(s.a_int{i}(1,1),sim_options.type_2x2_det), ...
         cast(s.a_int{i}(2,2),sim_options.type_2x2_det), sim_options.type_2x2_det, sim_options.width_fractional);
 
     %% Проверка переполнения умножителя
     if (mult_overflow(i+(i-1)) == 1)
-	    disp('Mult1 in function det2x2 overflow');
+	    disp(['Mult in function det2x2 overflow in ', num2str(i+(i-1))]);
         disp(sim_options.width_hilbert);
-        disp({i+(i-1)});
     end
 	% Проверка выходной разрядности умножителя
     if (width_total_mult(i+(i-1)) > sim_options.width_hilbert)
-	    disp('Mult1 total width in function det2x2 higher than 64');
+	    disp(['Mult total width in function det2x2 higher than 64 ', num2str(i+(i-1))]);
         disp(sim_options.width_hilbert);
-        disp({i+(i-1)});
     end
 
     % Наложение маски на первый умножитель
     if sim_options.enable_mask == true
-        c1 = bitmask(mult_int(i+(i-1)), sim_options.type_2x2_det, det_max_width(i+(i-1)),1);
+        c1 = bitmask(mult_int(i+(i-1)), sim_options.type_2x2_det, det_max_width(i+(i-1),1));
         if c1 ~= mult_int(i+(i-1))
-            disp('Bit mask error mult 1 det 2x2');
+            disp(['Bit mask error mult det 2x2 in ', num2str(i+(i-1))]);
             % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
             disp(width_total_mult(i+(i-1)));
-            disp({c1, mult_int(i+(i-1))});
-            disp({sim_options.freq, sim_options.SNR});
+            disp([c1, mult_int(i+(i-1))]);
+            disp([sim_options.freq, sim_options.SNR]);
         end
         mult_int(i+(i-1)) = c1;
     end
@@ -112,25 +107,23 @@ for i = 1:sim_options.num_det2x2
 
     %% Проверка переполнения умножителя
     if (mult_overflow(i+i) == 1)
-		disp('Mult2 in function det2x2 overflow');
+		disp(['Mult in function det2x2 overflow in ', num2str(i+i)]);
         disp(sim_options.width_hilbert);
-        disp({i+i});
     end
 	% Проверка выходной разрядности умножителя
     if (width_total_mult(i+i) > sim_options.width_hilbert)
-		disp('Mult2 total width in function det2x2 higher than 64');
+		disp(['Mult total width in function det2x2 higher than 64 ', num2str(i+i)]);
         disp(sim_options.width_hilbert);
-        disp({i+i});
     end
 
     % Наложение маски на второй умножитель
     if sim_options.enable_mask == true
-        c1 = bitmask(mult_int(i+i), sim_options.type_2x2_det, det_max_width(i+i),1);
+        c1 = bitmask(mult_int(i+i), sim_options.type_2x2_det, det_max_width(i+i,1));
         if c1 ~= mult_int(i+i)
-            disp('Bit mask error mult 2 det 2x2');
+            disp(['Bit mask error mult 2 det 2x2 in ', num2str(i+i)]);
             disp(width_total_mult(i+i));
-            disp({c1, mult_int(i+i)});
-            disp({sim_options.freq, sim_options.SNR});
+            disp([c1, mult_int(i+i)]);
+            disp([sim_options.freq, sim_options.SNR]);
         end
         mult_int(i+i) = c1;
     end
@@ -141,24 +134,24 @@ for i = 1:sim_options.num_det2x2
 
     % Проверка переполнения сумматора
     if (sum_overflow(i) == 1)
-		disp('Adder in function det2x2 overflow');
+		disp(['Adder in function det2x2 overflow in ', num2str(i)]);
         disp(sim_options.width_hilbert);
-        disp({s.a_int{i}});
+        disp([s.a_int{i}]);
     end
 	% Проверка выходной разрядности сумматора
     if (width_total_sum(i) > sim_options.width_hilbert)
-		disp('Sum total width in function det2x2 higher than 64');
+		disp(['Sum total width in function det2x2 higher than 64 in ', num2str(i)]);
         disp(sim_options.width_hilbert);
-        disp({width_total_sum(i)});
+        disp([width_total_sum(i)]);
     end
     % Наложение маски на сумматор
     if sim_options.enable_mask == true
         c1 = bitmask(DetM_2x2_int(i), sim_options.type_2x2_det, det_max_width(i,2));
         if c1 ~= DetM_2x2_int(i)
-            disp('Bit mask error sum det 2x2');
-            disp(width_total_sum(i));
-            disp({c1, DetM_2x2_int(i)});
-            disp({sim_options.freq, sim_options.SNR});
+            disp(['Bit mask error sum det 2x2 in ', num2str(i)]);
+            disp([width_total_sum(i), det_max_width(i,2)]);
+            disp([c1, DetM_2x2_int(i)]);
+            disp([sim_options.freq, sim_options.SNR]);
         end
         DetM_2x2_int(i) = c1;
     end
@@ -224,14 +217,13 @@ for i = 1:3
 
         % Проверка переполнения умножителя
         if (Mult_DetM_3x3_overflow(j,i) == 1)
-		    disp('Mult in function det3x3 overflow');
-            disp({j,i});
+		    disp(['Mult in function det3x3 overflow in ', num2str(j), num2str(i)]);
             disp({Mult_DetM_3x3_int(j,i)});
         end
 	    % Проверка выходной разрядности умножителя
         if (Mult_DetM_3x3_array_mult_total_width(j,i) > sim_options.width_hilbert-1)
-		    disp('Mult total width in function det3x3 higher than 64');
-            disp({Mult_DetM_3x3_int(j,i)});
+		    disp(['Mult total width in function det3x3 higher than 64 in ', num2str(j), num2str(i)]);
+            disp([Mult_DetM_3x3_int(j,i)]);
         end
     end
     s.Mult_DetM_3x3_array(i:3:end) = Mult_DetM_3x3_array(:,i);
@@ -245,10 +237,9 @@ for j = 1:sim_options.num_det2x2*3
     if sim_options.enable_mask == true
         c1 = bitmask(Mult_DetM_3x3_array_int(j), sim_options.type_3x3_det, det_max_width(j,3));
         if c1 ~= Mult_DetM_3x3_array_int(j)
-            disp('Bit mask error mult det 3x3');
-            disp(det_max_width(j,3));
-            disp({c1, Mult_DetM_3x3_array_int(j)});
-            disp({sim_options.freq, sim_options.SNR});
+            disp(['Bit mask error mult det 3x3 in ', num2str(j)]);
+            disp([c1, Mult_DetM_3x3_array_int(j)]);
+            disp([sim_options.freq, sim_options.SNR]);
         end
         Mult_DetM_3x3_array_int(j) = c1;
     end
@@ -351,22 +342,19 @@ end
 for i = 1:sim_options.num_det2x2
     % Проверка переполнения пресумматора
     if (DetM_3x3_int_sum1_overflow(i,1) == 1)
-		disp('Sum det3x3 overflow');
+		disp(['Sum det3x3 overflow in ', num2str(i)]);
         disp({DetM_3x3_int_sum1(i,1)});
-        disp({i});
     end
 	% Проверка выходной разрядности пресумматора
     if (s.DetM_3x3_int_pre_sum_width_total(1,1) > sim_options.width_hilbert-1)
-		disp('Sum total width in function det3x3 higher than 64');
+		disp(['Sum total width in function det3x3 higher than 64 in ', num2str(i)]);
         disp({DetM_3x3_int_sum1(i,1)});
-        disp({i});
     end
     % Наложение маски на пресумматор
     if sim_options.enable_mask == true
         c1 = bitmask(DetM_3x3_int_sum1(i,1), sim_options.type_3x3_det, det_max_width(i,4));
-        if c1 ~= DetM_3x3_int_sum1(i,i)
-            disp('Bit mask error pre_sum det 3x3');
-            % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
+        if c1 ~= DetM_3x3_int_sum1(i,1)
+            disp(['Bit mask error pre_sum det 3x3 in ', num2str(i)]);
             disp(DetM_3x3_int_sum1_width_total(i));
             disp({c1, DetM_3x3_int_sum1(i,1)});
             disp({sim_options.freq, sim_options.SNR});
@@ -376,25 +364,23 @@ for i = 1:sim_options.num_det2x2
 
     %% Проверка переполнения сумматора
     if (DetM_3x3_int_overflow(i,1) == 1)
-		disp('Sum det3x3 overflow');
-        disp({DetM_3x3_int(i,1)});
-        disp({i});
+		disp(['Sum det3x3 overflow in ', num2str(i)]);
+        disp([DetM_3x3_int(i,1)]);
     end
 	% Проверка выходной разрядности сумматора
     if (s.DetM_3x3_int_sum_width_total(i,1) > sim_options.width_hilbert-1)
-		disp('Sum total width in function det3x3 higher than 64');
-        disp({DetM_3x3_int(i,1)});
-        disp({i});
+		disp(['Sum total width in function det3x3 higher than 64 in ', num2str(i)]);
+        disp([DetM_3x3_int(i,1)]);
     end
     % Наложение маски на сумматор
     if sim_options.enable_mask == true
         c1 = bitmask(DetM_3x3_int(i,1), sim_options.type_3x3_det, det_max_width(i,5));
-        if c1 ~= DetM_3x3_int(i,i)
-            disp('Bit mask error pre_sum det 3x3');
+        if c1 ~= DetM_3x3_int(i,1)
+            disp(['Bit mask error pre_sum det 3x3 in ', num2str(i)]);
             % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
             disp(s.DetM_3x3_int_sum_width_total(i));
-            disp({c1, DetM_3x3_int(i,1)});
-            disp({sim_options.freq, sim_options.SNR});
+            disp([c1, DetM_3x3_int(i,1)]);
+            disp([sim_options.freq, sim_options.SNR]);
         end
         DetM_3x3_int(i,1) = c1;
     end
@@ -469,15 +455,13 @@ for j = 1:5
 
         % Проверка переполнения умножителя
         if (var_mult_det4x4_int_overflow(j,i) == 1)
-		    disp('Mult det4x4 overflow');
+		    disp(['Mult det4x4 overflow in ', num2str(j), num2str(i)]);
             disp({var_mult_det4x4_int(j,i)});
-            disp({j,i});
         end
 	    % Проверка выходной разрядности умножителя
         if (var_mult_det4x4_width_total(j,i) > sim_options.width_hilbert-1)
-		    disp('Mult total width in function det4x4 higher than 64');
-            disp({var_mult_det4x4_int(i,1)});
-            disp({i});
+		    disp(['Mult total width in function det4x4 higher than 64 in ', num2str(j), num2str(i)]);
+            disp({var_mult_det4x4_int(j,i)});
         end       
     end
     s.DetM_4x4_int_mult_array(kk+1:kk+4) = var_mult_det4x4_abs(j,:);
@@ -491,17 +475,17 @@ for j = 1:sim_options.num_det2x2*2
     if sim_options.enable_mask == true
         c1 = bitmask(DetM_4x4_int_mult_array(j), sim_options.type_3x3_det, det_max_width(j,6));
         if c1 ~= DetM_4x4_int_mult_array(j)
-            disp('Bit mask error pre_sum det 3x3');
+            disp(['Bit mask error pre_sum det 3x3 in ', num2str(j)]);
             % c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-            disp({c1, DetM_4x4_int_mult_array(j)});
-            disp({sim_options.freq, sim_options.SNR});
+            disp([c1, DetM_4x4_int_mult_array(j)]);
+            disp([sim_options.freq, sim_options.SNR]);
         end
         DetM_4x4_int_mult_array(j) = c1;
     end 
 end
 
 %% Сумматоры определителя 4х4
-kk = 0;
+kk = 1;
 for i = 1:5
     for j = 1:2
         if (mod(j,2) == 1)
@@ -510,15 +494,13 @@ for i = 1:5
         
             % Проверка переполнения сумматора
             if (DetM_4x4_int_sum1_overflow(i,j) == 1)
-		        disp('Sum1 det4x4 overflow');
+		        disp(['Sum1 det4x4 overflow in ', num2str(i), num2str(j)]);
                 disp({DetM_4x4_int_sum(i,j)});
-                disp({i,j});
             end
 	        % Проверка выходной разрядности сумматора
             if (DetM_4x4_int_sum1_width_total(i,j) > sim_options.width_hilbert-1)
-		        disp('Sum1 total width in function det4x4 higher than 64');
+		        disp(['Sum1 total width in function det4x4 higher than 64 in ', num2str(i), num2str(j)]);
                 disp({DetM_4x4_int_sum(i,1)});
-                disp({i,j});
             end
         else
             [DetM_4x4_int_sum(i,j), DetM_4x4_int_sum1_overflow(i,j), DetM_4x4_int_sum1_abs(i,j), DetM_4x4_int_sum1_width_total(i,j)] = adder(var_mult_det4x4_int(i,j+1), ...
@@ -526,32 +508,30 @@ for i = 1:5
          
             % Проверка переполнения сумматора
             if (DetM_4x4_int_sum1_overflow(i,j) == 1)
-		        disp('Sum2 det4x4 overflow');
+		        disp(['Sum2 det4x4 overflow in ', num2str(i), num2str(j)]);
                 disp({DetM_4x4_int_sum(i,j)});
-                disp({i,j});
             end
 	        % Проверка выходной разрядности сумматора
             if (DetM_4x4_int_sum1_width_total(i,j) > sim_options.width_hilbert-1)
-		        disp('Sum2 total width in function det4x4 higher than 64');
+		        disp(['Sum2 total width in function det4x4 higher than 64 in ', num2str(i), num2str(j)]);
                 disp({DetM_4x4_int_sum(i,j)});
-                disp({i,j});
             end
         end
-        s.DetM_4x4_int_pre_sum_array(kk+1) = DetM_4x4_int_sum1_abs(i,j);
-        s.DetM_4x4_int_pre_sum_width_total(kk+1) = DetM_4x4_int_sum1_width_total(i,j);
-        DetM_4x4_int_pre_sum_array(kk+1) = DetM_4x4_int_sum(i,j);
-        kk = kk + 1;
-
+        s.DetM_4x4_int_pre_sum_array(kk) = DetM_4x4_int_sum1_abs(i,j);
+        s.DetM_4x4_int_pre_sum_width_total(kk) = DetM_4x4_int_sum1_width_total(i,j);
+        DetM_4x4_int_pre_sum_array(kk) = DetM_4x4_int_sum(i,j);
+        
         % Наложение маски на сумматор
         if sim_options.enable_mask == true
-            c1 = bitmask(DetM_4x4_int_pre_sum_array(kk+1), sim_options.type_4x4_det, det_max_width(kk+1,7));
-            if c1 ~= DetM_4x4_int_pre_sum_array(kk+1)
-                disp('Bit mask error pre_sum det 4x4');
-                disp({c1, DetM_4x4_int_pre_sum_array(kk+1)});
+            c1 = bitmask(DetM_4x4_int_pre_sum_array(kk), sim_options.type_4x4_det, det_max_width(kk,7));
+            if c1 ~= DetM_4x4_int_pre_sum_array(kk)
+                disp(['Bit mask error pre_sum det 4x4 in ', num2str(kk)]);
+                disp({c1, DetM_4x4_int_pre_sum_array(kk)});
                 disp({sim_options.freq, sim_options.SNR});
             end
             DetM_4x4_int_pre_sum_array(i,j) = c1;
         end
+        kk = kk + 1;
     end
 
 
@@ -561,24 +541,22 @@ for i = 1:5
 
     % Проверка переполнения сумматора
     if (DetM_4x4_int_overflow(i) == 1)
-	    disp('Sum det4x4 overflow');
-        disp({DetM_4x4_int(i)});
-        disp({i});
+	    disp(['Sum det4x4 overflow in ', num2str(i)]);
+        disp([DetM_4x4_int(i)]);
     end
 	% Проверка выходной разрядности сумматора
     if (s.DetM_4x4_int_sum_array_width_total(i) > sim_options.width_hilbert-1)
-	    disp('Sum total width in function det4x4 higher than 64');
-        disp({DetM_4x4_int(i)});
-        disp({i});
+	    disp(['Sum total width in function det4x4 higher than 64 in ', num2str(i)]);
+        disp([DetM_4x4_int(i)]);
     end
 
     % Наложение маски на сумматор
     if sim_options.enable_mask == true
         c1 = bitmask(DetM_4x4_int(i), sim_options.type_4x4_det, det_max_width(i,8));
         if c1 ~= DetM_4x4_int(i)
-            disp('Bit mask error sum det 4x4');
-            disp({c1, DetM_4x4_int(i)});
-            disp({sim_options.freq, sim_options.SNR});
+            disp(['Bit mask error sum det 4x4 in ', num2str(i)]);
+            disp([c1, DetM_4x4_int(i)]);
+            disp([sim_options.freq, sim_options.SNR]);
         end
         DetM_4x4_int(i) = c1;
     end
@@ -601,26 +579,24 @@ end
 	
 		% Проверка переполнения сумматора
 		if (var_int_det5x5_overflow(i) == 1)
-			disp('Mult det5x5 overflow');
-			disp({var_int_det5x5(i)});
-			disp({i});
+			disp(['Mult det5x5 overflow in ', num2str(i)]);
+			disp([var_int_det5x5(i)]);
 		end
 		% Проверка выходной разрядности сумматора
 		if (s.DetM_5x5_int_mult_array_width_total(i) > sim_options.width_hilbert-1)
-			disp('Mult total width in function det5x5 higher than 64');
-			disp({var_int_det5x5(i)});
-			disp({i});
+			disp(['Mult total width in function det5x5 higher than 64 in ', num2str(i)]);
+			disp([var_int_det5x5(i)]);
 		end
 
 		% Наложение маски на сумматор
 		if sim_options.enable_mask == true
 			c1 = bitmask(var_int_det5x5(i), sim_options.type_5x5_det, det_max_width(i,9));
 			if c1 ~= var_int_det5x5(i)
-				disp('Bit mask error mult det 5x5');
+				disp(['Bit mask error mult det 5x5 in ', num2str(i)]);
 				% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
 				% disp(DetM_4x4_int_sum(i,j));
-				disp({c1, var_int_det5x5(i)});
-				disp({sim_options.freq, sim_options.SNR});
+				disp([c1, var_int_det5x5(i)]);
+				disp([sim_options.freq, sim_options.SNR]);
 			end
 			var_int_det5x5(i) = c1;
         end
@@ -633,30 +609,26 @@ end
 				-var_int_det5x5(i+1), sim_options.type_5x5_det, sim_options.width_hilbert);
 			% Проверка переполнения сумматора
 			if (DetM_5x5_int_sum1_overflow(i) == 1)
-				disp('Sum1 det5x5 overflow');
-				disp({DetM_5x5_int_sum1_overflow(i)});
-				disp({i});
+				disp(['Sum1 det5x5 overflow in ', num2str(i)]);
+				disp([DetM_5x5_int_sum1_overflow(i)]);
 			end
 			% Проверка выходной разрядности сумматора
 			if (s.DetM_5x5_int_pre_sum1_array_width_total(i) > sim_options.width_hilbert-1)
-				disp('Sum1 total width in function det5x5 higher than 64');
-				disp({DetM_5x5_int_sum1_width_total(i)});
-				disp({i});
+				disp(['Sum1 total width in function det5x5 higher than 64 in ', num2str(i)]);
+				disp([DetM_5x5_int_sum1_width_total(i)]);
             end
 		else
 			[DetM_5x5_int_sum1(i), DetM_5x5_int_sum1_overflow(i), s.DetM_5x5_int_pre_sum1_array(i), s.DetM_5x5_int_pre_sum1_array_width_total(i)] = adder(var_int_det5x5(i+1), ...
 				-var_int_det5x5(i+2), sim_options.type_5x5_det, sim_options.width_hilbert);
 			% Проверка переполнения сумматора
 			if (DetM_5x5_int_sum1_overflow(i) == 1)
-				disp('Sum1 det5x5 overflow');
-				disp({DetM_5x5_int_sum1(i)});
-				disp({i});
+				disp(['Sum1 det5x5 overflow in ', num2str(i)]);
+				disp([DetM_5x5_int_sum1(i)]);
 			end
 			% Проверка выходной разрядности сумматора
 			if (s.DetM_5x5_int_pre_sum1_array_width_total(i) > sim_options.width_hilbert-1)
-				disp('Sum1 total width in function det5x5 higher than 64');
-				disp({DetM_5x5_int_sum1(i)});
-				disp({i});
+				disp(['Sum1 total width in function det5x5 higher than 64 in ', num2str(i)]);
+				disp([DetM_5x5_int_sum1(i)]);
             end
         end
 
@@ -664,11 +636,9 @@ end
 		if sim_options.enable_mask == true
 		    c1 = bitmask(DetM_5x5_int_sum1(i), sim_options.type_5x5_det, det_max_width(i,10));
 			if c1 ~= DetM_5x5_int_sum1(i)
-			    disp('Bit mask error mult det 5x5');
-				% c2 = bitmask(sum(i+1,n), sim_options.int_size, width_sum(i+1));
-				% disp(DetM_4x4_int_sum(i,j));
-				disp({c1, DetM_5x5_int_sum1(i)});
-				disp({sim_options.freq, sim_options.SNR});
+			    disp(['Bit mask error sum det 5x5 in ', num2str(i)]);
+				disp([c1, DetM_5x5_int_sum1(i)]);
+				disp([sim_options.freq, sim_options.SNR]);
             end
 			DetM_5x5_int_sum1(i) = c1;
         end
@@ -693,9 +663,9 @@ end
 	if sim_options.enable_mask == true
 		c1 = bitmask(DetM_5x5_int_sum3, sim_options.type_5x5_det, det_max_width(1,11));
 		if c1 ~= DetM_5x5_int_sum3
-			disp('Bit mask error mult det 5x5');
-			disp({c1, DetM_5x5_int_sum3});
-			disp({sim_options.freq, sim_options.SNR});
+			disp('Bit mask error sum3 det 5x5');
+			disp([c1, DetM_5x5_int_sum3]);
+			disp([sim_options.freq, sim_options.SNR]);
 		end
 		DetM_5x5_int_sum3 = c1;
 	end
@@ -707,18 +677,18 @@ end
 	% Проверка переполнения сумматора
 	if (DetM_5x5_int_overflow == 1)
 		disp('Sum3 det5x5 overflow');
-		disp({DetM_5x5_int});
+		disp([DetM_5x5_int]);
 	end
 	% Проверка выходной разрядности сумматора
 	if (s.DetM_5x5_int_width_total > sim_options.width_hilbert-1)
 		disp('Sum3 total width in function det5x5 higher than 64');
-		disp({DetM_5x5_int});
+		disp([DetM_5x5_int]);
 	end
 	% Наложение маски на сумматор
 	if sim_options.enable_mask == true
 		c1 = bitmask(DetM_5x5_int, sim_options.type_5x5_det, det_max_width(1,11));
 		if c1 ~= DetM_5x5_int
-			disp('Bit mask error mult det 5x5');
+			disp('Bit mask error sum det 5x5');
 			disp({c1, DetM_5x5_int});
 			disp({sim_options.freq, sim_options.SNR});
 		end

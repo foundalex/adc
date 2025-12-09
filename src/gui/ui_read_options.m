@@ -7,6 +7,7 @@ magnitude = db2mag(eval(get(findobj('Tag', 'magnitude'),'String')));
 
 enable_mask = get(findobj('Tag', 'enable_mask'),'Value');  % enable mask
 
+enable_log = get(findobj('Tag', 'enable_log'),'Value');  % enable log
 % Number of ADC
 num_ADC = eval(get(findobj('Tag', 'Num_ADC'),'String'));  % Num of sub ADC
 
@@ -34,11 +35,17 @@ for i = 2:8
     gain_error_array(i-1) = eval(get(findobj('Tag',strcat('Gain',string(i))),'String'));
 end
 
+if (enable_log == true)
+    diary_name = (['log_file_', num2str(clock), '.txt']);
+    diary(diary_name);
+end
+
 container = 'int64';
 % Oversampling factor
 Inter = 10;
 Fs_sub_adc = 1000000000; % 1 GHz
 Fs = Fs_sub_adc * Inter * num_ADC; 
+
 
 sim_options = struct(                                       ...
    'freq',                          initial_freq,           ...
@@ -62,6 +69,7 @@ sim_options = struct(                                       ...
    'fractional_coeff_width',        16,                     ...
    'hilbert_coeff_width',           16,                     ...                  
    'enable_mask',                   enable_mask,            ... % включение наложения маски
+   'enable_log',                    enable_log,             ... % включение логирования
    'int_size',                      container,              ... % тип данных
    'type_2x2_det',                  "int32",                ... % тип данных для матрицы 2х2
    'type_3x3_det',                  "int64",                ... % тип данных для матрицы 3х3
@@ -77,4 +85,3 @@ sim_options = struct(                                       ...
    'width_hilbert',                 cast(64,container),     ...
    'num_det2x2',                    10                      ...
    );
-

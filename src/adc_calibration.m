@@ -154,7 +154,6 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
 
                                                                 %% Первая часть алгоритма калибровки
     %% Эталонный сигнал
-    % filter_max_width_out_golden = struct;
 
     % double
     yr_double = filter(bandpass_adc0, 1, adc_input(:,1));
@@ -164,7 +163,6 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
 
     %% Int
     golden_max_width = readtable(['src/width_txt/Разрядность_максимальных_значений_эталонного_фильтра.xlsx']); 
-    golden_max_width = table2array(golden_max_width(:,2:end));
 
     % Фильтруем эталонный сигнал
     [y_golden_outInt, filter_max_width_out_golden ...
@@ -210,19 +208,7 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
 	%% Дробная задержка отсчетов сигнала с выхода АЦП0
     for i = 1:sim_options.M-1
 
-        % fractional_filter_struct = struct;
-        % filter_max_width_out_fractional = struct;
-
-        fractional_max_width = readtable(['src/width_txt/Разрядность_максимальных_значений_фильтра_дробной_задержки_АЦП_№' num2str(i) '.xlsx']); 
-        fractional_max_width = table2array(fractional_max_width(:,2:end));
-
-        % fractional_mult_file = ['src/width_txt/Width_multiplier_Fractional_filter_' num2str(i) '.txt'];
-        % fractional_sum_file = ['src/width_txt/Width_adder_Fractional_filter_' num2str(i) '.txt'];
-        % 
-        % hilbert_mult_file = ['src/width_txt/Width_multiplier_Hilbert_filter_' num2str(i) '.txt'];
-        % hilbert_sum_file = ['src/width_txt/Width_adder_Hilbert_filter_' num2str(i) '.txt'];
-
-        %% Фильтр дробной задержки (double)
+        % Фильтр дробной задержки (double)
         yri = filter(bandpass_fractional(:,i), 1, adc_input(:,1)); % filter (стр.6 (15))
         % убираем переходной процесс
         yri = [yri(del_proc+1:end); zeros(del_proc,1)]; % убираем переходной процесс
@@ -230,7 +216,9 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
         yri_round = round(yri);
 
         %% Фильтр дробной задержки (Int)
-       [y_fractional_outInt, filter_max_width_out_fractional(i)] = ...
+        fractional_max_width = readtable(['src/width_txt/Разрядность_максимальных_значений_фильтра_дробной_задержки_АЦП_№' num2str(i) '.xlsx']); 
+
+        [y_fractional_outInt, filter_max_width_out_fractional(i)] = ...
             fir_filter(coeff_frac_int(:,i), adc_input(:,1), sim_options.N, fractional_max_width, sim_options.width_fractional, sim_options); % (стр.6 (15)) 
 
         % убираем переходной процесс
@@ -260,10 +248,10 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
         figure(6);
         subplot(5,1,1)
         plot([yri_round(1:900), y_fractional_outInt_double(1:900)]);
-        title('Выходные сигналы фильтров дробной задержки')
-        xlabel('Номер отсчета') 
-        ylabel('Значение отсчета') 
-        legend({'double','int'},'Location','northeast')
+        title('Выходные сигналы фильтров дробной задержки');
+        xlabel('Номер отсчета');
+        ylabel('Значение отсчета'); 
+        legend({'double','int'},'Location','northeast');
         subplot(5,1,2);
         snr(yri, sim_options.Fs_sub_adc);
         subplot(5,1,3);
@@ -272,18 +260,12 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
         snr(y_fractional_outInt_double, sim_options.Fs_sub_adc);
         subplot(5,1,5);
         plot(relative_error_fractional);
-        title('Относительная ошибка выходного сигнала фильтра дробной задержки между double и integer')
-        xlabel('Номер отсчета') 
-        ylabel('Значение ошибки') 
-        x4 = xline(37, '--', 'Переходной процесс фильтра')
-        x4.LabelHorizontalAlignment = 'center'
+        title('Относительная ошибка выходного сигнала фильтра дробной задержки между double и integer');
+        xlabel('Номер отсчета');
+        ylabel('Значение ошибки');
+        x4 = xline(37, '--', 'Переходной процесс фильтра');
+        x4.LabelHorizontalAlignment = 'center';
         x4.LabelVerticalAlignment = 'middle';
-
-        %%
-        % hilbert_filter_struct = struct;
-
-        hilbert_max_width = readtable(['src/width_txt/Разрядность_максимальных_значений_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx']); 
-        hilbert_max_width = table2array(hilbert_max_width(:,2:end));
 
         %% Фильтр Гилберта (Double)
         ymi = filter(bandpass_hilbert.', 1, yri);
@@ -292,6 +274,7 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
         % округляем значения
         ymi_round = round(ymi);
         %% Фильтр Гилберта (Int)
+        hilbert_max_width = readtable(['src/width_txt/Разрядность_максимальных_значений_фильтра_Гилберта_АЦП_№' num2str(i) '.xlsx']); 
 
         [ymi_HilbertInt, filter_max_width_out_hilbert(i)] = ...
             fir_filter(hilbert_coeff_int, y_fractional_outInt_div, sim_options.N, hilbert_max_width, sim_options.width_hilbert, sim_options); % (стр.6 (15)) );
@@ -322,23 +305,23 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
         figure(7);
         subplot(5,1,1)
         plot([ymi_round(1:500), double(ymi_HilbertInt_div(1:500))]);
-        title('Выходные сигналы фильтра Гилберта')
-        xlabel('Номер отсчета') 
-        ylabel('Значение отсчета') 
-        legend({'double','int'},'Location','northeast')
-        subplot(5,1,2);
+        title('Выходные сигналы фильтра Гилберта');
+        xlabel('Номер отсчета'); 
+        ylabel('Значение отсчета');
+        legend({'double','int'},'Location','northeast');
+        subplot(5,1,2)
         snr(ymi, 1000000000);
         subplot(5,1,3);
         snr(ymi_round, 1000000000);
-        subplot(5,1,4);
+        subplot(5,1,4)
         snr(double(ymi_HilbertInt_div), 1000000000);
-        subplot(5,1,5);
+        subplot(5,1,5)
         plot(relative_error_hilbert);
-        title('Относительная ошибка выходного сигнала фильтра Гилберта между double и integer')
-        xlabel('Номер отсчета') 
-        ylabel('Значение ошибки') 
-        x4 = xline(73, '--', 'Переходной процесс фильтра')
-        x4.LabelHorizontalAlignment = 'center'
+        title('Относительная ошибка выходного сигнала фильтра Гилберта между double и integer');
+        xlabel('Номер отсчета'); 
+        ylabel('Значение ошибки'); 
+        x4 = xline(73, '--', 'Переходной процесс фильтра');
+        x4.LabelHorizontalAlignment = 'center';
         x4.LabelVerticalAlignment = 'middle';
 
         %% Перенос сигнала в заданные зоны Найквиста
@@ -361,6 +344,7 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     end
 
     %% Тестируем первую часть алгоритма калибровки
+
     sig_adc_gold = zeros(sim_options.M*length(adc_input(:,1)),1);
     sig_adc = zeros(sim_options.M*length(yri_cut(:,1)),1);
     sig_adc_int = zeros(sim_options.M*length(yri_cut_int(:,1)),1);
@@ -371,15 +355,26 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     end
     % 
     % save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             11             25             17             39          22.88.mat'); 
+    % load ('2025             12              9             16              5         52.021.mat'); 
+    % sim_options.enable_mask = true;
+    sim_options.enable_log = false;
 
     figure(8);
     subplot(3,1,1)
-    plot([sig_adc_gold(1:750), sig_adc(1:750)]);
+    plot(s_to_subadc_int(1:750));
+    title('Исходный сигнал');
+    xlabel('Номер отсчета'); 
+    ylabel('Амплитуда')
     subplot(3,1,2)
     plot([sig_adc(1:750), sig_adc_int(1:750)]);
+    title('Сигнал после фильтров double и int');
+    xlabel('Номер отсчета'); 
+    ylabel('Амплитуда')
     subplot(3,1,3)
     plot(sig_adc ./ sig_adc_int);
+    title('Относительная ошибка double и int');
+    xlabel('Номер отсчета'); 
+    ylabel('Величина ошибки')
 
     figure(9);
     subplot(4,1,1)
@@ -413,11 +408,8 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
         adaptive_max_width = readtable(['src/width_txt/Разрядность_максимальных_значений_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx']); 
         read_max_width.adaptive_max_width = table2array(adaptive_max_width(:,2:end));
 
-        [y_array(:,i), y_array_double(:,i), y_array_int(:,i), DetM_2x2_array(:,i), DetM_2x2_array_int(:,i), ...
-			determinate_struct(i), ...
-            Divide_max(i), ...
-            adaptive_filter_struct_max(i) ...
-        ] = least_mean_squares(adc_input(:,i+1), yri_cut(:,i+1), yri_cut_int(:,i+1), read_max_width, sim_options);
+        [y_array(:,i), y_array_double(:,i), y_array_int(:,i), determinate_struct(i), Divide_max(i), adaptive_filter_struct_max(i) ...
+            ] = least_mean_squares(adc_input(:,i+1), yri_cut(:,i+1), yri_cut_int(:,i+1), read_max_width, sim_options);
         
    end
 
@@ -439,23 +431,23 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     end
 
     figure(11);
-    subplot(3,1,1)
-    plot([s_to_subadc_int(1:500), x_after_adc(1:500)]);
-    title('Исходный сигнал и выход алгоритма LU')
-    xlabel('Номер отсчета') 
-    ylabel('Амплитуда') 
-    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра double'},'Location','northeast')
-    subplot(3,1,2)
+    subplot(3,1,1);
+    plot([s_to_subadc_int(1:600), x_after_adc(1:600)]);
+    title('Исходный сигнал и выход алгоритма LU');
+    xlabel('Номер отсчета'); 
+    ylabel('Амплитуда'); 
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра double'},'Location','northeast');
+    subplot(3,1,2);
     plot([s_to_subadc_int(1:600), x_after_adc_double(1:600)]);
-    title('Исходный сигнал и выход адаптивного фильтра double')
-    xlabel('Номер отсчета') 
-    ylabel('Амплитуда') 
-    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра '},'Location','northeast')
-    subplot(3,1,3)
-    plot([s_to_subadc_int(1:500), x_after_adc_int(1:500)]);
-    title('Исходный сигнал и выход адаптивного фильтра int')
-    xlabel('Номер отсчета') 
+    title('Исходный сигнал и выход адаптивного фильтра double');
+    xlabel('Номер отсчета'); 
+    ylabel('Амплитуда'); 
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра '},'Location','northeast');
+    subplot(3,1,3);
+    plot([s_to_subadc_int(1:600), x_after_adc_int(1:600)]);
+    title('Исходный сигнал и выход адаптивного фильтра int');
+    xlabel('Номер отсчета'); 
     ylabel('Амплитуда');
-    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра int'},'Location','northeast')
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра int'},'Location','northeast');
 
 end

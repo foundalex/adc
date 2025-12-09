@@ -363,7 +363,7 @@ for num = 1:sim_options.num_cycles
     end
 
     %% SFDR
-    figure(8);
+    figure(12);
     subplot(5,1,1);
     sfdr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,2);
@@ -375,7 +375,7 @@ for num = 1:sim_options.num_cycles
     subplot(5,1,5);
     sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     %% SNR
-    figure(9);
+    figure(13);
     subplot(5,1,1);
     snr(s_to_subadc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,2);
@@ -506,7 +506,7 @@ if sim_options.enable_mask == false
 
         % формируем таблицу определителя
         T10 = table(Multipliers_2x2, Adders_2x2, Multipliers_3x3, Pre_sum_3x3, Sum_3x3, Multipliers_4x4, Pre_sum_4x4, Sum4x4, Mult5x5, Pre_sum1_5x5, Pre_sum2_5x5, Det_5x5, 'RowNames', num_determinante);
-        writetable(T10,['src/width_txt/Максимальные_значения_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        writetable(T10,['src/width_txt/Максимальные_значения_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true);  
 
 
         for j = 1:length(num_determinante)
@@ -530,7 +530,7 @@ if sim_options.enable_mask == false
         % формируем таблицу разрядностей определителя 
         T11 = table(width_mult_det2x2, width_sum_det2x2, width_mult_det3x3, width_presum_det3x3, width_sum_det3x3, width_mult_det4x4, width_presum_det4x4, ...
             width_sum_det4x4, width_mult_det5x5, width_presum1_det5x5, width_presum2_det5x5, width_sum_det5x5, 'RowNames', num_determinante);
-        writetable(T11,['src/width_txt/Разрядность_максимальных_значений_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        writetable(T11,['src/width_txt/Разрядность_максимальных_значений_определителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true);  
 
         %% Запись данных для делителя
         Dividend = Det_5x5(1,1);
@@ -538,7 +538,7 @@ if sim_options.enable_mask == false
         Quotient = Divide_max_in_cycle(:,i);
         % формируем таблицу делителя
         T12 = table(Dividend, Divisor, Quotient, 'RowNames', num_divide);
-        writetable(T12,['src/width_txt/Максимальные_значения_делителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        writetable(T12,['src/width_txt/Максимальные_значения_делителя_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true); 
         
         %% Запись данных для адаптивного фильтра
 
@@ -570,25 +570,25 @@ if sim_options.enable_mask == false
 
         % формируем таблицу разрядностей адаптивного фильтра
         T15 = table(width_mult_adaptive, width_sum1_adaptive, width_sum2_adaptive, width_sum3_adaptive, 'RowNames', num_adaptive);
-        writetable(T15,['src/width_txt/Разрядность_максимальных_значений_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true)  
+        writetable(T15,['src/width_txt/Разрядность_максимальных_значений_адаптивного_фильтра_АЦП_№' num2str(i) '.xlsx'],'WriteRowNames',true);  
 
     end
 end
 
 %% Итоговый график SNR и SFDR каждой итерации алгоритма
-figure(10);
+figure(14);
 subplot(2,1,1)
 plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_lu, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
-title('SNR')
-xlabel('Нормированная частота') 
-ylabel('SNR (dB)') 
+title('SNR');
+xlabel('Нормированная частота'); 
+ylabel('SNR (dB)'); 
 legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 % 
 subplot(2,1,2)
 plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_lu, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
-title('SFDR (dB)')
-xlabel('Нормированная частота') 
-ylabel('SFDR (dB)') 
+title('SFDR (dB)');
+xlabel('Нормированная частота'); 
+ylabel('SFDR (dB)'); 
 legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
 %% Measurements2
@@ -623,3 +623,7 @@ stop_time = clock;
 elapsed_time = etime(stop_time,start_time);
 
 fprintf('Simulation duration: %g seconds\n',elapsed_time);
+
+if (sim_options.enable_log == true)
+    diary off;
+end
