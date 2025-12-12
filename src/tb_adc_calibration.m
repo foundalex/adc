@@ -371,7 +371,7 @@ for num = 1:sim_options.num_cycles
     subplot(5,1,3);
     sfdr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,4);
-    sfdr(x_after_adc_double(1:length(x_after_adc_double)), sim_options.Fs/sim_options.Inter);
+    sfdr(x_after_adc_double(2000:length(x_after_adc_double)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,5);
     sfdr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     %% SNR
@@ -383,9 +383,9 @@ for num = 1:sim_options.num_cycles
     subplot(5,1,3);
     snr(x_after_adc(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,4);
-    snr(x_after_adc_double(100:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    snr(x_after_adc_double(2000:length(x_after_adc_double)), sim_options.Fs/sim_options.Inter);
     subplot(5,1,5);
-    snr(x_after_adc_int(100:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
+    snr(x_after_adc_int(1:length(x_after_adc)), sim_options.Fs/sim_options.Inter);
     %% 
     snr_in_int(num) = snr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
     snr_output_lu(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);

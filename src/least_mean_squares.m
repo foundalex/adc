@@ -5,8 +5,13 @@ bb = 0;
 vv = 0;
 kk = 0;
 nn = 0;
+tt = 0;
+data_outd = 0; % zeros(10,1);
+data_outd1 = 0;
 
-x3 = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), "double");                     
+sizee = 5;
+tk = 0;
+x3 = cast(zeros(5,sim_options.Size_matrix), "double");                     
 x3_int = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_fir_out); 
 
 determinate_struct = struct;
@@ -65,169 +70,364 @@ adaptive_filter_struct_max.Adaptive_filter_mult_total_width = cast(zeros(sim_opt
 adaptive_filter_struct_max.Adaptive_filter_sum_array_max = cast(zeros(sim_options.Size_matrix*2,3),sim_options.type_add_in_adaptive_filter);
 adaptive_filter_struct_max.Adaptive_filter_sum_total_width = cast(zeros(sim_options.Size_matrix*2,3),sim_options.type_add_in_adaptive_filter);
 
-for j = 1:sim_options.Size_matrix:length(yri_cut(:,1))-sim_options.Size_matrix+1 
+buffer = zeros(1,5);
+zf = zeros(1,4);
+for j = 1:floor(length(yri_cut(:,1))/5) 
 
     % Создаем матрицу 5х5 из отсчетов сигнала
-    x3(1,:) = adc_input(j:sim_options.Size_matrix+j-1);
-    x3(2,:) = adc_input(j+1:sim_options.Size_matrix+j);
-    x3(3,:) = adc_input(j+2:sim_options.Size_matrix+j+1);
-    x3(4,:) = adc_input(j+3:sim_options.Size_matrix+j+2);
-    x3(5,:) = adc_input(j+4:sim_options.Size_matrix+j+3);
+    % x3(1,:) = adc_input(1:5);
+    % x3(2,:) = adc_input(6:10);
+    % x3(3,:) = adc_input(11:15);
+    % x3(4,:) = adc_input(16:20);
+    % x3(5,:) = adc_input(21:25);
 
-    x3_int(1,:) = adc_input(j:sim_options.Size_matrix+j-1);
-    x3_int(2,:) = adc_input(j+1:sim_options.Size_matrix+j);
-    x3_int(3,:) = adc_input(j+2:sim_options.Size_matrix+j+1);
-    x3_int(4,:) = adc_input(j+3:sim_options.Size_matrix+j+2);
-    x3_int(5,:) = adc_input(j+4:sim_options.Size_matrix+j+3);
+    x3(1,:) = adc_input(sim_options.Size_matrix*j:-1:sim_options.Size_matrix*(j-1)+1);
+    x3(2,:) = adc_input(sim_options.Size_matrix*j+1:-1:sim_options.Size_matrix*(j-1)+2);
+    x3(3,:) = adc_input(sim_options.Size_matrix*j+2:-1:sim_options.Size_matrix*(j-1)+3);
+    x3(4,:) = adc_input(sim_options.Size_matrix*j+3:-1:sim_options.Size_matrix*(j-1)+4);
+    x3(5,:) = adc_input(sim_options.Size_matrix*j+4:-1:sim_options.Size_matrix*(j-1)+5);
+
+    er = [sim_options.Size_matrix*j:-1:sim_options.Size_matrix*(j-1)+1; sim_options.Size_matrix*j+1:-1:sim_options.Size_matrix*(j-1)+2; ...
+        sim_options.Size_matrix*j+2:-1:sim_options.Size_matrix*(j-1)+3; sim_options.Size_matrix*j+3:-1:sim_options.Size_matrix*(j-1)+4; ...
+        sim_options.Size_matrix*j+4:-1:sim_options.Size_matrix*(j-1)+5];
+
+%     x3(5,:) = adc_input(j+4:sim_options.Size_matrix+j+3);
+% x3(6,:) = adc_input(j+5:sim_options.Size_matrix+j+4);
+% x3(7,:) = adc_input(j+6:sim_options.Size_matrix+j+5);
+% x3(8,:) = adc_input(j+7:sim_options.Size_matrix+j+6);
+% x3(9,:) = adc_input(j+8:sim_options.Size_matrix+j+7);
+% x3(10,:) = adc_input(j+9:sim_options.Size_matrix+j+8);
+
+    % 
+    % x3_int(1,:) = adc_input(j:sim_options.Size_matrix+j-1);
+    % x3_int(2,:) = adc_input(j+1:sim_options.Size_matrix+j);
+    % x3_int(3,:) = adc_input(j+2:sim_options.Size_matrix+j+1);
+    % x3_int(4,:) = adc_input(j+3:sim_options.Size_matrix+j+2);
+    % x3_int(5,:) = adc_input(j+4:sim_options.Size_matrix+j+3);
+
+    % for i = 1:sim_options.Size_matrix
+    %     if j == 1
+    %         % создаем матрицу входного сигнала
+    %         x3(i,:) = adc_input(i:sim_options.Size_matrix+i-1).'; % (стр.6, (20))
+	%         x3_int(i,:) = adc_input(i:sim_options.Size_matrix+i-1).'; % fi(1,12,11)
+    %     else
+    %         % shift to left matrix input signal. Refresh matrix input signal for every new word
+    %         x3(i,:) = [x3(i,2:sim_options.Size_matrix), 0];
+    %         x3(i,sim_options.Size_matrix) = adc_input(j-1+sim_options.Size_matrix-1+i); % (стр.6, (20))
+    % 
+    %         x3_int(i,:) = [x3_int(i,2:sim_options.Size_matrix), 0]; % integer
+    %         x3_int(i,sim_options.Size_matrix) = adc_input(j-1+sim_options.Size_matrix-1+i); 
+    %     end
+	% end
+
+    A = x3' * x3;
+    det_A = det(A);
+    if (det_A == 0)
+        det_A = 1;
+    end
+    % ee = 10;
+    % Создаем матрицу 5х5 из отсчетов сигнала
+    % x311(1,:) = adc_input(j:sim_options.Size_matrix+j-1);
+    % for i = 1:ee-1
+    %     x311(i+1,:) = adc_input(j+i:sim_options.Size_matrix+j+(i-1));
+    % end    
 
     %% Поиск определителя матрицы, состоящей из отсчетов сигнала с i-го суб-АЦП
-    det_matlab(j) = det(x3);
-    if (det_matlab(j) == 0)
-        det_matlab(j) = 1;
-        disp('Determinant LU x3 equal 0');
-    end
+    % tt = tt + 1;
+    % det_matlab(tt) = det(x3);
+    % if (det_matlab(tt) == 0)
+    %     det_matlab(tt) = 1;
+    %     disp('Determinant LU x3 equal 0');
+    % end
 
-    % x31 = x3 * x3';
-	[det_x3(j), det_x3_int(j), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
-        ] = determinate(x3, x3_int, read_max_width.det_max_width, sim_options); % int
+    % x31 = double(x311') * double(x311);
 
-    % det_x3_int(j) = bitshift(det_x3_int(j),-2);
-    % det_x31 = sqrt(det_x3(j));
+	% [det_x3(tt), det_x3_int(tt), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
+    %     ] = determinate(x3, x3_int, read_max_width.det_max_width, sim_options); % int
 
-	DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
-	DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
-	Det_2x2_LU_matlab_array(bb+1:bb+10) = Det_2x2_LU_matlab;
-	
-	DetM_3x3_array_int(bb+1:bb+10) = s.DetM_3x3_int_sum_array;
-	DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
-	Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
+    % det_x31(tt) = det(x31);
+    % if (det_x31(tt) == 0)
+    %     det_x31(tt) = 1;
+    %     disp('Determinant x31 equal 0');
+    % end
 
-	DetM_4x4_array_int(vv+1:vv+5) = s.DetM_4x4_int_sum_array;
-	DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
-	Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
-
-	bb = bb + 10;
-	vv = vv + 5;
+	% DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
+	% DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
+	% Det_2x2_LU_matlab_array(bb+1:bb+10) = Det_2x2_LU_matlab;
+    % 
+	% DetM_3x3_array_int(bb+1:bb+10) = s.DetM_3x3_int_sum_array;
+	% DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
+	% Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
+    % 
+	% DetM_4x4_array_int(vv+1:vv+5) = s.DetM_4x4_int_sum_array;
+	% DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
+	% Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
+    % 
+	% bb = bb + 10;
+	% vv = vv + 5;
 
 	% Запись в структуру максимальных значений сумматоров и множителей
     % определителя
-	determinate_struct = compare_determinante(s, determinate_struct, sim_options);
+	% determinate_struct = compare_determinante(s, determinate_struct, sim_options);
+
 	
 	for i = 1:sim_options.Size_matrix
+        
         % Добавляем в матрицу столбец эталонного сигнала с фильтра дробной
         % задержки
 		kk = kk + 1;
+        % 
+        % if j == 1
+		% 	% x3_shift = x3;
+		% 	% x3_shift(1:sim_options.Size_matrix,i) = yri_cut(j:j+sim_options.Size_matrix-1);
+        % 
+        %     x3_shift = x3_55;
+        %     a1 = x3_55 * yri_cut(1:sim_options.Size_matrix);
+		% 	x3_shift(1:sim_options.Size_matrix,i) = a1;
+        % 
+		% 	% x3_shift_int = x3_int;
+		% 	% x3_shift_int(1:sim_options.Size_matrix,i) = yri_cut_int(1:sim_options.Size_matrix); 
+        % 
+		% 	w1 = lsqminnorm(x3_55, yri_cut(1:sim_options.Size_matrix));
+        % else
+        % 
+	    %     % x3_shift = x3;
+		% 	% x3_shift(1:sim_options.Size_matrix,i) = yri_cut(j:j+sim_options.Size_matrix-1);
+        %     % 
+        %     x3_shift = x3_55; % double
+		% 	x3_shift(1:sim_options.Size_matrix,i) = yri_cut(j:sim_options.Size_matrix+j-1); 
+        % 
+		% 	% x3_shift_int = x3_int; % int
+		% 	% x3_shift_int(1:sim_options.Size_matrix,i) = yri_cut_int(j:sim_options.Size_matrix+j-1); 
+        % 
+		% 	% w1 = lsqminnorm(x3, yri_cut(j:sim_options.Size_matrix+j-1));
+        % end
 
-		x3_shift = x3;
-		x3_shift(1:sim_options.Size_matrix,i) = yri_cut(j:j+sim_options.Size_matrix-1);
+        B = A;
+        a1 = x3' * yri_cut(sim_options.Size_matrix*(j-1)+1:sim_options.Size_matrix*j);
+		B(1:5,i) = a1;
 
-        % x3_shift1 = x3_shift * x3_shift';
+        det_B = det(B);
+        if (det_B == 0)
+            det_B = 1;
+        end
 
-		x3_shift_int = x3_int;
-		x3_shift_int(1:sim_options.Size_matrix,i) = yri_cut_int(j:j+sim_options.Size_matrix-1); 
+        w(i,:) = det_B / det_A; 
+        % w1 = lsqminnorm(A, yri_cut(j:sim_options.Size_matrix+j-1));
 
-		w1 = lsqminnorm(x3, yri_cut(j:sim_options.Size_matrix+j-1));
+
+		% x3_shift = x3;
+		% x3_shift(1:sim_options.Size_matrix,i) = yri_cut(j:j+sim_options.Size_matrix-1);
+
+        % x3_shift1 = x31;
+        % a1 = double(x311') * yri_cut(j:j+(ee-1));
+        % x3_shift1(1:sim_options.Size_matrix,i) = a1;
+
+		% x3_shift_int = x3_int;
+		% x3_shift_int(1:sim_options.Size_matrix,i) = yri_cut_int(j:j+sim_options.Size_matrix-1); 
+        % 
+		% w1 = lsqminnorm(x3, yri_cut(j:sim_options.Size_matrix+j-1));
 		%% Поиск определителя
 
         % функция матлаб
-		det_x3_shift(kk) = det(x3_shift);
-        if (det_x3_shift(kk) == 0)
-            det_x3_shift(kk) = 1;
-            disp('Determinant LU x3_shift equal 0');
-        end
+		% det_x3_shift(kk) = det(x3_shift);
+        % if (det_x3_shift(kk) == 0)
+        %     det_x3_shift(kk) = 1;
+        %     disp('Determinant LU x3_shift equal 0');
+        % end
 
         % собственная функция
-		[det_out_shift(kk), det_out_shift_int(kk), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
-            ] = determinate(x3_shift, x3_shift_int, read_max_width.det_max_width, sim_options);
+		% [det_out_shift(kk), det_out_shift_int(kk), DetM_2x2, Det_2x2_LU_matlab, DetM_3x3_array, Det_3x3_LU_matlab, DetM_4x4_array, Det_4x4_LU_matlab, s...
+        %     ] = determinate(x3_shift, x3_shift_int, read_max_width.det_max_width, sim_options);
 
         % det_out_shift_int(kk) = bitshift(det_out_shift_int(kk),-2); 
-        % det_x31_shift = sqrt(det_out_shift(kk));
 
-		DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
-		DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
-		Det_2x2_LU_matlab_array(bb+1:bb+10) = Det_2x2_LU_matlab;
-	
-		DetM_3x3_array_int(bb+1:bb+10) = s.DetM_3x3_int_sum_array;
-		DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
-		Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
-	
-		DetM_4x4_array_int(vv+1:vv+5) = s.DetM_4x4_int_sum_array;
-		DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
-		Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
+        % det_x31_shift(kk) = det(x3_shift1);
+        % if (det_x31_shift(kk) == 0)
+        %     % if (det_x31_shift(kk-1) == -1)
+        %         det_x31_shift(kk) = 1;
+        %     % else
+        %     %     det_x31_shift(kk) = -1;
+        %     % end
+        %     disp('Determinant x31_shift1 equal 0');
+        % end
 
-		bb = bb + 10;
-		vv = vv + 5;
+		% DetM_2x2_array(bb+1:bb+10) = DetM_2x2;
+		% DetM_2x2_array_int(bb+1:bb+10) = s.Det2x2_sum_abs;
+		% Det_2x2_LU_matlab_array(bb+1:bb+10) = Det_2x2_LU_matlab;
+        % 
+		% DetM_3x3_array_int(bb+1:bb+10) = s.DetM_3x3_int_sum_array;
+		% DetM_3x3_array_dd(bb+1:bb+10) = DetM_3x3_array;
+		% Det_3x3_LU_matlab_array(bb+1:bb+10) = Det_3x3_LU_matlab;
+        % 
+		% DetM_4x4_array_int(vv+1:vv+5) = s.DetM_4x4_int_sum_array;
+		% DetM_4x4_array_dd(vv+1:vv+5) = DetM_4x4_array;
+		% Det_4x4_LU_matlab_array(vv+1:vv+5) = Det_4x4_LU_matlab;
+        % 
+		% bb = bb + 10;
+		% vv = vv + 5;
 
         % Запись в структуру максимальных значений сумматоров и множителей
         % определителя
-		determinate_struct = compare_determinante(s, determinate_struct, sim_options);
+		% determinate_struct = compare_determinante(s, determinate_struct, sim_options);
 
 		%% Деление определителя матрицы с эталонным сигналом на определитель матрицы сигнала с i-го суб-АЦП
         % для получения коэффициентов адаптивного фильтра
-        www1(i,:) = det_x3_shift(kk) ./ det_matlab(j); 
+        % www1(i,:) = det_x3_shift(kk) ./ det_matlab(tt); 
+        % www2(i,:) = det_x31_shift(kk) ./ det_x31(tt);
         % double
-        [www1_double(i,:), overflow_divide_double(i,:), www1_double_abs(i,:), width_total_double(i,:)] = ...
-            divide(det_out_shift(kk), det_x3(j), "double", "double", 64, 64, "double", sim_options.divide_factor);
-        % int
-		[www1_int(i,:), overflow_divide_int(i,:), www1_int_abs(i,:), width_total_int(i,:)] = ...
-            divide(det_out_shift_int(kk), det_x3_int(j), sim_options.type_5x5_det, sim_options.type_5x5_det, 64, 64, sim_options.type_divide_out, sim_options.divide_factor); % int
-
-        if (overflow_divide_int(i,:) == 1)
-            disp('Переполнение делителя');
-            disp({sim_options.SNR, sim_options.freq});
-            disp({www1_int(i,:), det_out_shift_int(kk), int64(det_x3_int(j))});
-        end
-
-        % находим макс.значение выхода делителя
-        if Divide_max < (www1_int_abs(i,:)) 
-            Divide_max = www1_int_abs(i,:);
-        end
+        % [www1_double(i,:), overflow_divide_double(i,:), www1_double_abs(i,:), width_total_double(i,:)] = ...
+        %     divide(det_out_shift(kk), det_x3(tt), "double", "double", 64, 64, "double", sim_options.divide_factor);
+        % % int
+		% [www1_int(i,:), overflow_divide_int(i,:), www1_int_abs(i,:), width_total_int(i,:)] = ...
+        %     divide(det_out_shift_int(kk), det_x3_int(tt), sim_options.type_5x5_det, sim_options.type_5x5_det, 64, 64, sim_options.type_divide_out, sim_options.divide_factor); % int
+        % 
+        % if (overflow_divide_int(i,:) == 1)
+        %     disp('Переполнение делителя');
+        %     disp({sim_options.SNR, sim_options.freq});
+        %     disp({www1_int(i,:), det_out_shift_int(kk), int64(det_x3_int(tt))});
+        % end
+        % 
+        % % находим макс.значение выхода делителя
+        % if Divide_max < (www1_int_abs(i,:)) 
+        %     Divide_max = www1_int_abs(i,:);
+        % end
     end
+
+    y = x3 * w;
+    % y1 = filter(w, 1, double(adc_input(j:j+9)));
 
 	%% Адаптивный фильтр
-    y_outd = w1(1).*x3(:,1)+w1(2).*x3(:,2)+w1(3).*x3(:,3)+w1(4).*x3(:,4)+w1(5).*x3(:,5);
+    % y_outd = 1; % w1(1).*x3(:,1)+w1(2).*x3(:,2)+w1(3).*x3(:,3)+w1(4).*x3(:,4)+w1(5).*x3(:,5);
+    % 
+    % x3_int_c = cast(x3_int, sim_options.type_mult_in_adaptive_filter);
+    % www1_int_c = cast(www1_int, sim_options.type_mult_in_adaptive_filter);
 
-    x3_int_c = cast(x3_int, sim_options.type_mult_in_adaptive_filter);
-    www1_int_c = cast(www1_int, sim_options.type_mult_in_adaptive_filter);
+    % [y_out, y_out_int, adaptive_filter_structure] = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, read_max_width.adaptive_max_width, sim_options);
 
-    [y_out, y_out_int, adaptive_filter_structure] = adaptive_filter(x3, www1_double, x3_int_c, www1_int_c, read_max_width.adaptive_max_width, sim_options);
+    % data_outd = www2(1).*x3(:,1)+www2(2).*x3(:,2)+www2(3).*x3(:,3)+www2(4).*x3(:,4)+www2(5).*x3(:,5);
 
-    % data_outd = www1_double(1).*x31(:,1)+www1_double(2).*x31(:,2)+www1_double(3).*x31(:,3)+www1_double(4).*x31(:,4)+www1_double(5).*x31(:,5);
-    y_out_double =round(y_out * 2^-sim_options.divide_factor);
+    % for f = 1:5
+    %     if (data_outd(f) > 2500)
+    %         ew = 1;
+    %     end
+    % end
+    % y_out_double =round(y_out * 2^-sim_options.divide_factor);
 
     % округление значений после фильтра
-    y_out_int_shift = round_int(y_out_int, sim_options.divide_factor, sim_options.type_fir_out);
+    % y_out_int_shift = 1; %round_int(y_out_int, sim_options.divide_factor, sim_options.type_fir_out);
 
 
-	%% определяем макс. значения
-	for n = 1:sim_options.Size_matrix*sim_options.Size_matrix
-		% определяем максимальное значение на каждом умножителе
-		if adaptive_filter_struct_max.Adaptive_filter_mult_array_max(n) < adaptive_filter_structure.mult_int_abs(n) 
-			adaptive_filter_struct_max.Adaptive_filter_mult_array_max(n) = adaptive_filter_structure.mult_int_abs(n); 
-        end
-		% определяем максимальную разрядность умножителей
-		if adaptive_filter_struct_max.Adaptive_filter_mult_total_width(n) < adaptive_filter_structure.mult_int_total_width(n) 
-			adaptive_filter_struct_max.Adaptive_filter_mult_total_width(n) = adaptive_filter_structure.mult_int_total_width(n);
-        end
-    end
+    %% adaptive filter
+    % [qwe, filter_max_width_out_adaptive(i)] = ...
+    %         fir_filter(www1, double(adc_input(1:5)), 5, read_max_width.adaptive_max_width, sim_options.width_hilbert, sim_options); % (стр.6 (15)) 
 
-    for n = 1:sim_options.Size_matrix*2
-        for k = 1:3
-		    % определяем максимальное значение сумматоров
-		    if adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) < adaptive_filter_structure.sum_array_out(n,k)
-			    adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) = adaptive_filter_structure.sum_array_out(n,k);
+ if j == 1
+       buffer = [double(adc_input(4:-1:1))' 0];
+ 
+       for n = 1:5
+
+            buffer = [double(adc_input(n+4)) buffer(1:end-1)];
+
+            for i = 1:5
+                y_mult(i,n) = w(i) * buffer(i);
             end
-            % определяем максимальную разрядность сумматоров
-		    if adaptive_filter_struct_max.Adaptive_filter_sum_total_width(n,k) < adaptive_filter_structure.sum_int_width_total(n,k) 
-			    adaptive_filter_struct_max.Adaptive_filter_sum_total_width(n,k) = adaptive_filter_structure.sum_int_width_total(n,k);
-            end
-        end 
-    end
 
-	y_array(nn+1:nn+sim_options.Size_matrix,:) = y_outd;
-    y_array_double(nn+1:nn+sim_options.Size_matrix,:) = y_out_double;
-	y_array_int(nn+1:nn+sim_options.Size_matrix,:) = y_out_int_shift;
-    nn = nn + sim_options.Size_matrix;
+            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+
+            for i = 1:3
+                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+            end
+
+       end
+ else
+        for n = 1:5
+
+            buffer = [double(adc_input(4+nn+n)) buffer(1:end-1)];
+
+            for i = 1:5
+                y_mult(i,n) = w(i) * buffer(i);
+            end
+
+            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+
+            for i = 1:3
+                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+            end
+        end
+
+ end
+
+
+y1 = y_add(4,:)';
+
+
+for t = 1:5
+    if y1(t) ~= y(t)
+        disp('Alarm!')
+    end
+end
+    
+        % if j == 1
+        %     [y11, zf] = filter(w, 1, input, input(4:-1:1));
+        % else
+        %     [y11, zf] = filter(w, 1, input, zf);
+        % end
+
+    % for k = 1:sim_options.Size_matrix
+    %     if j == 1
+    %         data_outd = data_outd + w1(k) * double(adc_input(k)); % (стр 5, (13))
+    %         data_outd1 = data_outd1 + www1_double(k) * double(adc_input(k)); % (стр 5, (13))
+    %         % dat_in_filt_double(k) = adc_input(k);
+    %         % dat_in_filt(k) = cast(adc_input(k),"double");
+    %     else
+    %         data_outd = 0;
+    %         data_outd1 = 0;
+	% 	    % filter input signal. Mult input words on coeff
+	% 	    for k = 1:sim_options.Size_matrix
+	% 		    data_outd = data_outd + w1(k) * double(adc_input(j-1+k)); % (стр 5, (13))
+    %             data_outd1 = data_outd1 + www1_double(k) * double(adc_input(j-1+k)); % (стр 5, (13))
+	% 		    % dat_in_filt_double(k) = adc_input(j-1+k);
+	% 		    % dat_in_filt(k) = cast(adc_input(j-1+k), "double");
+    %         end
+    %     end
+    % end 
+    % % end
+
+    % if (data_outd > 2500)
+    %     ew = 1;
+    % end
+
+	% %% определяем макс. значения
+	% for n = 1:sim_options.Size_matrix*sim_options.Size_matrix
+	% 	% определяем максимальное значение на каждом умножителе
+	% 	if adaptive_filter_struct_max.Adaptive_filter_mult_array_max(n) < adaptive_filter_structure.mult_int_abs(n) 
+	% 		adaptive_filter_struct_max.Adaptive_filter_mult_array_max(n) = adaptive_filter_structure.mult_int_abs(n); 
+    %     end
+	% 	% определяем максимальную разрядность умножителей
+	% 	if adaptive_filter_struct_max.Adaptive_filter_mult_total_width(n) < adaptive_filter_structure.mult_int_total_width(n) 
+	% 		adaptive_filter_struct_max.Adaptive_filter_mult_total_width(n) = adaptive_filter_structure.mult_int_total_width(n);
+    %     end
+    % end
+
+    % for n = 1:sim_options.Size_matrix*2
+    %     for k = 1:3
+	% 	    % определяем максимальное значение сумматоров
+	% 	    if adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) < adaptive_filter_structure.sum_array_out(n,k)
+	% 		    adaptive_filter_struct_max.Adaptive_filter_sum_array_max(n,k) = adaptive_filter_structure.sum_array_out(n,k);
+    %         end
+    %         % определяем максимальную разрядность сумматоров
+	% 	    if adaptive_filter_struct_max.Adaptive_filter_sum_total_width(n,k) < adaptive_filter_structure.sum_int_width_total(n,k) 
+	% 		    adaptive_filter_struct_max.Adaptive_filter_sum_total_width(n,k) = adaptive_filter_structure.sum_int_width_total(n,k);
+    %         end
+    %     end 
+    % end
+
+	y_array(nn+1:nn+sizee,:) = 1;
+    y_array_double(nn+1:nn+sizee,:) = y1;
+	y_array_int(nn+1:nn+sizee,:) = 1;
+    nn = nn + 5;
+    tk = tk + 5;
 
 end
 

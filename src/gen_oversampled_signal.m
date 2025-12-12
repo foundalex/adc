@@ -56,7 +56,7 @@ function [s_to_subadc, adc_input_int, s_after_subadc, Z] = gen_oversampled_signa
     adc_input_int(:,1) = s_int(:,1);
     if sim_options.MODEL_ERROR == true
         for i = 1:sim_options.M-1 
-            adc_input_int(:,i+1) = int16(fi((s_int(:,i+1)) * sim_options.gain_error_array(i),1,12,0));
+            adc_input_int(:,i+1) = int16(fi(double(s_int(:,i+1)) * sim_options.gain_error_array(i),1,12,0));
         end
     end
 
@@ -97,7 +97,7 @@ function [s_to_subadc, adc_input_int, s_after_subadc, Z] = gen_oversampled_signa
     Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     % save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             12              9             16              1          56.94.mat'); 
+    % load ('2025             12             10             12             11           0.16.mat'); 
 
     figure(2);
     subplot(2,1,1)
