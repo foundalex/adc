@@ -312,51 +312,51 @@ for j = 1:floor(length(yri_cut(:,1))/ee)
     % [qwe, filter_max_width_out_adaptive(i)] = ...
     %         fir_filter(www1, double(adc_input(1:5)), 5, read_max_width.adaptive_max_width, sim_options.width_hilbert, sim_options); % (стр.6 (15)) 
 
- % if j == 1
- %       buffer = [double(adc_input(4:-1:1))' 0];
- % 
- %       for n = 1:5
- % 
- %            buffer = [double(adc_input(n+4)) buffer(1:end-1)];
- % 
- %            for i = 1:5
- %                y_mult(i,n) = w(i) * buffer(i);
- %            end
- % 
- %            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
- % 
- %            for i = 1:3
- %                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
- %            end
- % 
- %       end
- % else
- %        for n = 1:5
- % 
- %            buffer = [double(adc_input(4+nn+n)) buffer(1:end-1)];
- % 
- %            for i = 1:5
- %                y_mult(i,n) = w(i) * buffer(i);
- %            end
- % 
- %            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
- % 
- %            for i = 1:3
- %                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
- %            end
- %        end
- % 
- % end
+ if j == 1
+       buffer = [double(adc_input(4:-1:1))' 0];
+
+       for n = 1:ee
+
+            buffer = [double(adc_input(n+4)) buffer(1:end-1)];
+
+            for i = 1:5
+                y_mult(i,n) = w(i) * buffer(i);
+            end
+
+            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+
+            for i = 1:3
+                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+            end
+
+       end
+ else
+        for n = 1:ee
+
+            buffer = [double(adc_input(4+tk+n)) buffer(1:end-1)];
+
+            for i = 1:5
+                y_mult(i,n) = w(i) * buffer(i);
+            end
+
+            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+
+            for i = 1:3
+                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+            end
+        end
+
+ end
 
 
-y1 = 1;% y_add(4,:)';
+y1 = y_add(4,:)';
 
 
-% for t = 1:5
-%     if y1(t) ~= y(t)
-%         disp('Alarm!')
-%     end
-% end
+for t = 1:ee
+    if y1(t) ~= y(t)
+        disp('Alarm!')
+    end
+end
     
         % if j == 1
         %     [y11, zf] = filter(w, 1, input, input(4:-1:1));
@@ -414,8 +414,8 @@ y1 = 1;% y_add(4,:)';
     % end
 
 	y_array(tk+1:tk+ee,:) = y;
-    y_array_double(nn+1:nn+sizee,:) = y1;
-	y_array_int(nn+1:nn+sizee,:) = 1;
+    y_array_double(tk+1:tk+ee,:) = y1;
+	y_array_int(tk+1:tk+ee,:) = 1;
     nn = nn + 5;
     tk = tk + ee;
 
