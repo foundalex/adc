@@ -432,19 +432,25 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     end
 
     figure(11);
-    subplot(3,1,1);
+    subplot(4,1,1);
     plot([s_to_subadc_int(1:600), s_after_subadc(1:600), x_after_adc(1:600)]);
     title('Исходный сигнал и выход алгоритма LU');
     xlabel('Номер отсчета'); 
     ylabel('Амплитуда'); 
     legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра double'},'Location','northeast');
-    subplot(3,1,2);
+    subplot(4,1,2);
+    plot([s_to_subadc_int(1:length(x_after_adc)), x_after_adc]);
+    title('Исходный сигнал и выход адаптивного фильтра matlab');
+    xlabel('Номер отсчета'); 
+    ylabel('Амплитуда'); 
+    legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра '},'Location','northeast');
+    subplot(4,1,3);
     plot([s_to_subadc_int(1:length(x_after_adc_double)), x_after_adc_double]);
     title('Исходный сигнал и выход адаптивного фильтра double');
     xlabel('Номер отсчета'); 
     ylabel('Амплитуда'); 
     legend({'Исходный сигнал','Сигнал с выхода адаптивного фильтра '},'Location','northeast');
-    subplot(3,1,3);
+    subplot(4,1,4);
     plot([s_to_subadc_int(1:length(x_after_adc_int)), x_after_adc_int]);
     title('Исходный сигнал и выход адаптивного фильтра int');
     xlabel('Номер отсчета'); 

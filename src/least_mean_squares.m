@@ -10,6 +10,7 @@ data_outd = 0; % zeros(10,1);
 data_outd1 = 0;
 
 sizee = 5;
+ee = 125;
 tk = 0;
 x3 = cast(zeros(5,sim_options.Size_matrix), "double");                     
 x3_int = cast(zeros(sim_options.Size_matrix,sim_options.Size_matrix), sim_options.type_fir_out); 
@@ -72,38 +73,25 @@ adaptive_filter_struct_max.Adaptive_filter_sum_total_width = cast(zeros(sim_opti
 
 buffer = zeros(1,5);
 zf = zeros(1,4);
-for j = 1:floor(length(yri_cut(:,1))/5) 
+for j = 1:floor(length(yri_cut(:,1))/ee) 
 
-    % Создаем матрицу 5х5 из отсчетов сигнала
-    % x3(1,:) = adc_input(1:5);
-    % x3(2,:) = adc_input(6:10);
-    % x3(3,:) = adc_input(11:15);
-    % x3(4,:) = adc_input(16:20);
-    % x3(5,:) = adc_input(21:25);
+    % Создаем матрицу  из отсчетов сигнала
 
     x3(1,:) = adc_input(sim_options.Size_matrix*j:-1:sim_options.Size_matrix*(j-1)+1);
-    x3(2,:) = adc_input(sim_options.Size_matrix*j+1:-1:sim_options.Size_matrix*(j-1)+2);
-    x3(3,:) = adc_input(sim_options.Size_matrix*j+2:-1:sim_options.Size_matrix*(j-1)+3);
-    x3(4,:) = adc_input(sim_options.Size_matrix*j+3:-1:sim_options.Size_matrix*(j-1)+4);
-    x3(5,:) = adc_input(sim_options.Size_matrix*j+4:-1:sim_options.Size_matrix*(j-1)+5);
+    for i = 1:ee-1
+        x3(i+1,:) = adc_input(sim_options.Size_matrix*j+i:-1:sim_options.Size_matrix*(j-1)+i+1);
+    end  
+
+    % x3(1,:) = adc_input(sim_options.Size_matrix*j:-1:sim_options.Size_matrix*(j-1)+1);
+    % x3(2,:) = adc_input(sim_options.Size_matrix*j+1:-1:sim_options.Size_matrix*(j-1)+2);
+    % x3(3,:) = adc_input(sim_options.Size_matrix*j+2:-1:sim_options.Size_matrix*(j-1)+3);
+    % x3(4,:) = adc_input(sim_options.Size_matrix*j+3:-1:sim_options.Size_matrix*(j-1)+4);
+    % x3(5,:) = adc_input(sim_options.Size_matrix*j+4:-1:sim_options.Size_matrix*(j-1)+5);
 
     er = [sim_options.Size_matrix*j:-1:sim_options.Size_matrix*(j-1)+1; sim_options.Size_matrix*j+1:-1:sim_options.Size_matrix*(j-1)+2; ...
         sim_options.Size_matrix*j+2:-1:sim_options.Size_matrix*(j-1)+3; sim_options.Size_matrix*j+3:-1:sim_options.Size_matrix*(j-1)+4; ...
         sim_options.Size_matrix*j+4:-1:sim_options.Size_matrix*(j-1)+5];
 
-%     x3(5,:) = adc_input(j+4:sim_options.Size_matrix+j+3);
-% x3(6,:) = adc_input(j+5:sim_options.Size_matrix+j+4);
-% x3(7,:) = adc_input(j+6:sim_options.Size_matrix+j+5);
-% x3(8,:) = adc_input(j+7:sim_options.Size_matrix+j+6);
-% x3(9,:) = adc_input(j+8:sim_options.Size_matrix+j+7);
-% x3(10,:) = adc_input(j+9:sim_options.Size_matrix+j+8);
-
-    % 
-    % x3_int(1,:) = adc_input(j:sim_options.Size_matrix+j-1);
-    % x3_int(2,:) = adc_input(j+1:sim_options.Size_matrix+j);
-    % x3_int(3,:) = adc_input(j+2:sim_options.Size_matrix+j+1);
-    % x3_int(4,:) = adc_input(j+3:sim_options.Size_matrix+j+2);
-    % x3_int(5,:) = adc_input(j+4:sim_options.Size_matrix+j+3);
 
     % for i = 1:sim_options.Size_matrix
     %     if j == 1
@@ -124,6 +112,7 @@ for j = 1:floor(length(yri_cut(:,1))/5)
     det_A = det(A);
     if (det_A == 0)
         det_A = 1;
+        disp('det_A = 0');
     end
     % ee = 10;
     % Создаем матрицу 5х5 из отсчетов сигнала
@@ -204,12 +193,13 @@ for j = 1:floor(length(yri_cut(:,1))/5)
         % end
 
         B = A;
-        a1 = x3' * yri_cut(sim_options.Size_matrix*(j-1)+1:sim_options.Size_matrix*j);
-		B(1:5,i) = a1;
+        a1 = x3' * double(yri_cut_int(ee*(j-1)+1:ee*j)); %yri_cut(sim_options.Size_matrix*(j-1)+1:sim_options.Size_matrix*j);
+		B(1:sim_options.Size_matrix,i) = a1;
 
         det_B = det(B);
         if (det_B == 0)
             det_B = 1;
+            disp('det_B = 0');
         end
 
         w(i,:) = det_B / det_A; 
@@ -322,51 +312,51 @@ for j = 1:floor(length(yri_cut(:,1))/5)
     % [qwe, filter_max_width_out_adaptive(i)] = ...
     %         fir_filter(www1, double(adc_input(1:5)), 5, read_max_width.adaptive_max_width, sim_options.width_hilbert, sim_options); % (стр.6 (15)) 
 
- if j == 1
-       buffer = [double(adc_input(4:-1:1))' 0];
- 
-       for n = 1:5
-
-            buffer = [double(adc_input(n+4)) buffer(1:end-1)];
-
-            for i = 1:5
-                y_mult(i,n) = w(i) * buffer(i);
-            end
-
-            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
-
-            for i = 1:3
-                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
-            end
-
-       end
- else
-        for n = 1:5
-
-            buffer = [double(adc_input(4+nn+n)) buffer(1:end-1)];
-
-            for i = 1:5
-                y_mult(i,n) = w(i) * buffer(i);
-            end
-
-            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
-
-            for i = 1:3
-                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
-            end
-        end
-
- end
-
-
-y1 = y_add(4,:)';
+ % if j == 1
+ %       buffer = [double(adc_input(4:-1:1))' 0];
+ % 
+ %       for n = 1:5
+ % 
+ %            buffer = [double(adc_input(n+4)) buffer(1:end-1)];
+ % 
+ %            for i = 1:5
+ %                y_mult(i,n) = w(i) * buffer(i);
+ %            end
+ % 
+ %            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+ % 
+ %            for i = 1:3
+ %                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+ %            end
+ % 
+ %       end
+ % else
+ %        for n = 1:5
+ % 
+ %            buffer = [double(adc_input(4+nn+n)) buffer(1:end-1)];
+ % 
+ %            for i = 1:5
+ %                y_mult(i,n) = w(i) * buffer(i);
+ %            end
+ % 
+ %            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+ % 
+ %            for i = 1:3
+ %                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+ %            end
+ %        end
+ % 
+ % end
 
 
-for t = 1:5
-    if y1(t) ~= y(t)
-        disp('Alarm!')
-    end
-end
+y1 = 1;% y_add(4,:)';
+
+
+% for t = 1:5
+%     if y1(t) ~= y(t)
+%         disp('Alarm!')
+%     end
+% end
     
         % if j == 1
         %     [y11, zf] = filter(w, 1, input, input(4:-1:1));
@@ -423,11 +413,11 @@ end
     %     end 
     % end
 
-	y_array(nn+1:nn+sizee,:) = 1;
+	y_array(tk+1:tk+ee,:) = y;
     y_array_double(nn+1:nn+sizee,:) = y1;
 	y_array_int(nn+1:nn+sizee,:) = 1;
     nn = nn + 5;
-    tk = tk + 5;
+    tk = tk + ee;
 
 end
 
