@@ -76,7 +76,7 @@ for i = 1:sim_options.num_det2x2
 
     %% Умножители определителя 2х2
     [mult_int(i+(i-1)), mult_overflow(i+(i-1)), s.Det2x2_mult_abs(i+(i-1)), width_total_mult(i+(i-1))] = mult(cast(s.a_int{i}(1,1),sim_options.type_2x2_det), ...
-        cast(s.a_int{i}(2,2),sim_options.type_2x2_det), sim_options.type_2x2_det, sim_options.width_fractional);
+        cast(s.a_int{i}(2,2),sim_options.type_2x2_det), sim_options.type_2x2_det, sim_options.width_hilbert);
 
     %% Проверка переполнения умножителя
     if (mult_overflow(i+(i-1)) == 1)
@@ -103,7 +103,7 @@ for i = 1:sim_options.num_det2x2
     end
 
     [mult_int(i+i), mult_overflow(i+i), s.Det2x2_mult_abs(i+i), width_total_mult(i+i)] = mult(cast(s.a_int{i}(2,1),sim_options.type_2x2_det), ...
-        cast(s.a_int{i}(1,2),sim_options.type_2x2_det), sim_options.type_2x2_det, sim_options.width_fractional);
+        cast(s.a_int{i}(1,2),sim_options.type_2x2_det), sim_options.type_2x2_det, sim_options.width_hilbert);
 
     %% Проверка переполнения умножителя
     if (mult_overflow(i+i) == 1)
@@ -130,7 +130,7 @@ for i = 1:sim_options.num_det2x2
 
     %% Сумматоры определителя 2х2
 	[DetM_2x2_int(i), sum_overflow(i), s.Det2x2_sum_abs(i), width_total_sum(i)] = adder(cast(mult_int(i+(i-1)),sim_options.type_2x2_det), ...
-        cast(-mult_int(i+i),sim_options.type_2x2_det), sim_options.type_2x2_det, sim_options.width_fractional);
+        cast(-mult_int(i+i),sim_options.type_2x2_det), sim_options.type_2x2_det, sim_options.width_hilbert);
 
     % Проверка переполнения сумматора
     if (sum_overflow(i) == 1)
@@ -615,7 +615,7 @@ end
 			% Проверка выходной разрядности сумматора
 			if (s.DetM_5x5_int_pre_sum1_array_width_total(i) > sim_options.width_hilbert-1)
 				disp(['Sum1 total width in function det5x5 higher than 64 in ', num2str(i)]);
-				disp([DetM_5x5_int_sum1_width_total(i)]);
+				disp([s.DetM_5x5_int_pre_sum1_array_width_total(i)]);
             end
 		else
 			[DetM_5x5_int_sum1(i), DetM_5x5_int_sum1_overflow(i), s.DetM_5x5_int_pre_sum1_array(i), s.DetM_5x5_int_pre_sum1_array_width_total(i)] = adder(var_int_det5x5(i+1), ...
