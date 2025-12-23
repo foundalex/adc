@@ -26,8 +26,9 @@ function width = define_of_width_int(input, int_size, num)
     elseif int_size == "double" || int_size == "single" 
         for i = 1:90
             if ((2^i)-1 >= input_abs)
-                width = i+1; % 1 бит для знака
                 break;
+            else
+                width = i+1; % 1 бит для знака
             end
         end
     end
