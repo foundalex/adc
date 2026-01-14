@@ -21,6 +21,7 @@ function [y, filter_max_width_out]  = fir_filter(b, x, N, max_width_table, width
     filter_max_width_out.mult_max = cast(zeros(N,1),sim_options.int_size);
     filter_max_width_out.sum_max = cast(zeros(N-1,1),sim_options.int_size);
 
+    % buffer = [init_data]
     %% Main cycle
     for n = 1:length(x)
 

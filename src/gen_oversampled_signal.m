@@ -6,15 +6,15 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % Create main signal with noise in double
     
     s1 = (cos(2*pi*sim_options.freq*t));
-    % s2 = cos(2*pi*(sim_options.freq+10000000)*t+pi/4);
-    % s3 = (cos(2*pi*(sim_options.freq+20000000)*t));
-    % s4 = (cos(2*pi*(sim_options.freq+30000000)*t));
-    % s5 = (cos(2*pi*(sim_options.freq+40000000)*t));
+    s2 = 0.2*cos(2*pi*(sim_options.freq+10000000)*t+pi/4);
+    s3 = 0.2*cos(2*pi*(sim_options.freq+20000000)*t+pi/2);
+    s4 = 0.2*(cos(2*pi*(sim_options.freq+30000000)*t+pi/8));
+    s5 = 0.2*(cos(2*pi*(sim_options.freq+40000000)*t));
 
     % figure(3);
     % plot([s1(1:100)', s2(1:100)']);
 
-    s = s1; %  + s2; % + s3 + s4 + s5;
+    s = s1; % + s2 + s3 + s4 + s5;
     % s = awgn(s, 60);
     % s = s + noise;
     % [pxx,f] = periodogram(s); 
@@ -122,16 +122,18 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     Z = ceil(sim_options.freq/(sim_options.Fs/sim_options.Inter/2/sim_options.M));      % Nyquist zone
 
     % save (sprintf(num2str(clock) + ".mat"));
-    % load ('2025             12             10             12             11           0.16.mat'); 
+    load ('2026              1             13             18             32         45.549.mat'); 
     % load ('test_gen_oversampled_50_MHz.mat'); 
 
     figure(2);
-    subplot(4,1,1)
+    subplot(5,1,1)
     plot(s_to_subadc(1:100));
-    subplot(4,1,2)
+    subplot(5,1,2)
     plot(s_after_subadc);
-    subplot(4,1,3)
+    subplot(5,1,3)
     plot(adc_input_int(1:100,1));
-    subplot(4,1,4)
-    snr(s, sim_options.Fs, 2, 'aliased');
+    subplot(5,1,4)
+    snr(s_to_subadc, sim_options.Fs, 2, 'aliased');
+    subplot(5,1,5)
+    snr(s_after_subadc, sim_options.Fs, 2, 'aliased');
 end

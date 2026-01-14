@@ -77,20 +77,47 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
 
     x3_double(1,:) = adc_input_double(sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1);
     x3(1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1);
-
+    x3_int(1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1);
 
     for i = 1:sim_options.Ls-1
         x3_double(i+1,:) = adc_input_double(sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1);
         x3(i+1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1);
+        x3_int(i+1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1);
         row(i+1,:)= sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1;
+        
     end  
-
+    %%
     A_double = x3_double' * x3_double;
-    det_A_double = det(A_double);
 
+    % A_int = single(x3') * single(x3);
+
+
+
+    % a1 = [1 4 5; 7 3 9];
+    % a2 = [1 7; 4 3; 5 9];
+
+
+    a1 = x3';
+    a2 = x3;
+    A_int = int64(zeros(5,5));
+
+    for v = 1:5
+        for l = 1:500
+            a_int_c1 = int64(a1(:,l)) .* int64(a2(l,v));
+            A_int(:,v) = int64(a_int_c1) + int64(A_int(:,v));
+        end
+    end
+
+    det_A_double = det(A_double);
+    det_A_int = det(double(A_int));
 
     A = x3' * x3;
     det_A = det(A);
+    %%
+    sovm1(j) = cond(A);
+    sovm2(j) = cond(A,2);
+    rrank(j) = rank(A);
+
     if (det_A == 0)
         det_A = 1;
         disp('det_A = 0');
@@ -177,13 +204,21 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
 
         B_double = A_double;
         B = A;
+        B_int = A_int;
+        %%
         a1_double = x3_double' * yri_cut(sim_options.Ls*(j-1)+1:sim_options.Ls*j);
         a1 = x3' * double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j));
+        a1_int = int64(double(x3_int') * double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j)));
+        %%
 		B(1:sim_options.Size_matrix,i) = a1;
         B_double(1:sim_options.Size_matrix,i) = a1_double;
-
+        B_int(1:sim_options.Size_matrix,i) = (a1_int);
+        %%
         det_B_double = det(B_double);
         det_B = det(B);
+        det_B_int = det(double(B_int));
+
+
         if (det_B == 0)
             det_B = 1;
             disp('det_B = 0');
@@ -195,7 +230,7 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
 
         w_double(i,:) = det_B_double / det_A_double;
         w(i,:) = det_B / det_A; 
-        w1 = lsqminnorm(A, a1);
+        w_int(i,:) = det_B_int / det_A_int; 
 
 
 		% x3_shift = x3;
@@ -276,8 +311,16 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
         % end
     end
 
+    x1 = lsqr(double(x3_int), double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j)));
+    x = lsqminnorm(double(x3_int), double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j)));
+
     y_double = x3_double * w_double;
     y = x3 * w;
+    y_int = double(x3_int) * double(w_int);
+
+    relative_error_coeff(tt+1:tt+5,:) = x ./ w_int;
+    relative_error_coeff1(tt+1:tt+5,:) = x1 ./ w_int;
+
     % y1 = filter(w, 1, double(adc_input(j:j+9)));
 
 	%% Адаптивный фильтр
@@ -305,38 +348,29 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
     % [qwe, filter_max_width_out_adaptive(i)] = ...
     %         fir_filter(www1, double(adc_input(1:5)), 5, read_max_width.adaptive_max_width, sim_options.width_hilbert, sim_options); % (стр.6 (15)) 
 
- if j == 1
-       buffer = [double(adc_input(sim_options.Size_matrix-1:-1:1))' 0];
- end
-
-       for n = 1:sim_options.Ls
+    for n = 1:sim_options.Ls
             
-           if j == 1
-                buffer = [double(adc_input(n+sim_options.Size_matrix-1)) buffer(1:end-1)];
-           else
-                buffer = [double(adc_input(ee*(j-1)+sim_options.Size_matrix-1+n)) buffer(1:end-1)];
-           end
+        if j == 1
+            buffer = [(adc_input(n+sim_options.Size_matrix-1)) buffer(1:end-1)];
+        else
+            buffer = [(adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix-1+n)) buffer(1:end-1)];
+        end
 
 
-            for i = 1:sim_options.Size_matrix
-                y_mult(i,n) = w(i) * buffer(i);
-            end
+        for i = 1:sim_options.Size_matrix
+            y_mult(i,n) = w(i) * buffer(i);
+        end
 
-            y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+        y_add(1,n) = y_mult(1,n) + y_mult(2,n);
 
-            for i = 1:sim_options.Size_matrix-2
-                y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
-            end
+        for i = 1:sim_options.Size_matrix-2
+            y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+        end
+    end
 
-       end
+    y1 = round(y_add(sim_options.Size_matrix-1,:))';
 
-
-y1 = round(y_add(sim_options.Size_matrix-1,:))';
-if j == 1
-    in_index = 1:sim_options.Size_matrix;
-else
-    in_index = sim_options.Ls*(j-1)+sim_options.Size_matrix-1+n:sim_options.Ls*(j-1)+4+n+sim_options.Size_matrix-1;
-end
+    
 
 % err = abs(y1) - abs(double(yri_cut_int(ee*(j-1)+1:ee*j)));
 % err = abs(y1) - abs(double(adc_input(in_index)));
@@ -346,12 +380,7 @@ end
 %         disp(['Alarm!', num2str(t)]);
 %     end
 % end
-    
-% if j == 1
-%     [y11, zf] = filter(w, 1, double(adc_input(ee*(j-1)+4+n):(ee*(j-1)+4+n+10)), [double(adc_input(4:-1:1))']);
-% else
-%     [y11, zf] = filter(w, 1, double(adc_input(ee*(j-1)+4+n):(ee*(j-1)+4+n+10)), zf);
-% end
+
 
     % for k = 1:sim_options.Size_matrix
     %     if j == 1
@@ -402,16 +431,49 @@ end
     %     end 
     % end
 
-	y_array(tk+1:tk+sim_options.Ls,:) = y_double;
+	y_array(tk+1:tk+sim_options.Ls,:) = y_int;
     y_array_double(tk+1:tk+sim_options.Ls,:) = y;
 	y_array_int(tk+1:tk+sim_options.Ls,:) = y1;
     % err_array(tk+1:tk+sim_options.Size_matrix,:) = err;
     tk = tk + sim_options.Ls;
+    tt = tt + 5;
 
 end
 
 err_array = abs(y_array_double(1:900)) - abs(double(yri_cut_int(1:900)));
-err_array1 = abs(y_array(1:900)) - abs(yri_cut(1:900));
+err_array1 = abs(double(y_array(1:900))) - abs(double(yri_cut_int(1:900)));
+
+% Обусловленность матрицы
+figure(21);
+subplot(3,1,1)
+plot(sovm1);
+title('Обусловленность матрицы 1-нормы')
+ylabel('Величина обусловленности') 
+xlabel('Номер матрицы') 
+subplot(3,1,2)
+plot(sovm2)
+title('Обусловленность матрицы 2-нормы')
+ylabel('Величина обусловленности') 
+xlabel('Номер матрицы') 
+subplot(3,1,3)
+plot(rrank)
+title('Ранг матрицы')
+ylabel('Значение ранга') 
+xlabel('Номер матрицы') 
+
+
+figure(22);
+subplot(2,1,1)
+plot(relative_error_coeff);
+title('Относительная ошибка коэффициентов Matlab vs Метод Крамера')
+ylabel('Величина ошибки') 
+xlabel('Номер коэффициента') 
+subplot(2,1,2)
+plot(relative_error_coeff1);
+% title('Относительная ошибка коэффициентов Matlab vs Метод Крамера')
+% ylabel('Величина ошибки') 
+% xlabel('Номер коэффициента') 
+
 %% 2x2
 % relativeError_DetM_2x2_Myfunc_double_vs_Myfunc_int = DetM_2x2_array./double(DetM_2x2_array_int);
 % relativeError_DetM_2x2_Myfunc_double_vs_Matlab_LU = Det_2x2_LU_matlab_array./double(DetM_2x2_array);
@@ -514,7 +576,7 @@ figure(15);
 subplot(3,1,1)
 plot([yri_cut(1:length(y_array)), y_array]);
 subplot(3,1,2)
-plot(yri_cut(1:900)./y_array(1:900));
+plot(double(yri_cut_int(1:900))./double(y_array(1:900)));
 title('Относительная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
 xlabel('Номер отсчета');
 ylabel('Значение ошибки');
