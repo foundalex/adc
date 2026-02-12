@@ -45,6 +45,9 @@ function [yri, yri_round, ymi, ymi_round, ...
 
         ymi_HilbertInt = int64(filter(hilbert_coeff_int, int64(1), y_fractional_outInt_div)); % filter (стр.6 (15))
 
+        % убираем переходной процесс
+        ymi_HilbertInt = [ymi_HilbertInt(del_proc+1:end); zeros(del_proc,1)]; 
+
         % округляем значения
         ymi_HilbertInt_div = round_int(ymi_HilbertInt, sim_options.hilbert_coeff_width-1, sim_options.type_fir_out);
 

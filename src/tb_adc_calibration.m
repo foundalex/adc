@@ -140,6 +140,10 @@ for num = 1:sim_options.num_cycles
     % Функция генерации сигналов для АЦП
     [s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
+
+    new_algorithm(s_to_subadc, s_after_subadc, sim_options);
+
+
     % Основная функция калибровки АЦП
     [x_after_adc, x_after_adc_double, x_after_adc_int, ...
         ... % Значения полосового фильтра ADC0, ...
@@ -167,200 +171,200 @@ for num = 1:sim_options.num_cycles
     % Полосовой фильтр АЦП0
     % Записываем значения полосового фильтра АЦП0
 	% умножители
-    for j = 1:sim_options.N
-        % выбираем максимальное значение сигнала умножителей 
-        % полосового фильтра АЦП0
-        if (bandpass_mult_max(j) < filter_max_width_out_golden.mult_max(j))
-            bandpass_mult_max(j) = filter_max_width_out_golden.mult_max(j); 
-        end
-		
-        % выбираем максимальное значение разрядности умножителя
-        % полосового фильтра АЦП0
-        if (bandpass_total_width_mult_max(j) < filter_max_width_out_golden.width_total_mult_max(j))
-            bandpass_total_width_mult_max(j) = filter_max_width_out_golden.width_total_mult_max(j); 
-        end
-    end
+    % for j = 1:sim_options.N
+    %     % выбираем максимальное значение сигнала умножителей 
+    %     % полосового фильтра АЦП0
+    %     if (bandpass_mult_max(j) < filter_max_width_out_golden.mult_max(j))
+    %         bandpass_mult_max(j) = filter_max_width_out_golden.mult_max(j); 
+    %     end
+    % 
+    %     % выбираем максимальное значение разрядности умножителя
+    %     % полосового фильтра АЦП0
+    %     if (bandpass_total_width_mult_max(j) < filter_max_width_out_golden.width_total_mult_max(j))
+    %         bandpass_total_width_mult_max(j) = filter_max_width_out_golden.width_total_mult_max(j); 
+    %     end
+    % end
 	
 	% сумматоры
-	for j = 1:sim_options.N-1
-        % выбираем максимальное значение сигнала умножителей 
-        % полосового фильтра АЦП0
-        if (bandpass_sum_max(j) < filter_max_width_out_golden.sum_max(j))
-            bandpass_sum_max(j) = filter_max_width_out_golden.sum_max(j); 
-        end
-		
-        % выбираем максимальное значение разрядности сумматоров
-        % полосового фильтра АЦП0
-        if (bandpass_total_width_sum_max(j) < filter_max_width_out_golden.width_total_sum_max(j))
-            bandpass_total_width_sum_max(j) = filter_max_width_out_golden.width_total_sum_max(j); 
-        end
-    end
+	% for j = 1:sim_options.N-1
+    %     % выбираем максимальное значение сигнала умножителей 
+    %     % полосового фильтра АЦП0
+    %     if (bandpass_sum_max(j) < filter_max_width_out_golden.sum_max(j))
+    %         bandpass_sum_max(j) = filter_max_width_out_golden.sum_max(j); 
+    %     end
+    % 
+    %     % выбираем максимальное значение разрядности сумматоров
+    %     % полосового фильтра АЦП0
+    %     if (bandpass_total_width_sum_max(j) < filter_max_width_out_golden.width_total_sum_max(j))
+    %         bandpass_total_width_sum_max(j) = filter_max_width_out_golden.width_total_sum_max(j); 
+    %     end
+    % end
 	
 	%%
 
-    for i = 1:sim_options.M-1
-	
-        if (y_fractional_outInt_abs_max_in_cycle(1,i) < y_fractional_outInt_abs_max(i))
-            y_fractional_outInt_abs_max_in_cycle(1,i) = y_fractional_outInt_abs_max(i); 
-        end
-        if (ymi_HilbertInt_abs_max_in_cycle(1,i) < ymi_HilbertInt_abs_max(i))
-            ymi_HilbertInt_abs_max_in_cycle(1,i) = ymi_HilbertInt_abs_max(i); 
-        end
-
-		% умножители фильтров
-        for j = 1:sim_options.N
-            % выбираем максимальное значение сигнала умножителей фильтра
-            % дробной задержки
-            if (fractional_mult_max(j,i) < filter_max_width_out_fractional(i).mult_max(j))
-                fractional_mult_max(j,i) = filter_max_width_out_fractional(i).mult_max(j); 
-            end
-            % выбираем максимальное значение разрядности умножителя фильтра
-            % дробной задержки
-            if (fractional_total_width_mult_max(j,i) < filter_max_width_out_fractional(i).width_total_mult_max(j))
-                fractional_total_width_mult_max(j,i) = filter_max_width_out_fractional(i).width_total_mult_max(j); 
-            end
-            %%
-            % выбираем максимальное значение сигнала умножителей фильтра
-            % Гилберта
-            if (hilbert_mult_max(j,i) < filter_max_width_out_hilbert(i).mult_max(j))
-                hilbert_mult_max(j,i) = filter_max_width_out_hilbert(i).mult_max(j); 
-            end
-            % выбираем максимальное значение разрядности умножителя фильтра
-            % Гилберта
-            if (hilbert_total_width_mult_max(j,i) < filter_max_width_out_hilbert(i).width_total_mult_max(j))
-                hilbert_total_width_mult_max(j,i) = filter_max_width_out_hilbert(i).width_total_mult_max(j); 
-            end
-        end
-		% сумматоры фильтров
-        for j = 1:sim_options.N-1
-            % выбираем максимальное значение сигнала сумматоров
-            % фильтра дробной задержки 
-            if (fractional_sum_max(j,i) < filter_max_width_out_fractional(i).sum_max(j))
-                fractional_sum_max(j,i) = filter_max_width_out_fractional(i).sum_max(j); 
-            end
-            % выбираем максимальное значение разрядности сумматоров
-            % фильтра дробной задержки
-            if (fractional_total_width_sum_max(j,i) < filter_max_width_out_fractional(i).width_total_sum_max(j))
-                fractional_total_width_sum_max(j,i) = filter_max_width_out_fractional(i).width_total_sum_max(j); 
-            end
-            %%
-            % выбираем максимальное значение сигнала сумматоров
-            % фильтра Гилберта
-            if (hilbert_sum_max(j,i) < filter_max_width_out_hilbert(i).sum_max(j))
-                hilbert_sum_max(j,i) = filter_max_width_out_hilbert(i).sum_max(j); 
-            end
-            % выбираем максимальное значение разрядности сумматоров
-            % фильтра Гилберта
-            if (hilbert_total_width_sum_max(j,i) < filter_max_width_out_hilbert(i).width_total_sum_max(j))
-                hilbert_total_width_sum_max(j,i) = filter_max_width_out_hilbert(i).width_total_sum_max(j); 
-            end
-        end
-
-
-        %% Determinante 2x2
-        for k = 1:sim_options.num_det2x2*2
-            % Поиск максимального значения умножителей в определителе 2х2
-            % 2х2
-            if (DetM_2x2_multiplier_total_abs_max_in_cycle(k,i) < determinate_struct(i).DetM_2x2_multiplier_total_abs_max(k))
-                DetM_2x2_multiplier_total_abs_max_in_cycle(k,i) = determinate_struct(i).DetM_2x2_multiplier_total_abs_max(k);
-            end
-        end
-		for k = 1:sim_options.num_det2x2
-            % Поиск максимального значения сумматоров в определителе 2х2
-            % 2х2
-            if (Det2x2_sum_abs_max_in_cycle(k,i) < determinate_struct(i).Det2x2_sum_abs_max(k))
-                Det2x2_sum_abs_max_in_cycle(k,i) = determinate_struct(i).Det2x2_sum_abs_max(k); 
-            end
-        end
-		%% Определитель 3х3 умножители
-        for k = 1:sim_options.num_det2x2*3
-            if (Mult_DetM_3x3_array_max_in_cycle(k,i) < determinate_struct(i).Mult_DetM_3x3_array_max(k))
-                Mult_DetM_3x3_array_max_in_cycle(k,i) = determinate_struct(i).Mult_DetM_3x3_array_max(k); 
-            end
-            if (Mult_DetM_3x3_array_mult_total_width_max_in_cycle(k,i) < determinate_struct(i).Mult_DetM_3x3_array_mult_total_width_max(k))
-                Mult_DetM_3x3_array_mult_total_width_max_in_cycle(k,i) = determinate_struct(i).Mult_DetM_3x3_array_mult_total_width_max(k); 
-            end
-        end
-		for k = 1:sim_options.num_det2x2
-            if (DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k))
-                DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k); 
-            end
-            if (DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k))
-                DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k); 
-            end
-            if (DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_pre_sum_width_total_max(k))
-                DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_pre_sum_width_total_max(k); 
-            end
-            if (DetM_3x3_int_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_sum_array_max(k))
-                DetM_3x3_int_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_sum_array_max(k); 
-            end
-            if (DetM_3x3_int_sum_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_sum_width_total_max(k))
-                DetM_3x3_int_sum_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_sum_width_total_max(k); 
-            end
-        end
-		for k = 1:sim_options.num_det2x2*2
-            if (DetM_4x4_int_mult_array_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_mult_array_max(k))
-                DetM_4x4_int_mult_array_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_mult_array_max(k); 
-            end
-            if (DetM_4x4_int_mult_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_mult_width_total_max(k))
-                DetM_4x4_int_mult_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_mult_width_total_max(k); 
-            end
-        end
-		for k = 1:sim_options.num_det2x2
-            if (DetM_4x4_int_pre_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_pre_sum_array_max(k))
-                DetM_4x4_int_pre_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_pre_sum_array_max(k); 
-            end
-        end
-		for k = 1:sim_options.Size_matrix
-            if (DetM_4x4_int_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_sum_array_max(k))
-                DetM_4x4_int_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_sum_array_max(k); 
-            end
-            if (DetM_5x5_int_mult_array_max_in_cycle(k,i) < determinate_struct(i).DetM_5x5_int_mult_array_max(k))
-                DetM_5x5_int_mult_array_max_in_cycle(k,i) = determinate_struct(i).DetM_5x5_int_mult_array_max(k); 
-            end
-        end
-		for k = 1:2
-            if (DetM_5x5_int_pre_sum1_array_max_in_cycle(k,i) < determinate_struct(i).DetM_5x5_int_pre_sum1_array_max(k))
-                DetM_5x5_int_pre_sum1_array_max_in_cycle(k,i) = determinate_struct(i).DetM_5x5_int_pre_sum1_array_max(k); 
-            end
-        end
-        if (DetM_5x5_int_sum3_abs_max_in_cycle(1,i) < determinate_struct(i).DetM_5x5_int_sum3_abs_max)
-            DetM_5x5_int_sum3_abs_max_in_cycle(1,i) = determinate_struct(i).DetM_5x5_int_sum3_abs_max; 
-        end
-		if (DetM_5x5_int_abs_max_in_cycle(1,i) < determinate_struct(i).DetM_5x5_int_abs_max)
-            DetM_5x5_int_abs_max_in_cycle(1,i) = determinate_struct(i).DetM_5x5_int_abs_max; 
-        end
-
-		if (Det_x3_int_max_in_cycle(1,i) < determinate_struct(i).Det_x3_int_max)
-            Det_x3_int_max_in_cycle(1,i) = determinate_struct(i).Det_x3_int_max; 
-        end
-        %% Делитель
-        % выход делителя
-		if (Divide_max_in_cycle(1,i) < Divide_max(i))
-            Divide_max_in_cycle(1,i) = Divide_max(i); 
-        end
-        %% Адаптивный фильтр
-        % умножителм
-        for k = 1:sim_options.Size_matrix*sim_options.Size_matrix
-            if (Adaptive_filter_mult_array_max_in_cycle(k,i) < adaptive_filter_struct_max(i).Adaptive_filter_mult_array_max(k))
-                Adaptive_filter_mult_array_max_in_cycle(k,i) = adaptive_filter_struct_max(i).Adaptive_filter_mult_array_max(k); 
-            end
-            if (Adaptive_filter_mult_total_width_in_cycle(k,i) < adaptive_filter_struct_max(i).Adaptive_filter_mult_total_width(k))
-                Adaptive_filter_mult_total_width_in_cycle(k,i) = adaptive_filter_struct_max(i).Adaptive_filter_mult_total_width(k); 
-            end
-        end
-        % сумматоры
-        for t = 1:3
-		    for k = 1:sim_options.Size_matrix*2
-                if (Adaptive_filter_sum_array_max_in_cycle(k,t,i) < adaptive_filter_struct_max(i).Adaptive_filter_sum_array_max(k,t))
-                    Adaptive_filter_sum_array_max_in_cycle(k,t,i) = adaptive_filter_struct_max(i).Adaptive_filter_sum_array_max(k,t); 
-                end
-                if (Adaptive_filter_sum_total_width_in_cycle(k,t,i) < adaptive_filter_struct_max(i).Adaptive_filter_sum_total_width(k,t))
-                    Adaptive_filter_sum_total_width_in_cycle(k,t,i) = adaptive_filter_struct_max(i).Adaptive_filter_sum_total_width(k,t); 
-                end
-            end            
-        end
-    end
+    % for i = 1:sim_options.M-1
+    % 
+    %     if (y_fractional_outInt_abs_max_in_cycle(1,i) < y_fractional_outInt_abs_max(i))
+    %         y_fractional_outInt_abs_max_in_cycle(1,i) = y_fractional_outInt_abs_max(i); 
+    %     end
+    %     if (ymi_HilbertInt_abs_max_in_cycle(1,i) < ymi_HilbertInt_abs_max(i))
+    %         ymi_HilbertInt_abs_max_in_cycle(1,i) = ymi_HilbertInt_abs_max(i); 
+    %     end
+    % 
+	% 	% умножители фильтров
+    %     for j = 1:sim_options.N
+    %         % выбираем максимальное значение сигнала умножителей фильтра
+    %         % дробной задержки
+    %         if (fractional_mult_max(j,i) < filter_max_width_out_fractional(i).mult_max(j))
+    %             fractional_mult_max(j,i) = filter_max_width_out_fractional(i).mult_max(j); 
+    %         end
+    %         % выбираем максимальное значение разрядности умножителя фильтра
+    %         % дробной задержки
+    %         if (fractional_total_width_mult_max(j,i) < filter_max_width_out_fractional(i).width_total_mult_max(j))
+    %             fractional_total_width_mult_max(j,i) = filter_max_width_out_fractional(i).width_total_mult_max(j); 
+    %         end
+    %         %%
+    %         % выбираем максимальное значение сигнала умножителей фильтра
+    %         % Гилберта
+    %         if (hilbert_mult_max(j,i) < filter_max_width_out_hilbert(i).mult_max(j))
+    %             hilbert_mult_max(j,i) = filter_max_width_out_hilbert(i).mult_max(j); 
+    %         end
+    %         % выбираем максимальное значение разрядности умножителя фильтра
+    %         % Гилберта
+    %         if (hilbert_total_width_mult_max(j,i) < filter_max_width_out_hilbert(i).width_total_mult_max(j))
+    %             hilbert_total_width_mult_max(j,i) = filter_max_width_out_hilbert(i).width_total_mult_max(j); 
+    %         end
+    %     end
+	% 	% сумматоры фильтров
+    %     for j = 1:sim_options.N-1
+    %         % выбираем максимальное значение сигнала сумматоров
+    %         % фильтра дробной задержки 
+    %         if (fractional_sum_max(j,i) < filter_max_width_out_fractional(i).sum_max(j))
+    %             fractional_sum_max(j,i) = filter_max_width_out_fractional(i).sum_max(j); 
+    %         end
+    %         % выбираем максимальное значение разрядности сумматоров
+    %         % фильтра дробной задержки
+    %         if (fractional_total_width_sum_max(j,i) < filter_max_width_out_fractional(i).width_total_sum_max(j))
+    %             fractional_total_width_sum_max(j,i) = filter_max_width_out_fractional(i).width_total_sum_max(j); 
+    %         end
+    %         %%
+    %         % выбираем максимальное значение сигнала сумматоров
+    %         % фильтра Гилберта
+    %         if (hilbert_sum_max(j,i) < filter_max_width_out_hilbert(i).sum_max(j))
+    %             hilbert_sum_max(j,i) = filter_max_width_out_hilbert(i).sum_max(j); 
+    %         end
+    %         % выбираем максимальное значение разрядности сумматоров
+    %         % фильтра Гилберта
+    %         if (hilbert_total_width_sum_max(j,i) < filter_max_width_out_hilbert(i).width_total_sum_max(j))
+    %             hilbert_total_width_sum_max(j,i) = filter_max_width_out_hilbert(i).width_total_sum_max(j); 
+    %         end
+    %     end
+    % 
+    % 
+    %     %% Determinante 2x2
+    %     for k = 1:sim_options.num_det2x2*2
+    %         % Поиск максимального значения умножителей в определителе 2х2
+    %         % 2х2
+    %         if (DetM_2x2_multiplier_total_abs_max_in_cycle(k,i) < determinate_struct(i).DetM_2x2_multiplier_total_abs_max(k))
+    %             DetM_2x2_multiplier_total_abs_max_in_cycle(k,i) = determinate_struct(i).DetM_2x2_multiplier_total_abs_max(k);
+    %         end
+    %     end
+	% 	for k = 1:sim_options.num_det2x2
+    %         % Поиск максимального значения сумматоров в определителе 2х2
+    %         % 2х2
+    %         if (Det2x2_sum_abs_max_in_cycle(k,i) < determinate_struct(i).Det2x2_sum_abs_max(k))
+    %             Det2x2_sum_abs_max_in_cycle(k,i) = determinate_struct(i).Det2x2_sum_abs_max(k); 
+    %         end
+    %     end
+	% 	%% Определитель 3х3 умножители
+    %     for k = 1:sim_options.num_det2x2*3
+    %         if (Mult_DetM_3x3_array_max_in_cycle(k,i) < determinate_struct(i).Mult_DetM_3x3_array_max(k))
+    %             Mult_DetM_3x3_array_max_in_cycle(k,i) = determinate_struct(i).Mult_DetM_3x3_array_max(k); 
+    %         end
+    %         if (Mult_DetM_3x3_array_mult_total_width_max_in_cycle(k,i) < determinate_struct(i).Mult_DetM_3x3_array_mult_total_width_max(k))
+    %             Mult_DetM_3x3_array_mult_total_width_max_in_cycle(k,i) = determinate_struct(i).Mult_DetM_3x3_array_mult_total_width_max(k); 
+    %         end
+    %     end
+	% 	for k = 1:sim_options.num_det2x2
+    %         if (DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k))
+    %             DetM_3x3_int_pre_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k); 
+    %         end
+    %         if (DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k))
+    %             DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_pre_sum_array_max(k); 
+    %         end
+    %         if (DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_pre_sum_width_total_max(k))
+    %             DetM_3x3_int_pre_sum_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_pre_sum_width_total_max(k); 
+    %         end
+    %         if (DetM_3x3_int_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_sum_array_max(k))
+    %             DetM_3x3_int_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_sum_array_max(k); 
+    %         end
+    %         if (DetM_3x3_int_sum_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_3x3_int_sum_width_total_max(k))
+    %             DetM_3x3_int_sum_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_3x3_int_sum_width_total_max(k); 
+    %         end
+    %     end
+	% 	for k = 1:sim_options.num_det2x2*2
+    %         if (DetM_4x4_int_mult_array_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_mult_array_max(k))
+    %             DetM_4x4_int_mult_array_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_mult_array_max(k); 
+    %         end
+    %         if (DetM_4x4_int_mult_width_total_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_mult_width_total_max(k))
+    %             DetM_4x4_int_mult_width_total_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_mult_width_total_max(k); 
+    %         end
+    %     end
+	% 	for k = 1:sim_options.num_det2x2
+    %         if (DetM_4x4_int_pre_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_pre_sum_array_max(k))
+    %             DetM_4x4_int_pre_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_pre_sum_array_max(k); 
+    %         end
+    %     end
+	% 	for k = 1:sim_options.Size_matrix
+    %         if (DetM_4x4_int_sum_array_max_in_cycle(k,i) < determinate_struct(i).DetM_4x4_int_sum_array_max(k))
+    %             DetM_4x4_int_sum_array_max_in_cycle(k,i) = determinate_struct(i).DetM_4x4_int_sum_array_max(k); 
+    %         end
+    %         if (DetM_5x5_int_mult_array_max_in_cycle(k,i) < determinate_struct(i).DetM_5x5_int_mult_array_max(k))
+    %             DetM_5x5_int_mult_array_max_in_cycle(k,i) = determinate_struct(i).DetM_5x5_int_mult_array_max(k); 
+    %         end
+    %     end
+	% 	for k = 1:2
+    %         if (DetM_5x5_int_pre_sum1_array_max_in_cycle(k,i) < determinate_struct(i).DetM_5x5_int_pre_sum1_array_max(k))
+    %             DetM_5x5_int_pre_sum1_array_max_in_cycle(k,i) = determinate_struct(i).DetM_5x5_int_pre_sum1_array_max(k); 
+    %         end
+    %     end
+    %     if (DetM_5x5_int_sum3_abs_max_in_cycle(1,i) < determinate_struct(i).DetM_5x5_int_sum3_abs_max)
+    %         DetM_5x5_int_sum3_abs_max_in_cycle(1,i) = determinate_struct(i).DetM_5x5_int_sum3_abs_max; 
+    %     end
+	% 	if (DetM_5x5_int_abs_max_in_cycle(1,i) < determinate_struct(i).DetM_5x5_int_abs_max)
+    %         DetM_5x5_int_abs_max_in_cycle(1,i) = determinate_struct(i).DetM_5x5_int_abs_max; 
+    %     end
+    % 
+	% 	if (Det_x3_int_max_in_cycle(1,i) < determinate_struct(i).Det_x3_int_max)
+    %         Det_x3_int_max_in_cycle(1,i) = determinate_struct(i).Det_x3_int_max; 
+    %     end
+    %     %% Делитель
+    %     % выход делителя
+	% 	if (Divide_max_in_cycle(1,i) < Divide_max(i))
+    %         Divide_max_in_cycle(1,i) = Divide_max(i); 
+    %     end
+    %     %% Адаптивный фильтр
+    %     % умножителм
+    %     for k = 1:sim_options.Size_matrix*sim_options.Size_matrix
+    %         if (Adaptive_filter_mult_array_max_in_cycle(k,i) < adaptive_filter_struct_max(i).Adaptive_filter_mult_array_max(k))
+    %             Adaptive_filter_mult_array_max_in_cycle(k,i) = adaptive_filter_struct_max(i).Adaptive_filter_mult_array_max(k); 
+    %         end
+    %         if (Adaptive_filter_mult_total_width_in_cycle(k,i) < adaptive_filter_struct_max(i).Adaptive_filter_mult_total_width(k))
+    %             Adaptive_filter_mult_total_width_in_cycle(k,i) = adaptive_filter_struct_max(i).Adaptive_filter_mult_total_width(k); 
+    %         end
+    %     end
+    %     % сумматоры
+    %     for t = 1:3
+	% 	    for k = 1:sim_options.Size_matrix*2
+    %             if (Adaptive_filter_sum_array_max_in_cycle(k,t,i) < adaptive_filter_struct_max(i).Adaptive_filter_sum_array_max(k,t))
+    %                 Adaptive_filter_sum_array_max_in_cycle(k,t,i) = adaptive_filter_struct_max(i).Adaptive_filter_sum_array_max(k,t); 
+    %             end
+    %             if (Adaptive_filter_sum_total_width_in_cycle(k,t,i) < adaptive_filter_struct_max(i).Adaptive_filter_sum_total_width(k,t))
+    %                 Adaptive_filter_sum_total_width_in_cycle(k,t,i) = adaptive_filter_struct_max(i).Adaptive_filter_sum_total_width(k,t); 
+    %             end
+    %         end            
+    %     end
+    % end
 
     %% 
     snr_in_int(num) = snr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);

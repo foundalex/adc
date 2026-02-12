@@ -3,7 +3,8 @@ function sim_options = ui_read_options
 % packet lengths vector, in bits
 initial_freq = eval(get(findobj('Tag', 'Initial_Frequency'),'String'))*1000000;
 
-magnitude = db2mag(eval(get(findobj('Tag', 'magnitude'),'String')));
+% magnitude = db2mag(eval(get(findobj('Tag', 'magnitude'),'String')));
+magnitude = 0;
 
 enable_mask = get(findobj('Tag', 'enable_mask'),'Value');  % enable mask
 
@@ -16,7 +17,6 @@ num_cycles = eval(get(findobj('Tag', 'Number_of_cycles'),'String'));  % Num of c
 step = eval(get(findobj('Tag', 'step_of_frequency'),'String'))*1000000;  %  Step of frequency
 
 % Signal to Noise Rations
-% Time Skew Error
 for i = 1:8
     snr_array(i) = eval(get(findobj('Tag', strcat('SNR_sub_ADC',string(i))),'String'));
 end
@@ -34,6 +34,11 @@ end
 for i = 2:8
     gain_error_array(i-1) = eval(get(findobj('Tag',strcat('Gain',string(i))),'String'));
 end
+% Offset Error
+for i = 2:8
+    offset_error_array(i-1) = eval(get(findobj('Tag',strcat('Offset',string(i))),'String'));
+end
+
 
 if (enable_log == true)
     diary_name = (['log_file_', num2str(clock), '.txt']);
@@ -42,7 +47,7 @@ end
 
 container = 'int64';
 % Oversampling factor
-Inter = 10;
+Inter = 100;
 Fs_sub_adc = 1000000000; % 1 GHz
 Fs = Fs_sub_adc * Inter * num_ADC; 
 
@@ -58,6 +63,7 @@ sim_options = struct(                                       ...
    'MODEL_ERROR',                   error_adc,              ...
    'time_skew_array',               time_skew_array,        ...
    'gain_error_array',              gain_error_array,       ...
+   'offset_error_array',            offset_error_array,     ...
    'Fs',                            Fs,                     ... % Fs all ADC system
    'Fs_sub_adc',                    Fs_sub_adc,             ...
    'Magnitude',                     magnitude,              ...
@@ -65,7 +71,7 @@ sim_options = struct(                                       ...
    'N',                             73,                     ... % Number taps filters fractional delay
    'Size_matrix',                   5,                      ... % Number taps adaptive out filter
    'Ls',                            500,                    ... % количество строк в матрице (кол-во захватываемых семплов)
-   'StopTime',                      0.000200,               ... % seconds
+   'StopTime',                      0.0010000,              ... % seconds
    'Inter',                         Inter,                  ... % oversampling factor,                    
    'fractional_coeff_width',        19,                     ...
    'hilbert_coeff_width',           16,                     ...                  
@@ -73,9 +79,9 @@ sim_options = struct(                                       ...
    'enable_log',                    enable_log,             ... % включение логирования
    'int_size',                      container,              ... % тип данных
    'type_2x2_det',                  "int64",                ... % тип данных для матрицы 2х2
-   'type_3x3_det',                  "double",                ... % тип данных для матрицы 3х3
-   'type_4x4_det',                  "double",                ...    
-   'type_5x5_det',                  "double",                ...
+   'type_3x3_det',                  "double",               ... % тип данных для матрицы 3х3
+   'type_4x4_det',                  "double",               ...    
+   'type_5x5_det',                  "double",               ...
    'type_divide_out',               "int64",                ...
    'divide_factor',                 14,                     ...
    'type_mult_in_adaptive_filter',  "int64",                ...

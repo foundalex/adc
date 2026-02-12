@@ -72,39 +72,37 @@ buffer = zeros(1,sim_options.Size_matrix);
 for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls) 
 
     % Создаем матрицу  из отсчетов сигнала
-    
+    indexx1 = sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1;
     row(1,:) = sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1;
 
-    x3_double(1,:) = adc_input_double(sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1);
-    x3(1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1);
-    x3_int(1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix:-1:sim_options.Ls*(j-1)+1);
+    x3_double(1,:) = adc_input_double(indexx1);
+    x3(1,:) = adc_input(indexx1);
+    x3_int(1,:) = adc_input(indexx1);
 
+   
     for i = 1:sim_options.Ls-1
-        x3_double(i+1,:) = adc_input_double(sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1);
-        x3(i+1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1);
-        x3_int(i+1,:) = adc_input(sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1);
-        row(i+1,:)= sim_options.Ls*(j-1)+sim_options.Size_matrix+i:-1:sim_options.Ls*(j-1)+i+1;
+
+        indexx = N*(j-1)+i+1 :N*(j-1)+i;
+
+        x3_double(i+1,:) = adc_input_double(indexx);
+        x3(i+1,:) = adc_input(indexx);
+        x3_int(i+1,:) = adc_input(indexx);
+        row(i+1,:)= indexx;
         
     end  
     %%
     A_double = x3_double' * x3_double;
 
-    % A_int = single(x3') * single(x3);
-
-
-
-    % a1 = [1 4 5; 7 3 9];
-    % a2 = [1 7; 4 3; 5 9];
-
+    type_e = "double";
 
     a1 = x3';
     a2 = x3;
-    A_int = int64(zeros(5,5));
+    A_int = cast(zeros(5,5),type_e);
 
     for v = 1:5
-        for l = 1:500
-            a_int_c1 = int64(a1(:,l)) .* int64(a2(l,v));
-            A_int(:,v) = int64(a_int_c1) + int64(A_int(:,v));
+        for l = 1:sim_options.Ls
+            a_int_c1 = cast(a1(:,l),type_e) .* cast(a2(l,v),type_e);
+            A_int(:,v) = cast(a_int_c1,type_e) + cast(A_int(:,v),type_e);
         end
     end
 
@@ -208,7 +206,7 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
         %%
         a1_double = x3_double' * yri_cut(sim_options.Ls*(j-1)+1:sim_options.Ls*j);
         a1 = x3' * double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j));
-        a1_int = int64(double(x3_int') * double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j)));
+        a1_int = cast(cast(x3_int',"double") * cast(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j),"double"), type_e);
         %%
 		B(1:sim_options.Size_matrix,i) = a1;
         B_double(1:sim_options.Size_matrix,i) = a1_double;
@@ -311,15 +309,15 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
         % end
     end
 
-    x1 = lsqr(double(x3_int), double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j)));
+    % x1 = lsqr(double(x3_int), double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j)));
     x = lsqminnorm(double(x3_int), double(yri_cut_int(sim_options.Ls*(j-1)+1:sim_options.Ls*j)));
 
     y_double = x3_double * w_double;
-    y = x3 * w;
-    y_int = double(x3_int) * double(w_int);
+    y = x3 * x;
+    y_int = round(double(x3_int) * double(w_int));
 
     relative_error_coeff(tt+1:tt+5,:) = x ./ w_int;
-    relative_error_coeff1(tt+1:tt+5,:) = x1 ./ w_int;
+    % relative_error_coeff1(tt+1:tt+5,:) = x1 ./ w_int;
 
     % y1 = filter(w, 1, double(adc_input(j:j+9)));
 
@@ -358,7 +356,7 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
 
 
         for i = 1:sim_options.Size_matrix
-            y_mult(i,n) = w(i) * buffer(i);
+            y_mult(i,n) =  double(w_int(i)) * buffer(i);
         end
 
         y_add(1,n) = y_mult(1,n) + y_mult(2,n);
@@ -440,8 +438,8 @@ for j = 1:floor(length(yri_cut(:,1))/sim_options.Ls)
 
 end
 
-err_array = abs(y_array_double(1:900)) - abs(double(yri_cut_int(1:900)));
-err_array1 = abs(double(y_array(1:900))) - abs(double(yri_cut_int(1:900)));
+% err_array = abs(y_array_double(1:900)) - abs(double(yri_cut_int(1:900)));
+% err_array1 = abs(double(y_array(1:900))) - abs(double(yri_cut_int(1:900)));
 
 % Обусловленность матрицы
 figure(21);
@@ -461,15 +459,15 @@ title('Ранг матрицы')
 ylabel('Значение ранга') 
 xlabel('Номер матрицы') 
 
-
-figure(22);
-subplot(2,1,1)
-plot(relative_error_coeff);
-title('Относительная ошибка коэффициентов Matlab vs Метод Крамера')
-ylabel('Величина ошибки') 
-xlabel('Номер коэффициента') 
-subplot(2,1,2)
-plot(relative_error_coeff1);
+% 
+% figure(22);
+% subplot(2,1,1)
+% plot(relative_error_coeff);
+% title('Относительная ошибка коэффициентов Matlab vs Метод Крамера')
+% ylabel('Величина ошибки') 
+% xlabel('Номер коэффициента') 
+% subplot(2,1,2)
+% plot(relative_error_coeff1);
 % title('Относительная ошибка коэффициентов Matlab vs Метод Крамера')
 % ylabel('Величина ошибки') 
 % xlabel('Номер коэффициента') 
@@ -554,40 +552,40 @@ plot(relative_error_coeff1);
 % xlabel('Номер отсчета')
 
 
-figure(14);
-subplot(3,1,1)
-plot([yri_cut_int(1:length(y_array)), y_array_double]);
-subplot(3,1,2)
-plot(double(yri_cut_int(1:900))./y_array_double(1:900));
-title('Относительная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
-xlabel('Номер отсчета');
-ylabel('Значение ошибки');
-subplot(3,1,3)
-plot(err_array)
-title('Абсолютная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
-xlabel('Номер отсчета');
-ylabel('Значение ошибки');
-x4 = xline(500, '--'); %, 'Кол-во семплов для сходимости алгоритма');
-x4.LabelHorizontalAlignment = 'left';
-x4.LabelVerticalAlignment = 'middle';
-
-
-figure(15);
-subplot(3,1,1)
-plot([yri_cut(1:length(y_array)), y_array]);
-subplot(3,1,2)
-plot(double(yri_cut_int(1:900))./double(y_array(1:900)));
-title('Относительная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
-xlabel('Номер отсчета');
-ylabel('Значение ошибки');
-subplot(3,1,3)
-plot(err_array1)
-title('Абсолютная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
-xlabel('Номер отсчета');
-ylabel('Значение ошибки');
-x4 = xline(500, '--'); %, 'Кол-во семплов для сходимости алгоритма');
-x4.LabelHorizontalAlignment = 'left';
-x4.LabelVerticalAlignment = 'middle';
+% figure(14);
+% subplot(3,1,1)
+% plot([yri_cut_int(1:length(y_array)), y_array_double]);
+% subplot(3,1,2)
+% plot(double(yri_cut_int(1:900))./y_array_double(1:900));
+% title('Относительная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
+% xlabel('Номер отсчета');
+% ylabel('Значение ошибки');
+% subplot(3,1,3)
+% plot(err_array)
+% title('Абсолютная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
+% xlabel('Номер отсчета');
+% ylabel('Значение ошибки');
+% x4 = xline(500, '--'); %, 'Кол-во семплов для сходимости алгоритма');
+% x4.LabelHorizontalAlignment = 'left';
+% x4.LabelVerticalAlignment = 'middle';
+% 
+% 
+% figure(15);
+% subplot(3,1,1)
+% plot([yri_cut(1:length(y_array)), y_array]);
+% subplot(3,1,2)
+% plot(double(yri_cut_int(1:900))./double(y_array(1:900)));
+% title('Относительная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
+% xlabel('Номер отсчета');
+% ylabel('Значение ошибки');
+% subplot(3,1,3)
+% plot(err_array1)
+% title('Абсолютная ошибка между исходным значением сигнала и выходом адаптивного фильтра');
+% xlabel('Номер отсчета');
+% ylabel('Значение ошибки');
+% x4 = xline(500, '--'); %, 'Кол-во семплов для сходимости алгоритма');
+% x4.LabelHorizontalAlignment = 'left';
+% x4.LabelVerticalAlignment = 'middle';
 
 
 end
