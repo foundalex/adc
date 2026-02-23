@@ -138,28 +138,39 @@ width_sum3_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_i
 for num = 1:sim_options.num_cycles
 
     % Функция генерации сигналов для АЦП
-    [s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
+    % [s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
 
-    new_algorithm(s_to_subadc, s_after_subadc, sim_options);
+    adc_input = 0
+    s_to_subadc = 0
+    s_after_subadc = 0 
+    sim_options = 0
 
 
-    % Основная функция калибровки АЦП
-    [x_after_adc, x_after_adc_double, x_after_adc_int, ...
-        ... % Значения полосового фильтра ADC0, ...
-        filter_max_width_out_golden, ...
-        ... % Значения фильтров дробной задержки
-        filter_max_width_out_fractional, ...
-        y_fractional_outInt_abs_max, ...
-        ... % Значения фильтров Гилберта
-        filter_max_width_out_hilbert, ... % hilbert_mult, hilbert_sum, hilbert_width_total_mult, hilbert_width_total_sum, ymi_HilbertInt_abs_max, ...
-        ymi_HilbertInt_abs_max, ...
-        ... % Determinant
-        determinate_struct, ...
-        ... % выход делителя
-        Divide_max, ...
-        adaptive_filter_struct_max ...
-	] = adc_calibration(sim_options, adc_input_double, adc_input, s_to_subadc, s_after_subadc);
+    [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc, s_after_subadc, sim_options);
+
+    
+    % 
+    % for n = 1:sim_options.M
+    %     a(n,num) = sum(delta_tilda(n,:))/122;
+    % end
+
+    % % Основная функция калибровки АЦП
+    % [x_after_adc, x_after_adc_double, x_after_adc_int, ...
+    %     ... % Значения полосового фильтра ADC0, ...
+    %     filter_max_width_out_golden, ...
+    %     ... % Значения фильтров дробной задержки
+    %     filter_max_width_out_fractional, ...
+    %     y_fractional_outInt_abs_max, ...
+    %     ... % Значения фильтров Гилберта
+    %     filter_max_width_out_hilbert, ... % hilbert_mult, hilbert_sum, hilbert_width_total_mult, hilbert_width_total_sum, ymi_HilbertInt_abs_max, ...
+    %     ymi_HilbertInt_abs_max, ...
+    %     ... % Determinant
+    %     determinate_struct, ...
+    %     ... % выход делителя
+    %     Divide_max, ...
+    %     adaptive_filter_struct_max ...
+	% ] = adc_calibration(sim_options, adc_input_double, adc_input, s_to_subadc, s_after_subadc);
 
 
    % save (sprintf(num2str(clock) + ".mat"));
@@ -367,23 +378,23 @@ for num = 1:sim_options.num_cycles
     % end
 
     %% 
-    snr_in_int(num) = snr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
-    snr_output_lu(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    snr_output_double(num) = snr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
-    snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-
-    sfdr_in_int(num) = sfdr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
-    sfdr_output_lu(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    sfdr_output_double(num) = sfdr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
-    sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-
-    norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
-    num_array(:,num) = num;
-
-    % freq
-    sim_options.freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
-    % SNR
-    sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
+    % snr_in_int(num) = snr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
+    % snr_output_lu(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    % snr_output_double(num) = snr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
+    % snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
+    % 
+    % sfdr_in_int(num) = sfdr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
+    % sfdr_output_lu(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
+    % sfdr_output_double(num) = sfdr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
+    % sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
+    % 
+    % norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
+    % num_array(:,num) = num;
+    % 
+    % % freq
+    % sim_options.freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
+    % % SNR
+    % sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
 end
 
 
@@ -556,20 +567,20 @@ end
 % end
 
 %% Итоговый график SNR и SFDR каждой итерации алгоритма
-figure(14);
-subplot(2,1,1)
-plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_lu, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
-title('SNR');
-xlabel('Нормированная частота'); 
-ylabel('SNR (dB)'); 
-legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
-% 
-subplot(2,1,2)
-plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_lu, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
-title('SFDR (dB)');
-xlabel('Нормированная частота'); 
-ylabel('SFDR (dB)'); 
-legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+% figure(14);
+% subplot(2,1,1)
+% plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_lu, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
+% title('SNR');
+% xlabel('Нормированная частота'); 
+% ylabel('SNR (dB)'); 
+% legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+% % 
+% subplot(2,1,2)
+% plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_lu, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
+% title('SFDR (dB)');
+% xlabel('Нормированная частота'); 
+% ylabel('SFDR (dB)'); 
+% legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
 
 %% Measurements2
 % figure(7);

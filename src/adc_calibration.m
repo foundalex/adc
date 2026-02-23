@@ -134,6 +134,11 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     x2.LabelHorizontalAlignment = 'center'
     x2.LabelVerticalAlignment = 'middle';
 
+    figure(4);
+    % fvtool(bandpass_fractional(:,1),bandpass_fractional(:,2));
+    plot(f4(:,1), angle(y4(:,1)), f4(:,1), angle(y4(:,2)), f4(:,1), angle(y4(:,3)));
+    % fvtool(bandpass_fractional(:,1),bandpass_fractional(:,2));
+
     %% Расчет коэффициентов фильтра Гилберта
 
     lowpass_hilbert1 = (2./((n-del_proc)*pi)).*(sin(ws1.*((n-del_proc)*pi)./2)).^2;
