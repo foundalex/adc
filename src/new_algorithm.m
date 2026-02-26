@@ -5,42 +5,43 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     % load ('2026              2             20             12             20         31.557.mat'); % f = 450 MHz, ts = 0.05
 
     N = 8192;
-    n0 = 9;
-    n1 = 25;
-    n2 = 5;
+    hdc = 9;
+    hdq1 = 25;
+    hdq2 = 5;
 
-    zf1 = zeros(sim_options.M,n1);
-    zf2 = zeros(sim_options.M,n2);
-    States1 = zeros(sim_options.M,n1);
+    zf1 = zeros(sim_options.M,hdq1-1);
+    zf2 = zeros(sim_options.M,hdq2-1);
 
-    bb = firpm(n0,[0.1 0.9],[1 1],'differentiator');
+    % bb = firpm(hdc,[0.1 0.95],[1 1],'differentiator');
+
+    bb = firpm(hdc,[0 0.9],[0 0.9*pi],'d');
     Hd = dfilt.dfasymfir(bb);
+
     %%
-    bb1 = firpm(n1-1,[0.1 0.95],[1 1],'differentiator');
+    bb1 = firpm(hdq1,[0.1 0.9],[1 1],'differentiator');
     Hd1(1) = dfilt.dfasymfir(bb1);
-    Hd1(2) = dfilt.dfasymfir(bb1);
-    Hd1(3) = dfilt.dfasymfir(bb1);
-    Hd1(4) = dfilt.dfasymfir(bb1);
+    % Hd1(2) = dfilt.dfasymfir(bb1);
+    % Hd1(3) = dfilt.dfasymfir(bb1);
+    % Hd1(4) = dfilt.dfasymfir(bb1);
 
     % Hd1(1,1).Numerator(12) = 0;
     % Hd1(1,2).Numerator(12) = 0;
     % Hd1(1,3).Numerator(12) = 0;
     % Hd1(1,4).Numerator(12) = 0;
 
-
-    figure(8);
-    subplot(1,1,1)
-    plot(Hd1(1,1).Numerator);
+    % figure(8);
+    % subplot(1,1,1)
+    % plot(Hd1(1,1).Numerator);
 
     Hd1s = dfilt.dfsymfir(bb1);
 
+    % nn = 1:25;
+    % figure(71); plot(nn, Hd1(1,1).Numerator);
     
-    nn = 1:26;
-    % figure(71); plot(nn, bb1, nn, Hd1.Numerator);
 
     %%
 
-    bb2 = firpm(n2,[0.1 0.9],[1 1],'differentiator');
+    bb2 = firpm(hdq2,[0.1 0.9],[1 1],'differentiator');
     Hd2 = dfilt.dfasymfir(bb2);
     % blo = firls(18,[0 0.45 0.55 1],[1 1 0 0],[100 1], 'differentiator');
 
@@ -53,29 +54,41 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     % fvtool(Hd,Hd1,Hd2);
 
     %%
-    figure(3);
-    subplot(3,1,1)
-    plot(f, abs(x));
-    subplot(3,1,2)
-    plot(f1, abs(x1));
-    subplot(3,1,3)
-    plot(f2, abs(x2));
-    % 
-    figure(4);
-    subplot(4,1,1)
-    plot(f, angle(x));
-    subplot(4,1,2)
-    plot(f1, angle(x1));
-    title('ФЧХ фильтра дифф.фильтра 25-го порядка assym')
-    xlabel('Частота') 
-    ylabel('Амплитуда') 
-    subplot(4,1,3)
-    plot(ff1, angle(xx1));
-    title('ФЧХ фильтра дифф.фильтра 25-го порядка symm')
-    xlabel('Частота') 
-    ylabel('Амплитуда')
-    subplot(4,1,4)
-    plot(f2, angle(x2));
+    % figure(3);
+    % subplot(3,1,1)
+    % plot(f, abs(x));
+    % subplot(3,1,2)
+    % plot(f1, abs(x1));
+    % subplot(3,1,3)
+    % plot(f2, abs(x2));
+    % % 
+    % figure(4);
+    % subplot(4,1,1)
+    % plot(f, angle(x));
+    % subplot(4,1,2)
+    % plot(f1, angle(x1));
+    % title('ФЧХ фильтра дифф.фильтра 25-го порядка assym')
+    % xlabel('Частота') 
+    % ylabel('Амплитуда') 
+    % subplot(4,1,3)
+    % plot(ff1, angle(xx1));
+    % title('ФЧХ фильтра дифф.фильтра 25-го порядка symm')
+    % xlabel('Частота') 
+    % ylabel('Амплитуда')
+    % subplot(4,1,4)
+    % plot(f2, angle(x2));
+    %%
+    % figure(5);
+    % subplot(2,1,1)
+    % plot(f1, angle(x1));
+    % title('ФЧХ фильтра дифф.фильтра 25-го порядка')
+    % xlabel('Частота') 
+    % ylabel('Амплитуда') 
+    % subplot(2,1,2)
+    % plot(Hd1.Numerator);
+    % title('Импульсная характеристика')
+    % xlabel('Номер отсчета') 
+    % ylabel('Амплитуда') 
 
     %%
     coeff(1,1) = 0;
@@ -83,9 +96,9 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     coeff(3,1) = 0;
     coeff(4,1) = 0;
 
-    del_proc0 = (n0-1)/2;
-    del_proc1 = (n1-1)/2;
-    del_proc2 = (n2-1)/2;
+    del_proc0 = (hdc-1)/2;
+    del_proc1 = (hdq1-1)/2;
+    del_proc2 = (hdq2-1)/2;
 
     U = [2 -1 0 -1; -1 2 -1 0; 0 -1 2 -1; -1 0 -1 2];
     % находим псевдоинверсную матрицу
@@ -96,18 +109,18 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     y1_mult = zeros(N,sim_options.M);
     y2_mult = zeros(N,sim_options.M);
     window_adc = zeros(N,sim_options.M);
+    window_signal = zeros(N,sim_options.M);
+    %% 25 - ый порядок
+    n1_impz = -(hdq1-1)/2:(hdq1-1)/2;
+    n_hdq1 = 0:hdq1-1;
 
-    %%
-    N_taps = 25;
-    n11 = 0:24;
-    w_blackman = 0.42 - 0.5 * cos(2*pi*n11/(N_taps-1)) + 0.08 * cos(4*pi*n11/(N_taps-1));
-    for i = 1:N_taps
-        a1(i) = ((-1)^n11(i))/n11(i); 
+    w_blackman = 0.42 - 0.5 * cos(2*pi*n_hdq1/(hdq1-1)) + 0.08 * cos(4*pi*n_hdq1/(hdq1-1));
+    for i = 1:hdq1
+        hdq1_coeff(i) = ((-1)^n1_impz(i))/n1_impz(i); 
     end
-    a1(1) = 0;
-    a1(13) = 0;
+    hdq1_coeff((hdq1+1)/2) = 0;
 
-    %% a1 == a2
+    % a1 == a2 
     % for i = 1:N_taps
     %     a2(i) = cos(n11(i)*pi)/n11(i); 
     % end
@@ -116,54 +129,84 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
 
     % figure(71); 
     % plot([a1,a2]);
-    %%
 
-    diff_25 = a1 .* w_blackman;
-    Hdd = dfilt.dfasymfir(diff_25);
-
+    diff_25 = hdq1_coeff .* w_blackman;
+    % Hdd = dfilt.dfasymfir(diff_25);
+    Hdd = dfilt.dffir(diff_25);
+    % 
     [x3, f3] = freqz(diff_25, 1,1024, 'whole', sim_options.Fs_sub_adc);
     [x31, f31] = freqz(Hdd.Numerator, 1,1024, 'whole', sim_options.Fs_sub_adc);
 
     figure(70); 
     subplot(3,1,1)
-    plot(a1)
+    plot(hdq1_coeff)
     subplot(3,1,2)
     plot(f3, abs(x3), f3, abs(x31));
     subplot(3,1,3)
-    plot(f3, angle(x3), f3, angle(x31));
+    plot(f3, angle(x3)); %, f3, angle(x31));
 
-    %% H(d,c)
-    % for i = 1:sim_options.M
-    %     y(:,i) = filter(Hd, double(adc_input(:,i)));
-    %     % y(:,i) = filter(bb, 1, double(adc_input(:,i)));
+    %% 9 - ый порядок
+    n_hdc_impz = -(hdc-1)/2:(hdc-1)/2;
+    n_hdc = 0:hdc-1;
+
+    w_blackman_hdc = 0.42 - 0.5 * cos(2*pi*n_hdc/(hdc-1)) + 0.08 * cos(4*pi*n_hdc/(hdc-1));
+    for i = 1:hdc
+        hdc_coeff(i) = ((-1)^n_hdc_impz(i))/n_hdc_impz(i); 
+    end
+    hdc_coeff((hdc+1)/2) = 0;
+
+    diff_filter_hdc = hdc_coeff .* w_blackman_hdc;
+    Hd_hdc = dfilt.dfasymfir(diff_filter_hdc);
     % 
-    %     y_cut(:,i) = y(del_proc0:end,i);
+    [x3_hdc, f3_hdc] = freqz(diff_filter_hdc, 1,1024, 'whole', sim_options.Fs_sub_adc);
+    [x31_hdc, f31_hdc] = freqz(Hd_hdc.Numerator, 1,1024, 'whole', sim_options.Fs_sub_adc);
+
+    figure(71); 
+    subplot(3,1,1)
+    plot(hdc_coeff)
+    subplot(3,1,2)
+    plot(f3_hdc, abs(x3_hdc), f3_hdc, abs(x31_hdc), f3_hdc, abs(x));
+    subplot(3,1,3)
+    plot(f3_hdc, angle(x3_hdc), f3_hdc, angle(x31_hdc), f3_hdc, angle(x));
+    title('ФЧХ фильтра дифф.фильтра 9-го порядка')
+    xlabel('Частота') 
+    ylabel('Амплитуда')
+
+    %% 5 - ый порядок
+    n_hdq2_impz = -(hdq2-1)/2:(hdq2-1)/2;
+    n_hdq2 = 0:hdq2-1;
+    w_blackman_hdq2 = 0.42 - 0.5 * cos(2*pi*n_hdq2/(hdq2-1)) + 0.08 * cos(4*pi*n_hdq2/(hdq2-1));
+
+    for i = 1:hdq2
+        hdq2_coeff(i) = ((-1)^n_hdq2_impz(i))/n_hdq2_impz(i); 
+    end
+    hdq2_coeff((hdq2+1)/2) = 1;
+    hdq2_coeff(4) = hdq2_coeff(2);
+    hdq2_coeff(5) = hdq2_coeff(1);
+
+    diff_filter_hdq2 = hdq2_coeff .* w_blackman_hdq2;
+    Hd_hdq2 = dfilt.dfasymfir(diff_filter_hdq2);
     % 
-    %     % figure(4)
-    %     % subplot(3,1,1)
-    %     % plot([double(adc_input(1:200,i)), y_cut(1:200,i)]);
-    %     % subplot(3,1,2)
-	%     % snr(double(adc_input(:,i)), sim_options.Fs_sub_adc);
-    %     % subplot(3,1,3)
-	%     % snr(y_cut(:,i), sim_options.Fs_sub_adc);
-    % end
-    
-    % ceff1 = [-0.0745, ...
-    %             0.02, ...
-    %             0.02, ...
-    %             0.02];
+    [x3_hdq2, f3_hdq2] = freqz(diff_filter_hdq2, 1,1024, 'whole', sim_options.Fs_sub_adc);
+    [x31_hdq2, f31_hdq2] = freqz(Hd_hdq2.Numerator, 1,1024, 'whole', sim_options.Fs_sub_adc);
 
-     % ceff1 = [-0.274, ...
-     %            0.09, ...
-     %            0.09, ...
-     %            0.09];
-       % 
-       % ceff1 = [-0.02, ...
-       %          0.00, ...
-       %          0.00, ...
-       %          0.00];
+    figure(72); 
+    subplot(3,1,1)
+    plot(hdq2_coeff)
+    subplot(3,1,2)
+    plot(f3_hdq2, abs(x3_hdq2), f3_hdq2, abs(x31_hdq2), f3_hdq2, abs(x2));
+    subplot(3,1,3)
+    plot(f3_hdc, angle(x3_hdq2), f3_hdq2, angle(x31_hdq2), f3_hdq2, angle(x2));
+    title('ФЧХ фильтра дифф.фильтра 5-го порядка')
+    xlabel('Частота') 
+    ylabel('Амплитуда')
 
-    % %% VI samples intervention
+    %%
+    figure(80); 
+    plot(f3_hdc, angle(x3_hdc), f3_hdc, angle(x3), f3_hdc, angle(x3_hdq2));
+
+
+    %% VI samples intervention
     % in = 0;
     % row = 1;
     % start = 1;
@@ -200,28 +243,44 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     %         adc_input_interv(1:numel(result),i) = result;
     %     end
     % end
-    %%
+
+    %% H(d,c)
+    for i = 1:sim_options.M
+        % y(:,i) = filter(Hd, double(adc_input(:,i)));
+        y(:,i) = filter(diff_filter_hdc, 1, double(adc_input(:,i)));
+        % y(:,i) = y(:,i) .* 0.7;
+        y_cut(:,i) = y(del_proc0:end,i);
+
+        % figure(4)
+        % subplot(3,1,1)
+        % plot([double(adc_input(1:200,i)), y_cut(1:200,i)]);
+        % subplot(3,1,2)
+	    % snr(double(adc_input(:,i)), sim_options.Fs_sub_adc);
+        % subplot(3,1,3)
+	    % snr(y_cut(:,i), sim_options.Fs_sub_adc);
+    end
 
     % load ('2026              2             23             23             49         25.385.mat'); % f = 420MHz, ts = 0.05 
 
-    for j = 1:floor(length(adc_input(:,1))/N) 
+    for j = 1:floor(length(y_cut(:,1))/N) 
 
         start_index = N*(j-1)+1;
         end_index = start_index+N-1;
 
         % формируем окно в 8192 отсчета
         for i = 1:sim_options.M
-            window_adc(:,i) = double(adc_input(start_index:end_index,i));
+            window_signal(:,i) = double(adc_input(start_index:end_index,i));
+            window_adc(:,i) = double(y_cut(start_index:end_index,i));
         end
 
         % фильтруем
         for i = 1:sim_options.M
 
-            % y_mult(:,i) = window_adc(:,i) .* coeff(i,j);
+            y_mult(:,i) = window_adc(:,i) .* coeff(i,j);
             % y_mult(:,i) = window_adc(:,i) .* 1;
 
-            % y_tilda(:,i) = double(adc_input(start_index:end_index,i)) - y_mult(:,i); % разность входного сигнала и выхода первого фильтра y(n)-y'
-            y_tilda(:,i) = window_adc(:,i);
+            y_tilda(:,i) = double(adc_input(start_index:end_index,i)) - y_mult(:,i); % разность входного сигнала и выхода первого фильтра y(n)-y'
+            % y_tilda(:,i) = window_adc(:,i);
 
             % figure(7)
             % subplot(2,1,1)
@@ -231,20 +290,20 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
 
             %% 
 
-            % y1 = filter(Hd1, y_tilda(:,i));
+            % [y1]  = filter(Hd1, y_tilda(:,i));
 
-   
-            [y1]  = filter(Hd1(i), y_tilda(:,i));
+            % y1 =  y_tilda(:,i);
+
             % Hd1.States = States1(:,i);
             % States1(:,i) = Hd1.States;
             % zerophase(y1, 1);
 
-            % [y1, zf1(i,:)] = filter(bb1, 1, y_tilda(:,i), zf1(i,:));
-            % if j == 1
-                % y1_cut(:,i) = [y1(del_proc1:end); zeros(del_proc1-1,1)];
-            % else
+            [y1, zf1(i,:)] = filter(diff_25, 1, y_tilda(:,i), zf1(i,:));
+            if j == 1
+                y1_cut(:,i) = [y1(del_proc1:end); zeros(del_proc1-1,1)];
+            else
                 y1_cut(:,i) = y1;
-            % end
+            end
 
             % figure(5)
             % subplot(3,1,1)
@@ -262,12 +321,12 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
 
             % y2 = filter(Hd2, y_tilda(:,i));
 
-            % [y2, zf2(i,:)] = filter(bb2, 1, y_tilda(:,i), zf2(i,:));
-            % if j == 1
-                % y2_cut(:,i) = [y2(del_proc2:end); zeros(del_proc2-1,1)];
-            % else
-            %     y2_cut(:,i) = y2;
-            % end
+            [y2, zf2(i,:)] = filter(diff_filter_hdq2, 1, y_tilda(:,i), zf2(i,:));
+            if j == 1
+                y2_cut(:,i) = [y2(del_proc2:end); zeros(del_proc2-1,1)];
+            else
+                y2_cut(:,i) = y2;
+            end
 
             % figure(6)
             % subplot(3,1,1)
@@ -277,10 +336,10 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
             % subplot(3,1,3)
 	        % snr(y2_cut, sim_options.Fs_sub_adc);
 
-            % y2_mult(:,i) = y2_cut(:,i) .* (coeff(i,j)^2)/2; 
+            y2_mult(:,i) = y2_cut(:,i) .* (coeff(i,j)^2)/2; 
             % y2_mult(:,i) = y2_cut(:,i) .* 1;
 
-            x_tilda(start_index:end_index,i) = double(adc_input(start_index:end_index,i)) - y1_mult(:,i); % - y2_mult(:,i);
+            x_tilda(start_index:end_index,i) = double(adc_input(start_index:end_index,i)) - y1_mult(:,i) - y2_mult(:,i);
 
             % figure(6)
             % subplot(2,1,1)
@@ -314,7 +373,7 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
 
 		delta_tilda(:,j) = -(mult_u/cor_M_floor);
 
-        coeff(:,j+1) = coeff(:,j) + 0.2 * delta_tilda(:,j);
+        coeff(:,j+1) = coeff(:,j) + 0.1 * delta_tilda(:,j);
 
 
     end

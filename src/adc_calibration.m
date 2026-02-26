@@ -157,8 +157,8 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     % % запись коэффициентов фильтра Гилберта в файл
     % writematrix(hilbert_coeff_int, ['src/width_txt/Коэффициенты_фильтра_Гилберта.txt']);
 
-    % [y, f] = freqz(double(hilbert_coeff_int)*2^-(sim_options.hilbert_coeff_width-1), 1,1024, 'whole', 1000000000);
-    % [y1, f1] = freqz(bandpass_hilbert, 1,1024, 'whole', 1000000000);
+    [y, f] = freqz(double(hilbert_coeff_int)*2^-(sim_options.hilbert_coeff_width-1), 1,1024, 'whole', 1000000000);
+    [y1, f1] = freqz(bandpass_hilbert, 1,1024, 'whole', 1000000000);
 
     % figure(4);
     % plot(f3, abs(y3), f4(:,4), abs(y4(:,4)), f4(:,1), abs(y4(:,1)));
@@ -167,6 +167,15 @@ function [x_after_adc, x_after_adc_double, x_after_adc_int, ...
     % ylabel('Коэффициент передачи') 
     % legend('Location','northeast');
    
+    figure(4);
+    subplot(2,1,1)
+    plot(f, abs(y), f, abs(y1));
+    title('АЧХ полосовых фильтров дробной задержки и фильтра Гилберта')
+    xlabel('Частота') 
+    ylabel('Коэффициент передачи') 
+    legend('Location','northeast');
+    subplot(2,1,2)
+    plot(f, angle(y), f, angle(y1));
     %% Коэффициенты эталонного фильтра
     % golden_h = (fir1(128,[0.030 0.440],"bandpass"))';
 
