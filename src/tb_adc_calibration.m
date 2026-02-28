@@ -138,7 +138,7 @@ width_sum3_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_i
 for num = 1:sim_options.num_cycles
 
     % Функция генерации сигналов для АЦП
-    [s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
+    [s_to_subadc, adc_input_double, adc_input_sin, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
 
     % adc_input = 0
@@ -147,7 +147,7 @@ for num = 1:sim_options.num_cycles
     % sim_options = 0
 
 
-    [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc, s_after_subadc, sim_options);
+    [sig_adc, delta_tilda] = new_algorithm(adc_input_double, adc_input_sin, s_to_subadc, s_after_subadc, sim_options);
 
     
     % 

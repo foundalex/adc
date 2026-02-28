@@ -1,4 +1,4 @@
-function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen_oversampled_signal(sim_options)
+function [s_to_subadc, adc_input_double, adc_input_sin, adc_input_int, s_after_subadc, Z] = gen_oversampled_signal(sim_options)
 
     dt = 1/sim_options.Fs;                                                              % seconds per sample
     t = 0:dt:sim_options.StopTime;                                                      % seconds
@@ -6,10 +6,14 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % Create main signal with noise in double
     
     s1 = cos(2*pi*sim_options.freq*t);
+    ss = -sin(2*pi*sim_options.freq*t);
     % s2 = 0.2*cos(2*pi*(sim_options.freq+200000000)*t+pi/4);
     % s3 = 0.2*cos(2*pi*(sim_options.freq+400000000)*t+pi/2);
     % s4 = 0.2*cos(2*pi*(sim_options.freq+600000000)*t+pi/8);
     % s5 = 0.2*(cos(2*pi*(sim_options.freq+800000000)*t));
+
+    % figure(2);
+    % plot([s1(1:100)', ss(1:100)']);
 
     %% АМ-модуляция
     % sim_options.Fs = 1000000000; % частота дискретизации
@@ -32,8 +36,9 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
 
     s = s1; % + s2 + s3 + s4 + s5;
 
-    s = awgn(s,sim_options.SNR(1));
 
+    % s = awgn(s,sim_options.SNR(1));
+    
 
     % s = awgn(s, 60);
     % s = s + noise;
@@ -76,12 +81,14 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
         if sim_options.MODEL_ERROR == true
             % time skew
             adc_input(:,i) = s(begin(i) + sim_options.time_skew_array(i)*sim_options.Inter:step:ended);
+            adc_input_sin(:,i) = ss(begin(i) + sim_options.time_skew_array(i)*sim_options.Inter:step:ended);
             % offset
             adc_input(:,i) = adc_input(:,i) + sim_options.offset_error_array(i);
             % gain
             adc_input(:,i) = adc_input(:,i) * sim_options.gain_error_array(i);
         else
             adc_input(:,i) = s(begin(i):step:ended);
+            adc_input_sin(:,i) = ss(begin(i):step:ended);
         end
     end
 
