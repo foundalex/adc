@@ -37,7 +37,7 @@ function [s_to_subadc, adc_input_double, adc_input_sin, adc_input_int, s_after_s
     s = s1; % + s2 + s3 + s4 + s5;
 
 
-    % s = awgn(s,sim_options.SNR(1));
+    s = awgn(s,sim_options.SNR(1));
     
 
     % s = awgn(s, 60);

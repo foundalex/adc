@@ -147,7 +147,7 @@ for num = 1:sim_options.num_cycles
     % sim_options = 0
 
 
-    [sig_adc, delta_tilda] = new_algorithm(adc_input_double, adc_input_sin, s_to_subadc, s_after_subadc, sim_options);
+    [sig_adc, delta_tilda] = new_algorithm(adc_input, adc_input_sin, s_to_subadc, s_after_subadc, sim_options);
 
     
     % 
