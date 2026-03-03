@@ -275,9 +275,10 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, adc_input_sin, s_to_s
     for i = 1:sim_options.M
         y(:,i) = filter(Hd_hdc, double(adc_input(:,i)));
         % y(:,i) = filter(diff_filter_hdc, 1, double(adc_input(:,i)));
-        y_gold(:,i) = filter([1 -1], 1, double(adc_input(:,i)));
+        % y_gold(:,i) = filter([1 -1], 1, double(adc_input(:,i)));
         y_hilbert(:,i) = filter(bandpass_hilbert, 1, double(adc_input(:,i)));
         y_cut(:,i) = y(del_proc0+1:end,i);
+        % y_cut(:,i) = y_gold(3:end,i);
 
         % figure(4)
         % subplot(3,1,1)
@@ -302,15 +303,13 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, adc_input_sin, s_to_s
     end
     % 
     % figure(92); plot([adc_input(1:100,1), adc_input_sin(1:100,1)]);
-    % figure(90); plot([adc_input(1:100,1), ...
-    %     adc_input_sin(1:100,1), ...
-    %     y_hilbert(37:136,1), ...
-    %    ... diff_func(1:100,1), ...
-    %     y_cut(1:100,1)]);
-    % title('Сигналы ')
-    % xlabel('Номер отсчета') 
-    % ylabel('Амплитуда')
-    % legend({'Входной сигнал cos(x)', 'Входной сигнал -sin(x) ', 'Выходной сигнал фильтра Гилберта', 'Выходной сигнал дифф.фильтра'}, 'Location','northwest');
+    figure(90); plot([adc_input(1:100,1), y_hilbert(37:136,1), y_cut(1:100,1)]);
+       ... diff_func(1:100,1), ...
+        
+    title('Сигналы ')
+    xlabel('Номер отсчета') 
+    ylabel('Амплитуда')
+    legend({'Входной сигнал cos(x)', 'Входной сигнал -sin(x) ', 'Выходной сигнал фильтра Гилберта', 'Выходной сигнал дифф.фильтра'}, 'Location','northwest');
 
     % [x3_gold, f3_gold] = freqz([1 -1], 1,1024, 'whole', sim_options.Fs_sub_adc);
 
@@ -331,6 +330,10 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, adc_input_sin, s_to_s
 
 
     % load ('2026              2             23             23             49         25.385.mat'); % f = 420MHz, ts = 0.05 
+
+    % y_out_sig = filter(Hd_hdc, double((s_after_subadc(1:1000))));
+    % y_out_sig = y_out_sig(del_proc0+1:end);
+
 
     for j = 1:floor(length(double(y_cut(:,1)))/N) 
 
@@ -425,27 +428,33 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, adc_input_sin, s_to_s
 		er(3,j) = cor3(:,j) - cor2(:,j);
 		er(4,j) = cor4(:,j) - cor3(:,j);
 
-
 		%% выход АЦП0 дифф. фильтра
 
-        cor_M(j) = sum(window_adc(:,1) .* x_tilda(start_index:end_index,2))/N;
+        cor_M(j) = sum(x_tilda(start_index:end_index,2) .* window_adc(:,1))/N;
 
 		rate = nextpow2(cor_M(j));
 		cor_M_floor = 2^rate;
 
+        deriative_corr = sum(window_signal(:,2) .* window_adc(:,1))/N;
+        mult_cor = deriative_corr;
+
+
+        y_out(:,1) = filter(Hd_hdc, window_signal(:,1) .* window_signal(:,2));
+        y_out_cut = sum(y_out(del_proc0+1:end,1));
+        % sum_der = sum(deriative_corr(:,1) + deriative_corr(:,2));
+
 		%%
 		mult_u = pseudo_u * er(:,j);
 
-		delta_tilda(:,j) = (mult_u/cor_M_floor);
+		delta_tilda(:,j) = (mult_u/y_out_cut);
 
         coeff(:,j+1) = coeff(:,j) + 0.2 * delta_tilda(:,j);
-
 
     end
 
     % save (sprintf(num2str(clock) + ".mat"));
     % load ('2026              2             23             23             51         10.257.mat'); % f = 420MHz, ts = 0.05 
-
+ 
     % выход АЦП
     % sig_adc = zeros(sim_options.M*length(x_tilda(:,1)),1);
 
