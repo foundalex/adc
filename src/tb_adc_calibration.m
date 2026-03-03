@@ -138,7 +138,7 @@ width_sum3_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_i
 for num = 1:sim_options.num_cycles
 
     % Функция генерации сигналов для АЦП
-    [s_to_subadc, adc_input_double, adc_input_sin, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
+    [s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
 
     % adc_input = 0
@@ -147,7 +147,7 @@ for num = 1:sim_options.num_cycles
     % sim_options = 0
 
 
-    [sig_adc, delta_tilda] = new_algorithm(adc_input, adc_input_sin, s_to_subadc, s_after_subadc, sim_options);
+    [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc, s_after_subadc, sim_options);
 
     
     % 
@@ -378,23 +378,21 @@ for num = 1:sim_options.num_cycles
     % end
 
     %% 
-    % snr_in_int(num) = snr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
-    % snr_output_lu(num) = snr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    % snr_output_double(num) = snr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
-    % snr_output_int(num) = snr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-    % 
-    % sfdr_in_int(num) = sfdr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
-    % sfdr_output_lu(num) = sfdr(x_after_adc, sim_options.Fs/sim_options.Inter);
-    % sfdr_output_double(num) = sfdr(x_after_adc_double, sim_options.Fs/sim_options.Inter);
-    % sfdr_output_int(num) = sfdr(x_after_adc_int, sim_options.Fs/sim_options.Inter);
-    % 
-    % norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter/sim_options.M);
-    % num_array(:,num) = num;
-    % 
-    % % freq
-    % sim_options.freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
-    % % SNR
-    % sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
+    snr_in_good(num) = snr(double(s_to_subadc), sim_options.Fs/sim_options.Inter);
+    snr_in_bad(num) = snr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
+    snr_output(num) = snr(sig_adc, sim_options.Fs/sim_options.Inter);
+
+    sfdr_in_good(num) = sfdr(double(s_to_subadc), sim_options.Fs/sim_options.Inter);
+    sfdr_in_bad(num) = sfdr(double(s_after_subadc), sim_options.Fs/sim_options.Inter);
+    sfdr_output(num) = sfdr(sig_adc, sim_options.Fs/sim_options.Inter);
+
+    norm_freq(num) = sim_options.freq/(sim_options.Fs/sim_options.Inter);
+    num_array(:,num) = num;
+
+    % freq
+    sim_options.freq = sim_options.freq + sim_options.step; % frequency of fundamental tone
+    % SNR
+    sim_options.SNR = sim_options.SNR + sim_options.Step_of_SNR;
 end
 
 
@@ -567,20 +565,20 @@ end
 % end
 
 %% Итоговый график SNR и SFDR каждой итерации алгоритма
-% figure(14);
-% subplot(2,1,1)
-% plot(norm_freq, snr_in_int, '-o', norm_freq, snr_output_lu, '-o', norm_freq, snr_output_double, '-o', norm_freq, snr_output_int, '-o');
-% title('SNR');
-% xlabel('Нормированная частота'); 
-% ylabel('SNR (dB)'); 
-% legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
-% % 
-% subplot(2,1,2)
-% plot(norm_freq, sfdr_in_int, '-o', norm_freq, sfdr_output_lu, '-o', norm_freq, sfdr_output_double, '-o', norm_freq, sfdr_output_int, '-o');
-% title('SFDR (dB)');
-% xlabel('Нормированная частота'); 
-% ylabel('SFDR (dB)'); 
-% legend({'Входной сигнал с ошибками int', 'Выходной сигнал матлаб функции LU', 'Выходной сигнал double', 'Выходной сигнал int'}, 'Location','northwest');
+figure(14);
+subplot(2,1,1)
+plot(norm_freq, snr_in_good, '-o', norm_freq, snr_in_bad, '-o', norm_freq, snr_output, '-o');
+title('SNR');
+xlabel('Нормированная частота'); 
+ylabel('SNR (dB)'); 
+legend({'Входной сигнал без ошибок', 'Входной сигнал с ошибками', 'Выходной сигнал'}, 'Location','northwest');
+% 
+subplot(2,1,2)
+plot(norm_freq, sfdr_in_good, '-o', norm_freq, sfdr_in_bad, '-o', norm_freq, sfdr_output, '-o');
+title('SFDR (dB)');
+xlabel('Нормированная частота'); 
+ylabel('SFDR (dB)'); 
+legend({'Входной сигнал без ошибок', 'Входной сигнал с ошибками', 'Выходной сигнал'}, 'Location','northwest');
 
 %% Measurements2
 % figure(7);
