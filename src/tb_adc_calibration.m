@@ -140,7 +140,7 @@ for num = 1:sim_options.num_cycles
     % Функция генерации сигналов для АЦП
     [s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
-
+    
     % adc_input = 0
     % s_to_subadc = 0
     % s_after_subadc = 0 

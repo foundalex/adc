@@ -1,7 +1,7 @@
 function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_after_subadc, sim_options);
 
-    % load ('2026              3              3             17             38         30.605.mat');
     % save (sprintf(num2str(clock) + ".mat"));
+    % load ('2026              3              4             10             51         25.301.mat');
 
     N = 8192;
     hdc = 9;
@@ -80,16 +80,18 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     % ylabel('Амплитуда') 
 
     %%
-    coeff(1,1) = 0;
-    coeff(2,1) = 0;
-    coeff(3,1) = 0;
-    coeff(4,1) = 0;
+    coeff = zeros(sim_options.M,1);
 
     del_proc0 = (hdc-1)/2;
     del_proc1 = (hdq1-1)/2;
     del_proc2 = (hdq2-1)/2;
 
-    U = [2 -1 0 -1; -1 2 -1 0; 0 -1 2 -1; -1 0 -1 2];
+    if sim_options.M == 4
+        U = [2 -1 0 -1; -1 2 -1 0; 0 -1 2 -1; -1 0 -1 2];
+    elseif sim_options.M == 2
+        U = [2 -1; -1 2];
+    end
+
     % находим псевдоинверсную матрицу
 	pseudo_u = pinv(U);
 
@@ -181,6 +183,7 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
         hdq2_coeff(i) = ((-1)^n_hdq2_impz(i))/n_hdq2_impz(i); 
     end
     hdq2_coeff((hdq2+1)/2) = 1;
+    % symmetric
     hdq2_coeff(4) = hdq2_coeff(2);
     hdq2_coeff(5) = hdq2_coeff(1);
 
@@ -200,49 +203,16 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     % xlabel('Частота') 
     % ylabel('Амплитуда')
 
-    %%
-    % figure(80); 
-    % plot(f3_hdc, angle(x3_hdc), f3_hdc, angle(x3), f3_hdc, angle(x3_hdq2));
 
-    %% VI samples intervention
-    % in = 0;
-    % row = 1;
-    % start = 1;
-    % 
-    % while in < numel(s_after_subadc)-4
-    %     for j = start:4
-    %         in = in + 1;
-    %         if in ~= 1 && mod(in-1,11) == 0
-    %             j = 1;
-    %             row = row + 1;
-    %             sig(row,j) = s_after_subadc(in);
-    %             start = 2;
-    %         else
-    %             sig(row,j) = s_after_subadc(in);
-    %             start = 1;
-    %         end
-    %     end
-    %     if mod(in-1,11) ~= 0
-    %         row = row + 1;
-    %     end
-    % end
-    % 
-    % % удаление нулей из 4-го АЦП
-    % odd_i = sig(1:3:end,4);
-    % even_i = [sig(2:3:end,4)];
-    % result = reshape([odd_i'; even_i'],1,[]);
-    % 
-    % adc_input_interv = zeros(numel(sig(:,1)), sim_options.M);
-    % 
-    % for i = 1:sim_options.M
-    %     if i ~= sim_options.M
-    %         adc_input_interv(:,i) = sig(:,i);
-    %     else
-    %         adc_input_interv(1:numel(result),i) = result;
-    %     end
-    % end
 
-    %% H(d,c)
+
+
+
+
+
+   
+    %% Начало алгоритма
+    % H(d,c)
 
     % y = filter(Hdc, double(s_after_subadc));
     y = filter(Hdc, 1, s_after_subadc);
@@ -254,38 +224,69 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     % subplot(2,1,2)
     % snr(y_cut(:,1), sim_options.Fs_sub_adc);
     %%
-    % aa = zeros(32768,1);
+    
+    % создаем массив каналов
+    % ch_array = zeros(32768,1);
+    % s_ind = 1;
+    % e_ind = 4;
+    % for r = 1:N
+    %     ch_array(s_ind:e_ind) = (1:4);
+    %     s_ind = s_ind + 4;
+    %     e_ind = e_ind + 4;
+    % end
+
+    % buffer_hdq1 = zeros(1,hdq1);
+    % buffer_hdq1_channel = zeros(1,hdq1);
+
     for j = 1:floor(length(y_cut_s)/(N*sim_options.M)) 
 
         start_index = sim_options.M*N*(j-1)+1;
         end_index = start_index+(N*sim_options.M)-1;
+
+        for i = 1:sim_options.M
+            y1_mult(i:sim_options.M:sim_options.M*N) = y_cut_s(start_index+i-1:sim_options.M:end_index) .* coeff(i,j);
+        end
    
-        y1_mult(1:sim_options.M:sim_options.M*N) = y_cut_s(start_index:sim_options.M:end_index) .* coeff(1,j);
-        y1_mult(2:sim_options.M:sim_options.M*N) = y_cut_s(start_index+1:sim_options.M:end_index) .* coeff(2,j);
-        y1_mult(3:sim_options.M:sim_options.M*N) = y_cut_s(start_index+2:sim_options.M:end_index) .* coeff(3,j);
-        y1_mult(4:sim_options.M:sim_options.M*N) = y_cut_s(start_index+3:sim_options.M:end_index) .* coeff(4,j);
+        % y1_mult(1:sim_options.M:sim_options.M*N) = y_cut_s(start_index:sim_options.M:end_index) .* coeff(1,j);
+        % y1_mult(2:sim_options.M:sim_options.M*N) = y_cut_s(start_index+1:sim_options.M:end_index) .* coeff(2,j);
+        % y1_mult(3:sim_options.M:sim_options.M*N) = y_cut_s(start_index+2:sim_options.M:end_index) .* coeff(3,j);
+        % y1_mult(4:sim_options.M:sim_options.M*N) = y_cut_s(start_index+3:sim_options.M:end_index) .* coeff(4,j);
 
         y_tilda = s_after_subadc(start_index:end_index) - y1_mult;
 
         %% Hdq1
-        % y11  = filter(Hdq11, y_tilda);
+        
+        % for n = 1:length(y_tilda)
+        % 
+        %     buffer_hdq1 = [(y_tilda(n)) buffer_hdq1(1:end-1)];
+        %     buffer_hdq1_channel = [(ch_array(n)) buffer_hdq1_channel(1:end-1)];
+        % 
+        %     for i = 1:hdq1
+        %         y_mult(i,n) =  Hdq1(i) * buffer_hdq1(i);
+        %     end
+        % 
+        %     y_add(1,n) = y_mult(1,n) + y_mult(2,n);
+        % 
+        %     for i = 1:hdq1-2
+        %         y_add(i+1,n) = y_add(i,n) + y_mult(i+2,n);
+        %     end
+        % end
+        % 
+        % y1_mf = (y_add(hdq1-1,:))';
 
+        % y11  = filter(Hdq11, y_tilda);
         [y1, zfq1] = filter(Hdq1, 1, y_tilda, zfq1);
+
         % if j == 1
             y1_cut = [y1(del_proc1+1:end); zeros(del_proc1,1)];
         % else
-        %     y1_cut = y1;
+            % y1_cut = y1;
         % end
-        % 
-        % figure(34);
-        % plot([y1_cut(32669:32768), y1_cut(1:100)]);
+    
+        for i = 1:sim_options.M
+            y1_cut(i:sim_options.M:sim_options.M*N) = y1_cut(i:sim_options.M:sim_options.M*N) .* coeff(i,j);
+        end    
 
-        % aa = y1_cut;
-
-        y1_cut(1:sim_options.M:sim_options.M*N) = y1_cut(1:sim_options.M:sim_options.M*N) .* coeff(1,j);
-        y1_cut(2:sim_options.M:sim_options.M*N) = y1_cut(2:sim_options.M:sim_options.M*N) .* coeff(2,j);
-        y1_cut(3:sim_options.M:sim_options.M*N) = y1_cut(3:sim_options.M:sim_options.M*N) .* coeff(3,j);
-        y1_cut(4:sim_options.M:sim_options.M*N) = y1_cut(4:sim_options.M:sim_options.M*N) .* coeff(4,j);
 
         %% Hdq2
         % [y2] = filter(Hdq2, y_tilda);
@@ -296,69 +297,42 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
         %     y2_cut = y2;
         % end
 
-        y2_cut(1:sim_options.M:sim_options.M*N) = y2_cut(1:sim_options.M:sim_options.M*N) .* (coeff(1,j)^2)/2;
-        y2_cut(2:sim_options.M:sim_options.M*N) = y2_cut(2:sim_options.M:sim_options.M*N) .* (coeff(2,j)^2)/2;
-        y2_cut(3:sim_options.M:sim_options.M*N) = y2_cut(3:sim_options.M:sim_options.M*N) .* (coeff(3,j)^2)/2;
-        y2_cut(4:sim_options.M:sim_options.M*N) = y2_cut(4:sim_options.M:sim_options.M*N) .* (coeff(4,j)^2)/2;
+        for i = 1:sim_options.M
+            y2_cut(i:sim_options.M:sim_options.M*N) = y2_cut(i:sim_options.M:sim_options.M*N) .* (coeff(i,j)^2)/2;
+        end
 
+        % скорректированный сигнал после дифф.фильтров
         x_tilda(:,j) = s_after_subadc(start_index:end_index) - y1_cut - y2_cut;
 
-        % производим корелляцию в окне и находим среднее значение
-        cor1(:,j) = sum(x_tilda(1:sim_options.M:sim_options.M*N,j).*x_tilda(2:sim_options.M:sim_options.M*N,j))/N;
-        cor2(:,j) = sum(x_tilda(2:sim_options.M:sim_options.M*N,j).*x_tilda(3:sim_options.M:sim_options.M*N,j))/N;
-        cor3(:,j) = sum(x_tilda(3:sim_options.M:sim_options.M*N,j).*x_tilda(4:sim_options.M:sim_options.M*N,j))/N;
-        cor4(:,j) = sum([0; x_tilda(4:sim_options.M:sim_options.M*N-1,j)] .* x_tilda(1:sim_options.M:sim_options.M*N,j))/N;
+
+
+        %% производим корелляцию в окне и находим среднее значение
+        for k = 1:sim_options.M-1
+            cor(k,j) = sum(x_tilda(k:sim_options.M:sim_options.M*N,j).*x_tilda(k+1:sim_options.M:sim_options.M*N,j))/N;
+        end
+        cor(sim_options.M,j) = sum([0; x_tilda(sim_options.M:sim_options.M:sim_options.M*N-1,j)] .* x_tilda(1:sim_options.M:sim_options.M*N,j))/N;
 
         % находим ошибку среднего значения корреляций
-		er(1,j) = cor1(:,j) - cor4(:,j);
-		er(2,j) = cor2(:,j) - cor1(:,j);
-		er(3,j) = cor3(:,j) - cor2(:,j);
-		er(4,j) = cor4(:,j) - cor3(:,j);
+        error_correlate(1,j) = cor(1,j) - cor(sim_options.M,j);
+        for i = 2:sim_options.M
+            error_correlate(i,j) = cor(i,j) - cor(i-1,j);
+        end
 
 		%% выход АЦП0 дифф. фильтра
-
         cor_M(j) = sum(x_tilda(2:sim_options.M:sim_options.M*N,j) .* y_cut_s(start_index:sim_options.M:end_index))/N;
 
 		rate = nextpow2(cor_M(j));
 		cor_M_floor = 2^rate;
 
 		%%
-		mult_u = pseudo_u * er(:,j);
-
-		delta_tilda(:,j) = (mult_u/cor_M_floor);
-
+		mult_u = pseudo_u * error_correlate(:,j);
+		delta_tilda(:,j) = mult_u/cor_M_floor;
         coeff(:,j+1) = coeff(:,j) + 0.2 * delta_tilda(:,j);
 
     end
 
     % save (sprintf(num2str(clock) + ".mat"));
     % load ('2026              2             23             23             51         10.257.mat'); % f = 420MHz, ts = 0.05 
- 
-    % выход АЦП
-    % sig_adc = zeros(sim_options.M*length(x_tilda(:,1)),1);
-
-    % for i = 1:numel(x_tilda(:,1))
-    %     for j = start:4
-    %         in = in + 1;
-    %         if in ~= 1 && mod(in-1,11) == 0
-    %             j = 1;
-    %             row = row + 1;
-    %             sig_adc(row) = x_tilda(i,j);
-    %             start = 2;
-    %         else
-    %             row = row + 1;
-    %             sig_adc(row) = x_tilda(i,j);
-    %             start = 1;
-    %         end
-    %     end
-    %     % if mod(in-1,11) ~= 0
-    %     %     row = row + 1;
-    %     % end
-    % end
-
-    % удаление нулей из 4-го АЦП
-
-    % adc4 = x_tilda(1:363662,4);
 
     start_index_s = 1;
     end_index_s = sim_options.M*N;
@@ -371,43 +345,32 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     end
 
     figure(6)
-    subplot(8,1,1)
+    subplot(sim_options.M+4,1,1)
     plot([s_to_subadc_int(end-500:end), s_after_subadc(end-500:end), sig_adc(end-500:end)]);
     title('Входной сигнал и выходной сигнал')
     xlabel('Номер отсчета') 
     ylabel('Значение отсчета') 
     legend({'Вход','Выход'},'Location','northeast');
     %% дельты
-    subplot(8,1,2)
-    plot(delta_tilda(1,:));
-    title('Дельта первого суб-АЦП')
-    xlabel('Номер итерации') 
-    ylabel('Значение дельты') 
-    subplot(8,1,3)
-    plot(delta_tilda(2,:));
-    title('Дельта второго суб-АЦП')
-    subplot(8,1,4)
-    plot(delta_tilda(3,:));
-    title('Дельта третьего суб-АЦП')
-    subplot(8,1,5)
-    plot(delta_tilda(4,:));
-    title('Дельта четвертого суб-АЦП')
-    subplot(8,1,6)
+    for i = 1:sim_options.M
+        subplot(sim_options.M+4,1,i+1)
+        plot(delta_tilda(i,:));
+        title(['Дельта суб-АЦП' num2str(i)])
+        xlabel('Номер итерации') 
+        ylabel('Значение дельты') 
+    end
+
+    subplot(sim_options.M+4,1,sim_options.M+2)
     snr(s_to_subadc_int, sim_options.Fs_sub_adc*4);
-    subplot(8,1,7)
+    subplot(sim_options.M+4,1,sim_options.M+3)
     snr(s_after_subadc, sim_options.Fs_sub_adc*4);
-    subplot(8,1,8)
+    subplot(sim_options.M+4,1,sim_options.M+4)
 	snr(sig_adc, sim_options.Fs_sub_adc*4);
 
-    %%
+    %% Графики корреляций
     figure(7);
-    subplot(4,1,1)
-    plot(er(1,:));
-    subplot(4,1,2)
-    plot(er(2,:));
-    subplot(4,1,3)
-    plot(er(3,:));
-    subplot(4,1,4)
-    plot(er(4,:));
-
+    for i = 1:sim_options.M
+        subplot(sim_options.M,1,i)
+        plot(error_correlate(i,:));
+    end
 end

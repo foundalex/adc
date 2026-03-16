@@ -4,11 +4,18 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     t = 0:dt:sim_options.StopTime;                                                      % seconds
 
     % Create main signal with noise in double
-    
-    s1 = 1*cos(2*pi*sim_options.freq*t);
+
+
+    s1 = cos(2*pi*sim_options.freq*t);
+    % save (sprintf(num2str(clock) + ".mat"));
+    % load ('2026              3              6             15             40         18.288.mat'); 
+
+    % sim_options.MODEL_ERROR = true;
+    % sim_options.time_skew_array = [0.01, 0.04, 0.03, 0];
+
     % ss = -sin(2*pi*sim_options.freq*t);
-    % s2 = 0.25*cos(2*pi*(sim_options.freq+400000000)*t+pi/4);
-    % s3 = 0.25*cos(2*pi*(sim_options.freq+800000000)*t+pi/2);
+    % s2 = 0.25*cos(2*pi*(sim_options.freq+500000000)*t+pi/4);
+    % s3 = 0.25*cos(2*pi*(sim_options.freq+1000000000)*t+pi/2);
     % s4 = 0.2*cos(2*pi*(sim_options.freq+600000000)*t+pi/8);
     % s5 = 0.2*(cos(2*pi*(sim_options.freq+800000000)*t));
 
@@ -34,7 +41,7 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % figure(3);
     % plot([s1(1:100)', s2(1:100)']);
 
-    s = s1; % + s2; % + s3 + s4 + s5;
+    s = s1; % + s2 + s3; % + s4 + s5;
 
 
     s = awgn(s,sim_options.SNR(1));
@@ -112,12 +119,16 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     end
 
 
+    % e0 = zeros(1500,1);
+    % e1 = ones(1500,1);
+    % ee = [e0; e1];
+    % 
     % spectrumScope = spectrumAnalyzer(SampleRate=sim_options.Fs, ...            
     %         AveragingMethod='exponential',ForgettingFactor=0.99, ...
     %         YLimits=[-30 10],ShowLegend=true);
     % 
-    % spectrumScope([double(adc_input_int(:,1))/2048]);
-    % % spectrumScope([s']);
+    % spectrumScope(ee);
+    % figure(33); plot(ee);
 
 
 	% исходный сигнал до искажений

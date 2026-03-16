@@ -27,16 +27,16 @@ step_of_snr = 0; % eval(get(findobj('Tag', 'step_of_SNR'),'String'));
 error_adc = get(findobj('Tag', 'error_adc'),'Value');
 
 % Time Skew Error
-for i = 2:8
-    time_skew_array(i-1) = eval(get(findobj('Tag',strcat('timeSkew',string(i))),'String'));
+for i = 1:8
+    time_skew_array(i) = eval(get(findobj('Tag',strcat('timeSkew',string(i))),'String'));
 end
 % Gain Error
-for i = 2:8
-    gain_error_array(i-1) = eval(get(findobj('Tag',strcat('Gain',string(i))),'String'));
+for i = 1:8
+    gain_error_array(i) = eval(get(findobj('Tag',strcat('Gain',string(i))),'String'));
 end
 % Offset Error
-for i = 2:8
-    offset_error_array(i-1) = eval(get(findobj('Tag',strcat('Offset',string(i))),'String'));
+for i = 1:8
+    offset_error_array(i) = eval(get(findobj('Tag',strcat('Offset',string(i))),'String'));
 end
 
 
