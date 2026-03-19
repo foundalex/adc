@@ -6,7 +6,8 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % Create main signal with noise in double
 
 
-    s1 = cos(2*pi*sim_options.freq*t);
+    s1 = 0.25*sin(2*pi*sim_options.freq*t);
+    
     % save (sprintf(num2str(clock) + ".mat"));
     % load ('2026              3              6             15             40         18.288.mat'); 
 
@@ -14,10 +15,18 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % sim_options.time_skew_array = [0.01, 0.04, 0.03, 0];
 
     % ss = -sin(2*pi*sim_options.freq*t);
-    % s2 = 0.25*cos(2*pi*(sim_options.freq+500000000)*t+pi/4);
-    % s3 = 0.25*cos(2*pi*(sim_options.freq+1000000000)*t+pi/2);
-    % s4 = 0.2*cos(2*pi*(sim_options.freq+600000000)*t+pi/8);
-    % s5 = 0.2*(cos(2*pi*(sim_options.freq+800000000)*t));
+
+
+    % s2 = 0.025*sin(2*pi*(sim_options.freq+500000000)*t);
+    % s3 = 0.025*sin(2*pi*(sim_options.freq+800000000)*t);
+    % s4 = 0.025*sin(2*pi*(sim_options.freq+1500000000)*t);
+    % s5 = 0.025*sin(2*pi*(sim_options.freq+700000000)*t);
+    % s6 = 0.025*sin(2*pi*(sim_options.freq+900000000)*t);
+    % s7 = 0.025*sin(2*pi*(sim_options.freq+1000000000)*t);
+    % s8 = 0.025*sin(2*pi*(sim_options.freq+1400000000)*t);
+    % s9 = 0.025*sin(2*pi*(sim_options.freq+1500000000)*t);
+    % s10 = 0.025*sin(2*pi*(sim_options.freq+1700000000)*t);
+
 
     % figure(2);
     % plot([s1(1:100)', ss(1:100)']);
@@ -41,12 +50,18 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % figure(3);
     % plot([s1(1:100)', s2(1:100)']);
 
-    s = s1; % + s2 + s3; % + s4 + s5;
+    s = s1; % + s2 + s3; % + s4 + s5 + s6 + s7 + s8 + s9 + s10;
+
+    % Sine1 = dsp.SineWave(Frequency=sim_options.freq,SampleRate=4e9,SamplesPerFrame=2*10^6);
+    % 
+    % y = Sine1();
+    % figure(4);
+    % plot([y(1:100),s(1:100)'])
 
 
     s = awgn(s,sim_options.SNR(1));
-    
-
+    % y = awgn(y,sim_options.SNR(1));
+    % s_after_subadc = y;
     % s = awgn(s, 60);
     % s = s + noise;
     % [pxx,f] = periodogram(s); 
@@ -61,8 +76,8 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
         dlin = (floor((length(s)-begin)./(sim_options.M*sim_options.Inter)));
     end
 
-    adc_input = zeros(max(dlin),sim_options.M);
-    adc_input_int = int16(adc_input);
+    % adc_input = zeros(max(dlin),sim_options.M);
+    % adc_input_int = int16(adc_input);
 
     ended = max(dlin)*sim_options.Inter*sim_options.M;
     
@@ -80,7 +95,6 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % figure(50); plot(adc_input(1:100,1));
     % figure(51); sfdr(adc_input(:,1), sim_options.Fs/sim_options.Inter);
 
-    % adc_input_good(:,1) = s(begin(1):step:ended);
     
     for i = 1:sim_options.M  
         % если ошибки суб-АЦП включены, то добавляем time s
@@ -94,7 +108,11 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
             % gain
             adc_input(:,i) = adc_input(:,i) * sim_options.gain_error_array(i);
         else
-            adc_input(:,i) = s(begin(i):step:ended);
+            if i == 1
+                adc_input(:,i) = s(begin(i):step:end-1);
+            else
+                adc_input(:,i) = s(begin(i):step:end);
+            end
             % adc_input_sin(:,i) = ss(begin(i):step:ended);
         end
     end
@@ -153,18 +171,20 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
 
     % figure(2);
     % plot([adc_input(1:100,1), adc_input(1:100,2)]);
-    % 
-    % figure(3);
-    % subplot(5,1,1)
-    % plot(s_to_subadc(1:100));
-    % subplot(5,1,2)
-    % plot(s_after_subadc(1:100));
+
+    figure(3);
+    subplot(4,1,1)
+    plot(s_to_subadc(1:100));
+    subplot(4,1,2)
+    plot(s_after_subadc(1:100));
     % subplot(5,1,3)
     % plot(adc_input_int(1:100,1));
-    % subplot(5,1,4)
-    % snr(s_to_subadc, sim_options.Fs/sim_options.Inter);
-    % subplot(5,1,5)
-    % snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    subplot(4,1,3)
+    snr(s_to_subadc, sim_options.Fs/sim_options.Inter);
+    subplot(4,1,4)
+    snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
 
+    % figure(4);
+    % plot([y(1:100), s_after_subadc(1:100)*2^-11]);
 
 end

@@ -146,6 +146,16 @@ for num = 1:sim_options.num_cycles
     % s_after_subadc = 0 
     % sim_options = 0
 
+    %% Анти-алиасинговый фильтр на входе АЦП
+    % [n,fo,ao,w] = firpmord([900*10^6 1*10^9],[1 0],[0.001 0.01],2*10^9);
+    % b = firpm(n,fo,ao,w);
+    % % figure(2);
+    % % freqz(b,1,[],2*10^9);
+    % 
+    % s_after_subadc_out = filter(b, 1, s_after_subadc);
+    % % удаляем переходной процесс
+    % s_after_subadc_out_cut = s_after_subadc_out(((n-1)/2)+1:end);
+
 
     [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc, s_after_subadc, sim_options);
 
