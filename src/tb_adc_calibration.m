@@ -16,131 +16,191 @@ randn('state',sum(100*clock));
 % Initialize simulation timer
 start_time = clock;
 
-num_filter = string((1:sim_options.N)');
-num_determinante = string((1:sim_options.num_det2x2*3)');
-num_adaptive = string((1:sim_options.Size_matrix*sim_options.Size_matrix)');
-num_divide = string((1:1)');
+% num_filter = string((1:sim_options.N)');
+% num_determinante = string((1:sim_options.num_det2x2*3)');
+% num_adaptive = string((1:sim_options.Size_matrix*sim_options.Size_matrix)');
+% num_divide = string((1:1)');
 %% Полосовой фильтр АЦП0
-bandpass_mult_max = cast(zeros(sim_options.N,1), sim_options.int_size);
-bandpass_sum_max = cast(zeros(sim_options.N,1), sim_options.int_size);
-bandpass_total_width_mult_max = cast(zeros(sim_options.N,1), sim_options.int_size);
-bandpass_total_width_sum_max = cast(zeros(sim_options.N,1), sim_options.int_size);
-bandpass_width_mult = cast(zeros(sim_options.N,1), sim_options.int_size);
-bandpass_width_sum = cast(zeros(sim_options.N,1), sim_options.int_size);
+% bandpass_mult_max = cast(zeros(sim_options.N,1), sim_options.int_size);
+% bandpass_sum_max = cast(zeros(sim_options.N,1), sim_options.int_size);
+% bandpass_total_width_mult_max = cast(zeros(sim_options.N,1), sim_options.int_size);
+% bandpass_total_width_sum_max = cast(zeros(sim_options.N,1), sim_options.int_size);
+% bandpass_width_mult = cast(zeros(sim_options.N,1), sim_options.int_size);
+% bandpass_width_sum = cast(zeros(sim_options.N,1), sim_options.int_size);
 %% Фильтр дробной задержки
-width_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
-width_sum = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
-fractional_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-fractional_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-fractional_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-fractional_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-y_fractional_outInt_abs_max_in_cycle = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
+% width_mult = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
+% width_sum = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
+% fractional_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% fractional_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% fractional_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% fractional_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% y_fractional_outInt_abs_max_in_cycle = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
 %% Фильтр Гилберта
-width_mult_h = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
-width_sum_h = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
-hilbert_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-hilbert_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-hilbert_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-hilbert_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
-ymi_HilbertInt_abs_max_in_cycle = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% width_mult_h = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
+% width_sum_h = cast(zeros(sim_options.N, sim_options.M-1), sim_options.int_size);
+% hilbert_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% hilbert_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% hilbert_total_width_mult_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% hilbert_total_width_sum_max = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
+% ymi_HilbertInt_abs_max_in_cycle = cast(zeros(sim_options.N,sim_options.M-1), sim_options.int_size);
 %%
-DetM_2x2_multiplier_total_abs_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
-Det2x2_sum_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
-Mult_DetM_3x3_array_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
-Mult_DetM_3x3_array_mult_total_width_max_in_cycle 	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
-DetM_3x3_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
-DetM_3x3_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
-DetM_3x3_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
-DetM_3x3_int_sum_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
-% умножители определителя 4х4
-DetM_4x4_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
-% разрядность умножителей определителя 4х4
-DetM_4x4_int_mult_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
-% пресумматоры определителя 4х4
-DetM_4x4_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
-% разрядность пресумматоров определителя 4х4
-DetM_4x4_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
-% сумматоры определителя 4х4
-DetM_4x4_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
-% разрядность сумматоров определителя 4х4
-DetM_4x4_int_sum_array_width_total_max_in_cycle		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
-% умножители определителя 5х5
-DetM_5x5_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
-% разрядность умножителей 5x5
-DetM_5x5_int_mult_array_width_total_max_in_cycle	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
-% пресумматоры1 определителя 5х5
-DetM_5x5_int_pre_sum1_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
-% разрядность пресумматоров1 определителя 5х5
-DetM_5x5_int_pre_sum1_array_width_total_max_in_cycle = cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
-% пресумматор2 определителя 5х5
-DetM_5x5_int_sum3_abs_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
-% разрядность пресумматора2 определителя 5х5
-DetM_5x5_int_sum3_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
-% сумматор определителя 5х5
-DetM_5x5_int_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
-% разрядность сумматора определителя 5х5
-DetM_5x5_int_width_total_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% DetM_2x2_multiplier_total_abs_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
+% Det2x2_sum_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_2x2_det);
+% Mult_DetM_3x3_array_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+% Mult_DetM_3x3_array_mult_total_width_max_in_cycle 	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+% DetM_3x3_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+% DetM_3x3_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+% DetM_3x3_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+% DetM_3x3_int_sum_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_3x3_det);
+% % умножители определителя 4х4
+% DetM_4x4_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
+% % разрядность умножителей определителя 4х4
+% DetM_4x4_int_mult_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
+% % пресумматоры определителя 4х4
+% DetM_4x4_int_pre_sum_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
+% % разрядность пресумматоров определителя 4х4
+% DetM_4x4_int_pre_sum_width_total_max_in_cycle 		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
+% % сумматоры определителя 4х4
+% DetM_4x4_int_sum_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
+% % разрядность сумматоров определителя 4х4
+% DetM_4x4_int_sum_array_width_total_max_in_cycle		= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
+% % умножители определителя 5х5
+% DetM_5x5_int_mult_array_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_4x4_det);
+% % разрядность умножителей 5x5
+% DetM_5x5_int_mult_array_width_total_max_in_cycle	= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% % пресумматоры1 определителя 5х5
+% DetM_5x5_int_pre_sum1_array_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% % разрядность пресумматоров1 определителя 5х5
+% DetM_5x5_int_pre_sum1_array_width_total_max_in_cycle = cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% % пресумматор2 определителя 5х5
+% DetM_5x5_int_sum3_abs_max_in_cycle 					= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% % разрядность пресумматора2 определителя 5х5
+% DetM_5x5_int_sum3_width_total_max_in_cycle 			= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% % сумматор определителя 5х5
+% DetM_5x5_int_abs_max_in_cycle 						= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
+% % разрядность сумматора определителя 5х5
+% DetM_5x5_int_width_total_max_in_cycle 				= cast(zeros(sim_options.num_det2x2*3,sim_options.M-1), sim_options.type_5x5_det);
 
 
-Multipliers_2x2 = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_2x2_det);
-Adders_2x2 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_2x2_det);
-Multipliers_3x3 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_3x3_det);
-Pre_sum_3x3 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_3x3_det);
-Sum_3x3 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_3x3_det);
-
-Multipliers_4x4 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_4x4_det);
-Pre_sum_4x4 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_4x4_det);
-Sum4x4 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_4x4_det);
-
-Mult5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
-Pre_sum1_5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
-Pre_sum2_5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
-Det_5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
+% Multipliers_2x2 = cast(zeros(sim_options.num_det2x2*3,1), sim_options.type_2x2_det);
+% Adders_2x2 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_2x2_det);
+% Multipliers_3x3 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_3x3_det);
+% Pre_sum_3x3 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_3x3_det);
+% Sum_3x3 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_3x3_det);
+% 
+% Multipliers_4x4 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_4x4_det);
+% Pre_sum_4x4 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_4x4_det);
+% Sum4x4 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_4x4_det);
+% 
+% Mult5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
+% Pre_sum1_5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
+% Pre_sum2_5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
+% Det_5x5 = cast(zeros(sim_options.num_det2x2*3, 1), sim_options.type_5x5_det);
 %%
-width_mult_det2x2 = cast(zeros(length(num_determinante),1), sim_options.type_2x2_det);
-width_sum_det2x2 = cast(zeros(length(num_determinante),1), sim_options.type_2x2_det);
-
-width_mult_det3x3 = cast(zeros(length(num_determinante),1), sim_options.type_3x3_det);
-width_presum_det3x3 = cast(zeros(length(num_determinante),1), sim_options.type_3x3_det);
-width_sum_det3x3 = cast(zeros(length(num_determinante),1), sim_options.type_3x3_det);
-
-width_mult_det4x4 = cast(zeros(length(num_determinante),1), sim_options.type_4x4_det);
-width_presum_det4x4 = cast(zeros(length(num_determinante),1), sim_options.type_4x4_det);
-width_sum_det4x4 = cast(zeros(length(num_determinante),1), sim_options.type_4x4_det);
-
-width_mult_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
-width_presum1_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
-width_presum2_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
-width_sum_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
+% width_mult_det2x2 = cast(zeros(length(num_determinante),1), sim_options.type_2x2_det);
+% width_sum_det2x2 = cast(zeros(length(num_determinante),1), sim_options.type_2x2_det);
+% 
+% width_mult_det3x3 = cast(zeros(length(num_determinante),1), sim_options.type_3x3_det);
+% width_presum_det3x3 = cast(zeros(length(num_determinante),1), sim_options.type_3x3_det);
+% width_sum_det3x3 = cast(zeros(length(num_determinante),1), sim_options.type_3x3_det);
+% 
+% width_mult_det4x4 = cast(zeros(length(num_determinante),1), sim_options.type_4x4_det);
+% width_presum_det4x4 = cast(zeros(length(num_determinante),1), sim_options.type_4x4_det);
+% width_sum_det4x4 = cast(zeros(length(num_determinante),1), sim_options.type_4x4_det);
+% 
+% width_mult_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
+% width_presum1_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
+% width_presum2_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
+% width_sum_det5x5 = cast(zeros(length(num_determinante),1), sim_options.type_5x5_det);
 
 % начальный определитель
-Det_x3_int_max_in_cycle = cast(zeros(1,sim_options.M-1), sim_options.type_5x5_det);
+% Det_x3_int_max_in_cycle = cast(zeros(1,sim_options.M-1), sim_options.type_5x5_det);
 % выход делителя
-Divide_max_in_cycle = cast(zeros(1,sim_options.M-1), sim_options.type_divide_out);
+% Divide_max_in_cycle = cast(zeros(1,sim_options.M-1), sim_options.type_divide_out);
 
 %% Адаптивный фильтр
-Adaptive_filter_mult_array_max_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
-Adaptive_filter_mult_total_width_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
-Adaptive_filter_sum_array_max_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 3, sim_options.M-1), sim_options.type_add_in_adaptive_filter);
-Adaptive_filter_sum_total_width_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 3, sim_options.M-1), sim_options.type_add_in_adaptive_filter);
-
-Multipliers_adaptive = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_mult_in_adaptive_filter);
-Sum1_adaptive = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
-Sum2_adaptive = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
-Sum3_adaptive =cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
-		
-width_mult_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_mult_in_adaptive_filter);
-width_sum1_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_in_adaptive_filter);
-width_sum2_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_in_adaptive_filter);
-width_sum3_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_in_adaptive_filter);
+% Adaptive_filter_mult_array_max_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
+% Adaptive_filter_mult_total_width_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix,sim_options.M-1), sim_options.type_mult_in_adaptive_filter);
+% Adaptive_filter_sum_array_max_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 3, sim_options.M-1), sim_options.type_add_in_adaptive_filter);
+% Adaptive_filter_sum_total_width_in_cycle = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 3, sim_options.M-1), sim_options.type_add_in_adaptive_filter);
+% 
+% Multipliers_adaptive = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_mult_in_adaptive_filter);
+% Sum1_adaptive = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
+% Sum2_adaptive = cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
+% Sum3_adaptive =cast(zeros(sim_options.Size_matrix*sim_options.Size_matrix, 1), sim_options.type_add_in_adaptive_filter);
+% 
+% width_mult_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_mult_in_adaptive_filter);
+% width_sum1_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_in_adaptive_filter);
+% width_sum2_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_in_adaptive_filter);
+% width_sum3_adaptive = cast(zeros(length(num_adaptive),1), sim_options.type_add_in_adaptive_filter);
 
             
 for num = 1:sim_options.num_cycles
 
     % Функция генерации сигналов для АЦП
-    [s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
+    % [s, s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
+    % save (sprintf(num2str(clock) + ".mat"));
+    load ('2026              3             24             14             46         29.414.mat');
+
+    s = round(s*2^11);
+
+    % aa = (1:150000);
+    aa = s;
+    NN = (8192/sim_options.M);
+    %% Sampling Intervention
+    for j = 1:sim_options.M
+
+        % стартовые индексы
+        if j == 1
+            index = 1;
+        elseif j == 2
+             index = sim_options.Inter+1;   
+        elseif j == 3
+            index = sim_options.Inter*2+1;
+        elseif j == 4
+            index = sim_options.Inter*3+1;
+        end
+
+        % sampling controller
+        for i = 1:floor(length(aa)/(sim_options.Inter*sim_options.M))-100
+            if i ~=1 && mod(i,NN) == 0
+                % if j ~= 1
+                %   index = index+(sim_options.M*sim_options.Inter)-j+1;
+                %    
+                % else
+                    index = index+(sim_options.M*sim_options.Inter);
+                % end
+            elseif i ~=1 && mod(i,NN) == 1
+                 if j == 1
+                    % index = index + ((sim_options.M-1)*(sim_options.Inter-1));
+                    index = index + ((sim_options.M)*(sim_options.Inter-1));
+                 else
+                    % index = index + sim_options.M+sim_options.Inter + j;
+                     index = index + (sim_options.M*(sim_options.Inter-1)); 
+                 end
+            else
+               index = index + (sim_options.M*sim_options.Inter); 
+            end
+            adc_input_inv(i,j) = aa(index);
+            end      
+    end
+
+    s_after_subadc_interv = zeros(sim_options.M*length(adc_input_inv(:,1)),1);
+	for i = 1:sim_options.M
+        s_after_subadc_interv(i:sim_options.M:end) = adc_input_inv(:,i); 
+    end
+
+    % удаление семплов 4-го канала
+    s_after_subadc_interv(NN*sim_options.M:NN*sim_options.M:end) = [];
+
+    figure(4);
+    subplot(2,1,1)
+    plot(s_after_subadc_interv(8150:8250));
+    subplot(2,1,2)
+    snr(s_after_subadc_interv, sim_options.Fs/sim_options.Inter);
     
+    %%
     % adc_input = 0
     % s_to_subadc = 0
     % s_after_subadc = 0 
@@ -157,7 +217,7 @@ for num = 1:sim_options.num_cycles
     % s_after_subadc_out_cut = s_after_subadc_out(((n-1)/2)+1:end);
 
 
-    [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc, s_after_subadc, sim_options);
+    [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc, s_after_subadc_interv, sim_options);
 
     
     % 

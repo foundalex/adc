@@ -1,4 +1,4 @@
-function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen_oversampled_signal(sim_options)
+function [s, s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen_oversampled_signal(sim_options)
 
     dt = 1/sim_options.Fs;                                                              % seconds per sample
     t = 0:dt:sim_options.StopTime;                                                      % seconds
@@ -6,7 +6,7 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % Create main signal with noise in double
 
 
-    s1 = 0.25*sin(2*pi*sim_options.freq*t);
+    s1 = 1*sin(2*pi*sim_options.freq*t);
     
     % save (sprintf(num2str(clock) + ".mat"));
     % load ('2026              3              6             15             40         18.288.mat'); 
@@ -17,7 +17,7 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % ss = -sin(2*pi*sim_options.freq*t);
 
 
-    % s2 = 0.025*sin(2*pi*(sim_options.freq+500000000)*t);
+    % s2 = 0.25*sin(2*pi*(1440000000)*t);
     % s3 = 0.025*sin(2*pi*(sim_options.freq+800000000)*t);
     % s4 = 0.025*sin(2*pi*(sim_options.freq+1500000000)*t);
     % s5 = 0.025*sin(2*pi*(sim_options.freq+700000000)*t);
@@ -50,10 +50,9 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     % figure(3);
     % plot([s1(1:100)', s2(1:100)']);
 
-    s = s1; % + s2 + s3; % + s4 + s5 + s6 + s7 + s8 + s9 + s10;
+    s = s1; %+ s2; % + s3; % + s4 + s5 + s6 + s7 + s8 + s9 + s10;
 
-    % Sine1 = dsp.SineWave(Frequency=sim_options.freq,SampleRate=4e9,SamplesPerFrame=2*10^6);
-    % 
+    % Sine1 = dsp.SineWave(Frequency=sim_options.freq,SampleRate=sim_options.Fs,SamplesPerFrame=2*10^6);
     % y = Sine1();
     % figure(4);
     % plot([y(1:100),s(1:100)'])
@@ -82,19 +81,6 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     ended = max(dlin)*sim_options.Inter*sim_options.M;
     
     %% разбиваем входной сигнал на сигналы для суб-АЦП
-   
-    % АЦП0 - эталон
-    % adc_input(:,1) = s(begin(1):step:ended);
-
-    % adc_input(1:998,1) = s(begin(1):10:9980);
-    % % adc_input(2:3:end,1) = s(begin(1)+10:10:9990);
-    % % adc_input(3:3:end,1) = s(begin(1)+20:10:10000);
-    % % adc_input(4:5:end,1) = s(begin(1)+300:step:ended);
-    % % adc_input(5:5:end,1) = s(begin(1)+400:step:end);
-
-    % figure(50); plot(adc_input(1:100,1));
-    % figure(51); sfdr(adc_input(:,1), sim_options.Fs/sim_options.Inter);
-
     
     for i = 1:sim_options.M  
         % если ошибки суб-АЦП включены, то добавляем time s
@@ -117,7 +103,10 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
         end
     end
 
-    % %% добавляем к каждому суб-АЦП шум
+
+
+
+    %% добавляем к каждому суб-АЦП шум
     adc_input_double = adc_input;
     % for i = 1:sim_options.M 
     %     adc_input(:,i) = awgn(adc_input(:,i), sim_options.SNR(i) , "measured");
@@ -184,7 +173,13 @@ function [s_to_subadc, adc_input_double, adc_input_int, s_after_subadc, Z] = gen
     subplot(4,1,4)
     snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
 
-    % figure(4);
-    % plot([y(1:100), s_after_subadc(1:100)*2^-11]);
+    figure(4);
+    for i = 1:sim_options.M
+        subplot(sim_options.M,1,i)
+        plot(adc_input_int(1:100,i));
+        title(['Выход АЦП' num2str(i)])
+        xlabel('Амплитуда') 
+        ylabel('Номер отсчета') 
+    end
 
 end

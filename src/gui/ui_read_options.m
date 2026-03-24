@@ -47,7 +47,7 @@ end
 
 container = 'int64';
 % Oversampling factor
-Inter = 100;
+Inter = 4;
 Fs_sub_adc = 1*10^9; % 1 GHz
 Fs = Fs_sub_adc * Inter * num_ADC; 
 
@@ -71,7 +71,7 @@ sim_options = struct(                                       ...
    'N',                             73,                     ... % Number taps filters fractional delay
    'Size_matrix',                   5,                      ... % Number taps adaptive out filter
    'Ls',                            500,                    ... % количество строк в матрице (кол-во захватываемых семплов)
-   'StopTime',                      0.0005,              ... % seconds
+   'StopTime',                      0.00001,                  ... % 1 ms need minimum
    'Inter',                         Inter,                  ... % oversampling factor,                    
    'fractional_coeff_width',        19,                     ...
    'hilbert_coeff_width',           16,                     ...                  
