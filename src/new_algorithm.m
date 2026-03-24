@@ -15,7 +15,7 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     percent_erf = erf_P1_12*100;
 
     %% параметры моделирования
-    N = 8192;
+    N = 8191;
     hdc = 9;
     hdq1 = 25;
     hdq2 = 5;
@@ -102,7 +102,7 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     % находим псевдоинверсную матрицу
 	pseudo_u = pinv(U);
 
-    y1_mult = zeros(N*sim_options.M,1);
+    y1_mult = zeros(N-1,1);
 
     %% 9 - ый порядок
     n_hdc_impz = -(hdc-1)/2:(hdc-1)/2;
@@ -208,9 +208,6 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
     hdq2_coeff_symm = hdq2_coeff;
     hdq2_coeff_symm(4) = hdq2_coeff(2);
     hdq2_coeff_symm(5) = hdq2_coeff(1);
-
-    % asymmetric
-    
     
 
     Hdq2_symm = hdq2_coeff_symm .* w_blackman_hdq2;
@@ -291,11 +288,11 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
 
     for j = 1:floor(length(y_cut_s)/(N*sim_options.M)) 
 
-        % start_index = sim_options.M*N*(j-1)+1;
-        % end_index = start_index+(N*sim_options.M)-1;
-
         start_index = sim_options.M*N*(j-1)+1;
         end_index = start_index+(N*sim_options.M)-1;
+
+        % start_index = N*(j-1)+1;
+        % end_index = start_index+(N)-1;
 
         for i = 1:sim_options.M
             y1_mult(i:sim_options.M:sim_options.M*N) = y_cut_s(start_index+i-1:sim_options.M:end_index) .* coeff(i,j);
@@ -328,30 +325,16 @@ function [sig_adc, delta_tilda] = new_algorithm(adc_input, s_to_subadc_int, s_af
         % 
         % y1_mf = (y_add(hdq1-1,:))';
 
-        % y11  = filter(Hdq11, y_tilda);
         y_tilda = [y_tilda; zeros(del_proc1,1)];
 
-        % figure(13)
-        % plot(y_tilda1);
-
-
         [y1, zfq1] = filter(Hdq1, 1, y_tilda, zfq1);
+        y1_cut = y1(del_proc1+1:end);
 
-        % if j == 1
-            % y1_cut = [y1(del_proc1+1:end); zeros(del_proc1,1)];
-            y1_cut = y1(del_proc1+1:end);
-        % else
-        %     y1_cut = y1;
-        % end
-
-        % figure(14)
-        % plot(y1_cut);
     
         for i = 1:sim_options.M
-            y1_cut(i:sim_options.M:sim_options.M*N) = y1_cut(i:sim_options.M:sim_options.M*N) .* coeff(i,j);
+            y1_cut(i:sim_options.M:N) = y1_cut(i:sim_options.M:N) .* coeff(i,j);
         end    
 
-        
         % y1_cut(i:sim_options.M:sim_options.M*N) = y1_cut(i:sim_options.M:sim_options.M*N) .* coeff(4,j);
         % y1_cut(i:sim_options.M:sim_options.M*N) = y1_cut(i:sim_options.M:sim_options.M*N) .* coeff(1,j);
         % y1_cut(i:sim_options.M:sim_options.M*N) = y1_cut(i:sim_options.M:sim_options.M*N) .* coeff(2,j);

@@ -141,7 +141,9 @@ for num = 1:sim_options.num_cycles
     % [s, s_to_subadc, adc_input_double, adc_input, s_after_subadc, sim_options.Z] = gen_oversampled_signal(sim_options);
 
     % save (sprintf(num2str(clock) + ".mat"));
-    load ('2026              3             24             14             46         29.414.mat');
+    % load ('2026              3             24             14             46         29.414.mat'); %
+    load ('2026              3             24             17             14          5.644.mat'); %
+
 
     s = round(s*2^11);
 
@@ -195,11 +197,12 @@ for num = 1:sim_options.num_cycles
     s_after_subadc_interv(NN*sim_options.M:NN*sim_options.M:end) = [];
 
     figure(4);
-    subplot(2,1,1)
+    subplot(3,1,1)
     plot(s_after_subadc_interv(8150:8250));
-    subplot(2,1,2)
+    subplot(3,1,2)
+    snr(s_after_subadc, sim_options.Fs/sim_options.Inter);
+    subplot(3,1,3)
     snr(s_after_subadc_interv, sim_options.Fs/sim_options.Inter);
-    
     %%
     % adc_input = 0
     % s_to_subadc = 0
